@@ -1,4 +1,5 @@
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts"
+import pg from "npm:pg@8.13.1"
+const { Client } = pg
 import {
   FirstDeathRow,
   TradingRow,
@@ -8,6 +9,9 @@ import {
   MultiKillRow,
   EcoRoundRow,
 } from "./types.ts"
+
+// Re-export Client type for index.ts
+export type { Client } from "npm:pg@8.13.1"
 
 /**
  * Query first death impact: rounds lost when player dies first without contributing
@@ -35,7 +39,7 @@ export async function queryFirstDeathImpact(
       ${tournamentId ? "AND s.tournament_id = $2" : ""}
   `
 
-  const result = await client.queryObject<FirstDeathRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows[0] || { losses: "0", total: "0" }
 }
 
@@ -62,7 +66,7 @@ export async function queryTradingEfficiency(
       ${tournamentId ? "AND s.tournament_id = $2" : ""}
   `
 
-  const result = await client.queryObject<TradingRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows[0] || { traded: "0", total_deaths: "0" }
 }
 
@@ -90,7 +94,7 @@ export async function queryOpeningDuels(
       ${tournamentId ? "AND s.tournament_id = $2" : ""}
   `
 
-  const result = await client.queryObject<OpeningDuelsRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows[0] || { first_kills: "0", first_deaths: "0", total_rounds: "0" }
 }
 
@@ -118,7 +122,7 @@ export async function queryClutchPerformance(
       ${tournamentId ? "AND s.tournament_id = $2" : ""}
   `
 
-  const result = await client.queryObject<ClutchRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows[0] || { clutches_won: "0", clutch_situations: "0" }
 }
 
@@ -152,7 +156,7 @@ export async function queryAgentPerformance(
     ORDER BY COUNT(*) DESC
   `
 
-  const result = await client.queryObject<AgentRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows
 }
 
@@ -183,7 +187,7 @@ export async function queryMultiKillRounds(
       ${tournamentId ? "AND s.tournament_id = $2" : ""}
   `
 
-  const result = await client.queryObject<MultiKillRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows[0] || {
     two_plus_kills: "0",
     three_plus_kills: "0",
@@ -223,6 +227,6 @@ export async function queryEcoRoundPerformance(
     ORDER BY r.phase
   `
 
-  const result = await client.queryObject<EcoRoundRow>(query, params)
+  const result = await client.query(query, params)
   return result.rows
 }

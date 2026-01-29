@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { Hono } from "https://deno.land/x/hono@v4.6.14/mod.ts"
-import { Client } from "https://deno.land/x/postgres@v0.19.3/mod.ts"
+import { Hono } from "npm:hono@4.6.14"
+import pg from "npm:pg@8.13.1"
 import { corsHeaders } from "../_shared/cors.ts"
 import { calculateConfidence } from "../_shared/confidence.ts"
 import { jsonResponse, errorResponse } from "../_shared/response.ts"
@@ -26,8 +26,12 @@ app.options("*", (c) => new Response("ok", { headers: corsHeaders }))
 /**
  * Get database client
  */
-async function getClient(): Promise<Client> {
-  const client = new Client(Deno.env.get("DATABASE_URL")!)
+async function getClient(): Promise<pg.Client> {
+  // Use SUPABASE_DB_URL (standard edge runtime env) or DATABASE_URL (custom)
+  const connectionString = Deno.env.get("SUPABASE_DB_URL") || Deno.env.get("DATABASE_URL")!
+  const client = new pg.Client({
+    connectionString,
+  })
   await client.connect()
   return client
 }
