@@ -69,6 +69,94 @@ else
 fi
 
 echo ""
+echo "=== Index Verification ==="
+echo ""
+
+# Count optimized indexes
+index_count=$($PSQL "$PG_CONN" -t -c "SELECT count(*) FROM pg_indexes WHERE schemaname = 'public';" | tr -d ' ')
+
+if [ "$index_count" -ge 45 ]; then
+  echo "  Total indexes: $index_count [OK - expected 45+]"
+else
+  echo "  Total indexes: $index_count [FAIL - expected 45+]"
+  ALL_MATCH=false
+fi
+
+# Check partial index for first_death exists
+partial_idx=$($PSQL "$PG_CONN" -t -c "SELECT indexname FROM pg_indexes WHERE indexname = 'idx_prs_first_death_partial';" | tr -d ' ')
+if [ "$partial_idx" = "idx_prs_first_death_partial" ]; then
+  echo "  Partial index (first_death): exists [OK]"
+else
+  echo "  Partial index (first_death): missing [FAIL]"
+  ALL_MATCH=false
+fi
+
+# Check scenario index exists
+scenario_idx=$($PSQL "$PG_CONN" -t -c "SELECT indexname FROM pg_indexes WHERE indexname = 'idx_scenario_state_full';" | tr -d ' ')
+if [ "$scenario_idx" = "idx_scenario_state_full" ]; then
+  echo "  Scenario index: exists [OK]"
+else
+  echo "  Scenario index: missing [FAIL]"
+  ALL_MATCH=false
+fi
+
+echo ""
+echo "=== Query Performance Verification ==="
+echo ""
+
+# Test first death query uses index (check for Index Scan in plan)
+first_death_plan=$($PSQL "$PG_CONN" -t -c "
+EXPLAIN SELECT p.name, COUNT(*) as first_deaths
+FROM player_round_stats prs
+JOIN players p ON prs.player_id = p.id
+WHERE prs.first_death = TRUE
+GROUP BY p.id, p.name
+LIMIT 5;
+" 2>/dev/null)
+
+if echo "$first_death_plan" | grep -q "Index"; then
+  echo "  First death query: uses Index Scan [OK]"
+else
+  echo "  First death query: no index usage [FAIL]"
+  ALL_MATCH=false
+fi
+
+# Test scenario query uses index only scan
+scenario_plan=$($PSQL "$PG_CONN" -t -c "
+EXPLAIN SELECT round_id, map_name, attacker_won
+FROM scenario_index
+WHERE attacker_alive = 2 AND defender_alive = 3 AND spike_planted = TRUE
+LIMIT 10;
+" 2>/dev/null)
+
+if echo "$scenario_plan" | grep -q "Index"; then
+  echo "  Scenario query: uses Index Scan [OK]"
+else
+  echo "  Scenario query: no index usage [FAIL]"
+  ALL_MATCH=false
+fi
+
+# Test first death query execution time (should be under 100ms)
+first_death_time=$($PSQL "$PG_CONN" -t -c "
+EXPLAIN ANALYZE SELECT p.name, COUNT(*) as first_deaths
+FROM player_round_stats prs
+JOIN players p ON prs.player_id = p.id
+WHERE prs.first_death = TRUE
+GROUP BY p.id, p.name
+LIMIT 5;
+" 2>/dev/null | grep "Execution Time" | sed 's/.*Execution Time: \([0-9.]*\) ms/\1/')
+
+if [ -n "$first_death_time" ]; then
+  # Compare as integers (bash doesn't do float comparison easily)
+  time_int=$(echo "$first_death_time" | cut -d. -f1)
+  if [ "$time_int" -lt 100 ]; then
+    echo "  First death query time: ${first_death_time}ms [OK - under 100ms]"
+  else
+    echo "  First death query time: ${first_death_time}ms [WARN - over 100ms target]"
+  fi
+fi
+
+echo ""
 if [ "$ALL_MATCH" = true ]; then
   echo "=== VALIDATION PASSED ==="
 else
