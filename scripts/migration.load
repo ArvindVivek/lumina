@@ -1,0 +1,15 @@
+LOAD DATABASE
+    FROM sqlite:///Users/arvind/Documents/ValVision/valvision-ml/grid-gg/data/valvision.db
+    INTO postgresql://postgres:postgres@localhost:54322/postgres
+
+WITH include drop,
+     create tables,
+     create indexes,
+     reset sequences,
+     downcase identifiers
+
+SET work_mem to '16MB',
+    maintenance_work_mem to '512MB'
+
+EXCLUDING TABLE NAMES LIKE 'chat%', 'sqlite%'
+;
