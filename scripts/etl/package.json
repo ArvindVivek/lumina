@@ -1,0 +1,23 @@
+{
+  "name": "grid-etl",
+  "version": "1.0.0",
+  "description": "Central ETL scripts for GRID.gg data (VALORANT + LoL)",
+  "type": "module",
+  "scripts": {
+    "etl": "tsx etl-valorant.ts",
+    "etl:dry-run": "tsx etl-valorant.ts --dry-run",
+    "validate": "tsx validate-data.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "bottleneck": "^2.19.5",
+    "dotenv": "^16.4.7",
+    "p-retry": "^6.2.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
