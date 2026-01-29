@@ -394,3 +394,21 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/lumina-player-insights/deno.json"
 entrypoint = "./functions/lumina-player-insights/index.ts"
+
+[functions.lumina-etl-tournaments]
+enabled = true
+verify_jwt = false
+import_map = "./functions/lumina-etl-tournaments/deno.json"
+entrypoint = "./functions/lumina-etl-tournaments/index.ts"
+
+[functions.lumina-etl-series]
+enabled = true
+verify_jwt = false
+import_map = "./functions/lumina-etl-series/deno.json"
+entrypoint = "./functions/lumina-etl-series/index.ts"
+
+[functions.lumina-etl-drafts]
+enabled = true
+verify_jwt = false
+import_map = "./functions/lumina-etl-drafts/deno.json"
+entrypoint = "./functions/lumina-etl-drafts/index.ts"
