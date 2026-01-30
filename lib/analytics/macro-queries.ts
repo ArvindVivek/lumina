@@ -3,6 +3,10 @@ import {
   PistolAnalysisRow,
   FirstBloodConversionRow,
   TradeDisciplineRow,
+  OpeningDuelsByPlayerRow,
+  EconomyManagementRow,
+  TimingPatternRow,
+  UltimateEconomyRow,
 } from './macro-types'
 
 /**
@@ -256,4 +260,130 @@ export async function queryTradeDiscipline(
     overall_trade_rate: "0.00",
     first_death_trade_rate: "0.00"
   }
+}
+
+/**
+ * Query opening duels by player: per-player first kill/death statistics
+ * MACRO-04: Opening Duels by Player
+ */
+export async function queryOpeningDuelsByPlayer(
+  sql: Sql,
+  teamId: string,
+  tournamentId?: string,
+): Promise<OpeningDuelsByPlayerRow[]> {
+  const result = tournamentId
+    ? await sql<OpeningDuelsByPlayerRow[]>`
+      SELECT
+        prs.player_id,
+        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
+        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
+        COUNT(*)::text as total_rounds
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
+      WHERE prs.team_id = ${teamId}
+        AND s.tournament_id = ${tournamentId}
+      GROUP BY prs.player_id
+      ORDER BY SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END) DESC
+    `
+    : await sql<OpeningDuelsByPlayerRow[]>`
+      SELECT
+        prs.player_id,
+        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
+        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
+        COUNT(*)::text as total_rounds
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
+      WHERE prs.team_id = ${teamId}
+      GROUP BY prs.player_id
+      ORDER BY SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END) DESC
+    `
+
+  return result
+}
+
+/**
+ * Query economy management: win rates by buy type (full/force/eco)
+ * MACRO-05: Economy Management
+ */
+export async function queryEconomyManagement(
+  sql: Sql,
+  teamId: string,
+  tournamentId?: string,
+): Promise<EconomyManagementRow[]> {
+  const result = tournamentId
+    ? await sql<EconomyManagementRow[]>`
+      WITH round_economy AS (
+        SELECT
+          r.id,
+          r.round_number,
+          r.winning_team_id,
+          CASE
+            WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+            ELSE r.team_b_loadout_value
+          END as team_loadout_value,
+          CASE
+            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
+            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
+            ELSE 'eco'
+          END as economy_decision
+        FROM public.rounds r
+        JOIN public.games g ON r.game_id = g.id
+        JOIN public.series s ON g.series_id = s.id
+        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+          AND s.tournament_id = ${tournamentId}
+      )
+      SELECT
+        economy_decision,
+        COUNT(*)::text as rounds,
+        COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::text as wins,
+        ROUND(
+          COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::numeric /
+          NULLIF(COUNT(*), 0),
+          3
+        )::text as win_rate,
+        AVG(team_loadout_value)::text as avg_loadout_value
+      FROM round_economy
+      GROUP BY economy_decision
+      ORDER BY economy_decision
+    `
+    : await sql<EconomyManagementRow[]>`
+      WITH round_economy AS (
+        SELECT
+          r.id,
+          r.round_number,
+          r.winning_team_id,
+          CASE
+            WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+            ELSE r.team_b_loadout_value
+          END as team_loadout_value,
+          CASE
+            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
+            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
+            ELSE 'eco'
+          END as economy_decision
+        FROM public.rounds r
+        JOIN public.games g ON r.game_id = g.id
+        JOIN public.series s ON g.series_id = s.id
+        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+      )
+      SELECT
+        economy_decision,
+        COUNT(*)::text as rounds,
+        COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::text as wins,
+        ROUND(
+          COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::numeric /
+          NULLIF(COUNT(*), 0),
+          3
+        )::text as win_rate,
+        AVG(team_loadout_value)::text as avg_loadout_value
+      FROM round_economy
+      GROUP BY economy_decision
+      ORDER BY economy_decision
+    `
+
+  return result
 }
