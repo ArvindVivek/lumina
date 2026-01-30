@@ -7,7 +7,9 @@ import {
   EconomyManagementRow,
   TimingPatternRow,
   UltimateEconomyRow,
+  RoundBreakdownRow,
 } from './macro-types'
+import { RoundDataForClassification } from './priority-classifier'
 
 /**
  * Query pistol round analysis: pistol round win rates and bonus round conversion
@@ -322,18 +324,18 @@ export async function queryEconomyManagement(
           r.round_number,
           r.winning_team_id,
           CASE
-            WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+            WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
             ELSE r.team_b_loadout_value
           END as team_loadout_value,
           CASE
-            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
-            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
+            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
+            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
             ELSE 'eco'
           END as economy_decision
         FROM public.rounds r
         JOIN public.games g ON r.game_id = g.id
         JOIN public.series s ON g.series_id = s.id
-        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
           AND s.tournament_id = ${tournamentId}
       )
       SELECT
@@ -357,18 +359,18 @@ export async function queryEconomyManagement(
           r.round_number,
           r.winning_team_id,
           CASE
-            WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+            WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
             ELSE r.team_b_loadout_value
           END as team_loadout_value,
           CASE
-            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
-            WHEN (CASE WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
+            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
+            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
             ELSE 'eco'
           END as economy_decision
         FROM public.rounds r
         JOIN public.games g ON r.game_id = g.id
         JOIN public.series s ON g.series_id = s.id
-        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
       )
       SELECT
         economy_decision,
@@ -408,7 +410,7 @@ export async function queryTimingPatterns(
              SELECT r2.id FROM public.rounds r2
              JOIN public.games g2 ON r2.game_id = g2.id
              JOIN public.series s2 ON g2.series_id = s2.id
-             WHERE (r2.team_a_id = ${teamId} OR r2.team_b_id = ${teamId})
+             WHERE (s2.team_a_id = ${teamId} OR s2.team_b_id = ${teamId})
                AND s2.tournament_id = ${tournamentId}
            )
         ) as avg_first_kill_time_ms,
@@ -416,7 +418,7 @@ export async function queryTimingPatterns(
       FROM public.rounds r
       JOIN public.games g ON r.game_id = g.id
       JOIN public.series s ON g.series_id = s.id
-      WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+      WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
         AND s.tournament_id = ${tournamentId}
     `
     : await sql<TimingPatternRow[]>`
@@ -429,14 +431,14 @@ export async function queryTimingPatterns(
              SELECT r2.id FROM public.rounds r2
              JOIN public.games g2 ON r2.game_id = g2.id
              JOIN public.series s2 ON g2.series_id = s2.id
-             WHERE (r2.team_a_id = ${teamId} OR r2.team_b_id = ${teamId})
+             WHERE (s2.team_a_id = ${teamId} OR s2.team_b_id = ${teamId})
            )
         ) as avg_first_kill_time_ms,
         COUNT(*)::text as rounds_analyzed
       FROM public.rounds r
       JOIN public.games g ON r.game_id = g.id
       JOIN public.series s ON g.series_id = s.id
-      WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+      WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
     `
 
   return result[0] || {
@@ -507,4 +509,94 @@ export async function queryUltimateEconomy(
     rounds_with_ult_available: "0",
     ult_availability_win_rate: "0.000"
   }
+}
+
+/**
+ * Query round breakdown: chronological round data for game review
+ * REVW-01: Round Breakdown
+ */
+export async function queryRoundBreakdown(
+  sql: Sql,
+  teamId: string,
+  gameId?: string,
+  tournamentId?: string,
+): Promise<RoundBreakdownRow[]> {
+  const result = await sql<RoundBreakdownRow[]>`
+    SELECT
+      r.id as round_id,
+      r.round_number::text,
+      r.game_id,
+      g.map_name,
+      r.winning_team_id,
+      r.spike_planted::text,
+      r.spike_defused::text,
+      r.team_a_alive::text,
+      r.team_b_alive::text,
+      CASE
+        WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+        ELSE r.team_b_loadout_value
+      END::text as team_loadout_value,
+      CASE
+        WHEN r.team_a_id = ${teamId} THEN r.team_b_loadout_value
+        ELSE r.team_a_loadout_value
+      END::text as opponent_loadout_value,
+      r.duration_ms::text,
+      (SELECT prs.team_id FROM public.player_round_stats prs
+       WHERE prs.round_id = r.id AND prs.first_kill = TRUE LIMIT 1) as first_blood_team_id
+    FROM public.rounds r
+    JOIN public.games g ON r.game_id = g.id
+    JOIN public.series s ON g.series_id = s.id
+    WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+      ${gameId ? sql`AND r.game_id = ${gameId}` : sql``}
+      ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
+    ORDER BY g.sequence_number, r.round_number
+  `
+
+  return result
+}
+
+/**
+ * Query rounds for critical moment classification
+ * MACRO-08, REVW-02: Critical Moments
+ */
+export async function queryRoundsForCriticalMoments(
+  sql: Sql,
+  teamId: string,
+  gameId?: string,
+  tournamentId?: string,
+): Promise<RoundDataForClassification[]> {
+  const result = await sql<RoundDataForClassification[]>`
+    SELECT
+      r.id as round_id,
+      r.round_number,
+      r.game_id,
+      r.winning_team_id,
+      r.team_a_alive,
+      r.team_b_alive,
+      CASE
+        WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+        ELSE r.team_b_loadout_value
+      END as team_loadout_value,
+      r.spike_planted,
+      COALESCE(
+        (SELECT prs.traded FROM public.player_round_stats prs
+         WHERE prs.round_id = r.id AND prs.first_death = TRUE AND prs.team_id = ${teamId}
+         LIMIT 1),
+        true
+      ) as first_death_traded,
+      (r.round_number IN (1, 13)) as is_pistol_round,
+      (CASE
+        WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value < 10000
+        ELSE r.team_b_loadout_value < 10000
+      END) as is_eco_round
+    FROM public.rounds r
+    JOIN public.games g ON r.game_id = g.id
+    JOIN public.series s ON g.series_id = s.id
+    WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+      ${gameId ? sql`AND r.game_id = ${gameId}` : sql``}
+      ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
+    ORDER BY g.sequence_number, r.round_number
+  `
+
+  return result
 }
