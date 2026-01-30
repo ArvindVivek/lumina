@@ -23,10 +23,10 @@ export async function queryFirstDeathImpact(
       SELECT
         SUM(CASE WHEN r.winning_team_id != prs.team_id THEN 1 ELSE 0 END)::text as losses,
         COUNT(*)::text as total
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND prs.first_death = TRUE
         AND prs.kills = 0
@@ -37,10 +37,10 @@ export async function queryFirstDeathImpact(
       SELECT
         SUM(CASE WHEN r.winning_team_id != prs.team_id THEN 1 ELSE 0 END)::text as losses,
         COUNT(*)::text as total
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND prs.first_death = TRUE
         AND prs.kills = 0
@@ -64,10 +64,10 @@ export async function queryTradingEfficiency(
       SELECT
         SUM(CASE WHEN prs.traded = TRUE THEN 1 ELSE 0 END)::text as traded,
         SUM(CASE WHEN prs.deaths > 0 THEN 1 ELSE 0 END)::text as total_deaths
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND s.tournament_id = ${tournamentId}
     `
@@ -75,10 +75,10 @@ export async function queryTradingEfficiency(
       SELECT
         SUM(CASE WHEN prs.traded = TRUE THEN 1 ELSE 0 END)::text as traded,
         SUM(CASE WHEN prs.deaths > 0 THEN 1 ELSE 0 END)::text as total_deaths
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
     `
 
@@ -100,10 +100,10 @@ export async function queryOpeningDuels(
         SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
         SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
         COUNT(*)::text as total_rounds
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND s.tournament_id = ${tournamentId}
     `
@@ -112,10 +112,10 @@ export async function queryOpeningDuels(
         SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
         SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
         COUNT(*)::text as total_rounds
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
     `
 
@@ -136,10 +136,10 @@ export async function queryClutchPerformance(
       SELECT
         SUM(CASE WHEN prs.clutch_won = TRUE THEN 1 ELSE 0 END)::text as clutches_won,
         COUNT(*)::text as clutch_situations
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND prs.clutch_situation = TRUE
         AND s.tournament_id = ${tournamentId}
@@ -148,10 +148,10 @@ export async function queryClutchPerformance(
       SELECT
         SUM(CASE WHEN prs.clutch_won = TRUE THEN 1 ELSE 0 END)::text as clutches_won,
         COUNT(*)::text as clutch_situations
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND prs.clutch_situation = TRUE
     `
@@ -178,10 +178,10 @@ export async function queryAgentPerformance(
         SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
         SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
         SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND s.tournament_id = ${tournamentId}
       GROUP BY prs.agent
@@ -196,10 +196,10 @@ export async function queryAgentPerformance(
         SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
         SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
         SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
       GROUP BY prs.agent
       ORDER BY COUNT(*) DESC
@@ -226,10 +226,10 @@ export async function queryMultiKillRounds(
         SUM(CASE WHEN prs.kills = 5 THEN 1 ELSE 0 END)::text as aces,
         COUNT(*)::text as total_rounds,
         SUM(prs.kills)::text as total_kills
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND s.tournament_id = ${tournamentId}
     `
@@ -241,10 +241,10 @@ export async function queryMultiKillRounds(
         SUM(CASE WHEN prs.kills = 5 THEN 1 ELSE 0 END)::text as aces,
         COUNT(*)::text as total_rounds,
         SUM(prs.kills)::text as total_kills
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
     `
 
@@ -275,10 +275,10 @@ export async function queryEcoRoundPerformance(
         SUM(prs.kills)::text as total_kills,
         SUM(prs.deaths)::text as total_deaths,
         SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND r.phase IS NOT NULL
         AND s.tournament_id = ${tournamentId}
@@ -292,10 +292,10 @@ export async function queryEcoRoundPerformance(
         SUM(prs.kills)::text as total_kills,
         SUM(prs.deaths)::text as total_deaths,
         SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM lumina.player_round_stats prs
-      JOIN lumina.rounds r ON prs.round_id = r.id
-      JOIN lumina.games g ON r.game_id = g.id
-      JOIN lumina.series s ON g.series_id = s.id
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
       WHERE prs.player_id = ${playerId}
         AND r.phase IS NOT NULL
       GROUP BY r.phase

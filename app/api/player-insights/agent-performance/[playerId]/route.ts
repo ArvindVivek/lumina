@@ -6,12 +6,12 @@ import type { InsightResponse, AgentData, AgentStats } from '@/lib/analytics/typ
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { playerId: string } }
+  { params }: { params: Promise<{ playerId: string }> }
 ) {
   const sql = createPostgresClient()
 
   try {
-    const { playerId } = params
+    const { playerId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
