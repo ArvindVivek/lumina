@@ -44,76 +44,257 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* VALORANT Theme Colors - grid.gg exact colors */
+  --color-valorant-red: #FF4655;
+  --color-surface: #1A242D;
+  --color-surface-hover: #253240;
+  --color-surface-active: #2D3B4A;
 }
 
-/* VALORANT Theme - Dark Mode Only */
-/* Based on official colors: #0f1923 (navy), #ff4655 (red), #00c4aa (teal) */
-/* Adjusted for UI readability per CONTEXT.md */
+/* VALORANT Theme - grid.gg exact colors */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
-  /* VALORANT dark navy background - slightly softened to #111827 for readability */
-  --background: 17 24 39; /* #111827 */
-  --foreground: 248 250 252; /* #f8fafc - off-white */
+  /* Background - #0F1923 */
+  --background: 210 38% 10%;
+  --foreground: 40 20% 92%; /* #ECE8E1 */
 
-  /* Card backgrounds - same as main background for consistency */
-  --card: 17 24 39;
-  --card-foreground: 248 250 252;
+  /* Cards - #1A242D */
+  --card: 210 28% 14%;
+  --card-foreground: 40 20% 92%;
 
-  /* Popover backgrounds */
-  --popover: 31 41 55; /* #1f2937 - slightly lighter for elevation */
-  --popover-foreground: 248 250 252;
+  /* Popover - #1A242D */
+  --popover: 210 28% 14%;
+  --popover-foreground: 40 20% 92%;
 
-  /* VALORANT red primary */
-  --primary: 255 70 85; /* #ff4655 */
-  --primary-foreground: 255 255 255;
+  /* Primary - #FF4655 */
+  --primary: 355 100% 64%;
+  --primary-foreground: 40 20% 92%;
 
-  /* Secondary - muted navy for cards/sections */
-  --secondary: 31 41 55; /* #1f2937 */
-  --secondary-foreground: 248 250 252;
+  /* Secondary - #1F2731 */
+  --secondary: 210 24% 17%;
+  --secondary-foreground: 40 20% 92%;
 
-  /* Muted backgrounds for less prominent elements */
-  --muted: 31 41 55; /* #1f2937 */
-  --muted-foreground: 156 163 175; /* #9ca3af - gray-400 */
+  /* Muted - #1F2731 */
+  --muted: 210 24% 17%;
+  --muted-foreground: 120 6% 47%; /* #768079 */
 
-  /* VALORANT teal accent */
-  --accent: 0 196 170; /* #00c4aa */
-  --accent-foreground: 255 255 255;
+  /* Accent - #17E8B5 (cyan) */
+  --accent: 162 83% 50%;
+  --accent-foreground: 210 38% 10%;
 
-  /* Destructive (error states) - keep red but different from primary */
-  --destructive: 220 38 38; /* #dc2626 - red-600 */
-  --destructive-foreground: 255 255 255;
+  /* Destructive */
+  --destructive: 355 100% 64%;
+  --destructive-foreground: 40 20% 92%;
 
-  /* Borders - subtle gray */
-  --border: 55 65 81; /* #374151 - gray-700 */
-  --input: 55 65 81;
+  /* Border - #253240 */
+  --border: 210 20% 20%;
+  --input: 210 20% 20%;
 
-  /* Focus rings - use primary red */
-  --ring: 255 70 85;
+  /* Ring - #FF4655 */
+  --ring: 355 100% 64%;
 
-  /* Chart colors - VALORANT inspired palette */
-  --chart-1: 255 70 85; /* Primary red */
-  --chart-2: 0 196 170; /* Teal accent */
-  --chart-3: 251 191 36; /* Amber for third metric */
-  --chart-4: 139 92 246; /* Purple for fourth metric */
-  --chart-5: 236 72 153; /* Pink for fifth metric */
+  /* Chart colors */
+  --chart-1: 355 100% 64%; /* Red */
+  --chart-2: 162 83% 50%; /* Cyan */
+  --chart-3: 45 97% 56%; /* Amber */
+  --chart-4: 258 90% 66%; /* Purple */
+  --chart-5: 329 73% 61%; /* Pink */
 
-  /* Sidebar - slightly lighter navy */
-  --sidebar: 31 41 55;
-  --sidebar-foreground: 248 250 252;
-  --sidebar-primary: 255 70 85;
-  --sidebar-primary-foreground: 255 255 255;
-  --sidebar-accent: 0 196 170;
-  --sidebar-accent-foreground: 255 255 255;
-  --sidebar-border: 55 65 81;
-  --sidebar-ring: 255 70 85;
+  /* Sidebar */
+  --sidebar: 210 24% 17%;
+  --sidebar-foreground: 40 20% 92%;
+  --sidebar-primary: 355 100% 64%;
+  --sidebar-primary-foreground: 40 20% 92%;
+  --sidebar-accent: 162 83% 50%;
+  --sidebar-accent-foreground: 40 20% 92%;
+  --sidebar-border: 210 20% 20%;
+  --sidebar-ring: 355 100% 64%;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
+    background-color: #0F1923;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar - grid.gg style */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: #1F2731;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #253240;
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #2D3B4A;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: rgba(255, 70, 85, 0.3);
+    color: #FF4655;
+  }
+}
+
+@layer components {
+  /* Glow effects - grid.gg style */
+  .glow-red {
+    box-shadow: 0 0 20px rgba(255, 70, 85, 0.3);
+  }
+
+  .glow-red-hover:hover {
+    box-shadow: 0 0 30px rgba(255, 70, 85, 0.4);
+  }
+
+  /* Card styles - grid.gg style */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply scale-[1.02];
+    box-shadow: 0 10px 40px -10px rgba(255, 70, 85, 0.2);
+  }
+
+  /* Stat display */
+  .stat-value {
+    @apply text-2xl font-bold text-foreground;
+  }
+
+  .stat-label {
+    @apply text-sm text-muted-foreground uppercase tracking-wide;
+  }
+
+  /* Priority indicators - grid.gg style */
+  .priority-high {
+    background-color: rgba(255, 70, 85, 0.2);
+    border-color: #FF4655;
+    color: #FF4655;
+  }
+
+  .priority-medium {
+    background-color: rgba(255, 152, 0, 0.2);
+    border-color: #FF9800;
+    color: #FF9800;
+  }
+
+  .priority-low {
+    background-color: rgba(118, 128, 121, 0.2);
+    border-color: #768079;
+    color: #768079;
+  }
+
+  /* Confidence badges - grid.gg style */
+  .confidence-high {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+  }
+
+  .confidence-medium {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #FF9800;
+  }
+
+  .confidence-low {
+    background-color: rgba(118, 128, 121, 0.2);
+    color: #768079;
+  }
+
+  /* Glass effect - grid.gg style */
+  .glass {
+    background-color: rgba(26, 36, 45, 0.8);
+    backdrop-filter: blur(12px);
+  }
+
+  /* Shimmer loading effect - grid.gg style */
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@layer utilities {
+  /* Text gradient - grid.gg style */
+  .text-gradient {
+    background: linear-gradient(to right, #FF4655, #17E8B5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Valorant gradient background */
+  .bg-valorant-gradient {
+    background: linear-gradient(135deg, rgba(255, 70, 85, 0.1) 0%, transparent 50%);
+  }
+
+  /* Focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2;
+    --tw-ring-color: #FF4655;
+    --tw-ring-offset-width: 2px;
+    --tw-ring-offset-color: #0F1923;
+  }
+
+  /* Transition utilities */
+  .transition-default {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .transition-slow {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  /* Glow utilities */
+  .glow-primary {
+    box-shadow: 0 0 20px rgba(255, 70, 85, 0.3);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(23, 232, 181, 0.3);
+  }
+
+  .text-gradient-primary {
+    background: linear-gradient(to right, #FF4655, #FF6B77, #17E8B5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
