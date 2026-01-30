@@ -30,7 +30,7 @@ export async function queryPistolAnalysis(
         FROM public.rounds r
         JOIN public.games g ON r.game_id = g.id
         JOIN public.series s ON g.series_id = s.id
-        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
           AND s.tournament_id = ${tournamentId}
           ${mapName ? sql`AND g.map_name = ${mapName}` : sql``}
       )
@@ -63,7 +63,7 @@ export async function queryPistolAnalysis(
         FROM public.rounds r
         JOIN public.games g ON r.game_id = g.id
         JOIN public.series s ON g.series_id = s.id
-        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
           ${mapName ? sql`AND g.map_name = ${mapName}` : sql``}
       )
       SELECT
@@ -111,7 +111,7 @@ export async function queryFirstBloodConversion(
         JOIN public.player_round_stats prs ON prs.round_id = r.id AND prs.first_kill = TRUE
         JOIN public.games g ON r.game_id = g.id
         JOIN public.series s ON g.series_id = s.id
-        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
           AND s.tournament_id = ${tournamentId}
       )
       SELECT
@@ -137,7 +137,7 @@ export async function queryFirstBloodConversion(
         JOIN public.player_round_stats prs ON prs.round_id = r.id AND prs.first_kill = TRUE
         JOIN public.games g ON r.game_id = g.id
         JOIN public.series s ON g.series_id = s.id
-        WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
       )
       SELECT
         COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId})::text as first_bloods,
