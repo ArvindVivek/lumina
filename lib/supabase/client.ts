@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 import postgres from 'postgres'
 import type { Sql } from 'postgres'
 
@@ -20,6 +21,17 @@ export function createServerClient() {
       persistSession: false,
     },
   })
+}
+
+/**
+ * Create a Supabase browser client for Client Components.
+ * Uses publishable anon key for client-side operations.
+ */
+export function createBrowserSupabaseClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  )
 }
 
 /**
