@@ -5,15 +5,12 @@ interface CriticalMoment {
   round_number: number
   priority: 'HIGH' | 'MEDIUM' | 'LOW'
   score: number
+  moment_type: string
+  description: string
   factors: {
     round_impact: number
     pattern_deviation: number
     economic_consequence: number
-  }
-  context: {
-    round_outcome: string
-    economy_state: string
-    score_before: string
   }
 }
 
@@ -90,7 +87,7 @@ function MomentRow({ moment }: { moment: CriticalMoment }) {
         <div>
           <p className="text-sm font-medium">Round {moment.round_number}</p>
           <p className="text-xs text-muted-foreground">
-            {moment.context.round_outcome} | {moment.context.economy_state} | Score: {moment.context.score_before}
+            {moment.description}
           </p>
         </div>
       </div>
