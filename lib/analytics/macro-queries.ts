@@ -387,3 +387,124 @@ export async function queryEconomyManagement(
 
   return result
 }
+
+/**
+ * Query timing patterns: average round duration and first kill timing
+ * MACRO-06: Timing Patterns
+ */
+export async function queryTimingPatterns(
+  sql: Sql,
+  teamId: string,
+  tournamentId?: string,
+): Promise<TimingPatternRow> {
+  const result = tournamentId
+    ? await sql<TimingPatternRow[]>`
+      SELECT
+        AVG(r.duration_ms)::text as avg_round_duration_ms,
+        (SELECT AVG(ke.game_time_ms)::text
+         FROM public.kill_events ke
+         WHERE ke.is_first_kill = TRUE
+           AND ke.round_id IN (
+             SELECT r2.id FROM public.rounds r2
+             JOIN public.games g2 ON r2.game_id = g2.id
+             JOIN public.series s2 ON g2.series_id = s2.id
+             WHERE (r2.team_a_id = ${teamId} OR r2.team_b_id = ${teamId})
+               AND s2.tournament_id = ${tournamentId}
+           )
+        ) as avg_first_kill_time_ms,
+        COUNT(*)::text as rounds_analyzed
+      FROM public.rounds r
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
+      WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+        AND s.tournament_id = ${tournamentId}
+    `
+    : await sql<TimingPatternRow[]>`
+      SELECT
+        AVG(r.duration_ms)::text as avg_round_duration_ms,
+        (SELECT AVG(ke.game_time_ms)::text
+         FROM public.kill_events ke
+         WHERE ke.is_first_kill = TRUE
+           AND ke.round_id IN (
+             SELECT r2.id FROM public.rounds r2
+             JOIN public.games g2 ON r2.game_id = g2.id
+             JOIN public.series s2 ON g2.series_id = s2.id
+             WHERE (r2.team_a_id = ${teamId} OR r2.team_b_id = ${teamId})
+           )
+        ) as avg_first_kill_time_ms,
+        COUNT(*)::text as rounds_analyzed
+      FROM public.rounds r
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
+      WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+    `
+
+  return result[0] || {
+    avg_round_duration_ms: "0",
+    avg_first_kill_time_ms: "0",
+    rounds_analyzed: "0"
+  }
+}
+
+/**
+ * Query ultimate economy: ultimate usage efficiency and availability win rates
+ * MACRO-07: Ultimate Economy
+ */
+export async function queryUltimateEconomy(
+  sql: Sql,
+  teamId: string,
+  tournamentId?: string,
+): Promise<UltimateEconomyRow> {
+  const result = tournamentId
+    ? await sql<UltimateEconomyRow[]>`
+      SELECT
+        COUNT(*)::text as total_rounds,
+        SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::text as ultimates_used,
+        ROUND(
+          SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::numeric /
+          NULLIF(COUNT(*), 0),
+          3
+        )::text as usage_rate,
+        SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END)::text as rounds_with_ult_available,
+        ROUND(
+          SUM(CASE WHEN prs.ultimate_points >= 7 AND r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::numeric /
+          NULLIF(SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END), 0),
+          3
+        )::text as ult_availability_win_rate
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
+      WHERE prs.team_id = ${teamId}
+        AND s.tournament_id = ${tournamentId}
+    `
+    : await sql<UltimateEconomyRow[]>`
+      SELECT
+        COUNT(*)::text as total_rounds,
+        SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::text as ultimates_used,
+        ROUND(
+          SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::numeric /
+          NULLIF(COUNT(*), 0),
+          3
+        )::text as usage_rate,
+        SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END)::text as rounds_with_ult_available,
+        ROUND(
+          SUM(CASE WHEN prs.ultimate_points >= 7 AND r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::numeric /
+          NULLIF(SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END), 0),
+          3
+        )::text as ult_availability_win_rate
+      FROM public.player_round_stats prs
+      JOIN public.rounds r ON prs.round_id = r.id
+      JOIN public.games g ON r.game_id = g.id
+      JOIN public.series s ON g.series_id = s.id
+      WHERE prs.team_id = ${teamId}
+    `
+
+  return result[0] || {
+    total_rounds: "0",
+    ultimates_used: "0",
+    usage_rate: "0.000",
+    rounds_with_ult_available: "0",
+    ult_availability_win_rate: "0.000"
+  }
+}
