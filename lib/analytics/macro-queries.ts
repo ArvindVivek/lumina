@@ -533,11 +533,11 @@ export async function queryRoundBreakdown(
       r.team_a_alive::text,
       r.team_b_alive::text,
       CASE
-        WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+        WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
         ELSE r.team_b_loadout_value
       END::text as team_loadout_value,
       CASE
-        WHEN r.team_a_id = ${teamId} THEN r.team_b_loadout_value
+        WHEN s.team_a_id = ${teamId} THEN r.team_b_loadout_value
         ELSE r.team_a_loadout_value
       END::text as opponent_loadout_value,
       r.duration_ms::text,
@@ -546,7 +546,7 @@ export async function queryRoundBreakdown(
     FROM public.rounds r
     JOIN public.games g ON r.game_id = g.id
     JOIN public.series s ON g.series_id = s.id
-    WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+    WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
       ${gameId ? sql`AND r.game_id = ${gameId}` : sql``}
       ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
     ORDER BY g.sequence_number, r.round_number
@@ -574,7 +574,7 @@ export async function queryRoundsForCriticalMoments(
       r.team_a_alive,
       r.team_b_alive,
       CASE
-        WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value
+        WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
         ELSE r.team_b_loadout_value
       END as team_loadout_value,
       r.spike_planted,
@@ -586,13 +586,13 @@ export async function queryRoundsForCriticalMoments(
       ) as first_death_traded,
       (r.round_number IN (1, 13)) as is_pistol_round,
       (CASE
-        WHEN r.team_a_id = ${teamId} THEN r.team_a_loadout_value < 10000
+        WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value < 10000
         ELSE r.team_b_loadout_value < 10000
       END) as is_eco_round
     FROM public.rounds r
     JOIN public.games g ON r.game_id = g.id
     JOIN public.series s ON g.series_id = s.id
-    WHERE (r.team_a_id = ${teamId} OR r.team_b_id = ${teamId})
+    WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
       ${gameId ? sql`AND r.game_id = ${gameId}` : sql``}
       ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
     ORDER BY g.sequence_number, r.round_number
