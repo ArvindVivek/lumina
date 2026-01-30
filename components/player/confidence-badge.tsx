@@ -1,5 +1,6 @@
-import { Badge } from '@/components/ui/badge'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
+import { InfoIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface ConfidenceBadgeProps {
   level: 'low' | 'medium' | 'high'
@@ -7,10 +8,16 @@ interface ConfidenceBadgeProps {
   description: string
 }
 
-const confidenceStyles = {
-  low: 'bg-red-500/10 text-red-500 border-red-500/20',
-  medium: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-  high: 'bg-green-500/10 text-green-500 border-green-500/20',
+const levelColors = {
+  high: 'text-green-500',
+  medium: 'text-yellow-500',
+  low: 'text-red-500',
+}
+
+const levelLabels = {
+  high: 'High confidence',
+  medium: 'Medium confidence',
+  low: 'Low confidence',
 }
 
 export function ConfidenceBadge({ level, sampleSize, description }: ConfidenceBadgeProps) {
@@ -18,15 +25,16 @@ export function ConfidenceBadge({ level, sampleSize, description }: ConfidenceBa
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge variant="outline" className={confidenceStyles[level]}>
-            {level.toUpperCase()}
-          </Badge>
+          <button className="inline-flex items-center gap-1">
+            <InfoIcon className={cn('h-4 w-4', levelColors[level])} />
+            <span className={cn('text-xs font-medium', levelColors[level])}>
+              {levelLabels[level]}
+            </span>
+          </button>
         </TooltipTrigger>
         <TooltipContent>
-          <div className="space-y-1">
-            <p className="font-medium">Sample size: {sampleSize}</p>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </div>
+          <p className="font-medium">{levelLabels[level]} (n={sampleSize})</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
