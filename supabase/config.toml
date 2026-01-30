@@ -10,10 +10,10 @@ enabled = true
 port = 54321
 # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
 # endpoints. `public` and `graphql_public` schemas are included by default.
-# Multi-app setup: lumina, synapse, mosaic, thrifty share this Supabase instance
-schemas = ["public", "graphql_public", "lumina", "synapse", "mosaic", "thrifty"]
+# Lumina VALORANT analytics (public schema) + Synapse LoL analytics (synapse schema) + Mosaic VALORANT scouting (mosaic schema)
+schemas = ["public", "synapse", "mosaic", "graphql_public"]
 # Extra schemas to add to the search_path of every request.
-extra_search_path = ["public", "extensions", "lumina"]
+extra_search_path = ["public", "extensions"]
 # The maximum number of rows returns from a view, table, or stored procedure. Limits payload size
 # for accidental or malicious requests.
 max_rows = 1000
