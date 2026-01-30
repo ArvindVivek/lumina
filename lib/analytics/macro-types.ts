@@ -174,6 +174,8 @@ export interface RoundBreakdownRow {
   first_blood_team_id: string | null
   spike_planted: string
   spike_defused: string
+  team_a_alive: string
+  team_b_alive: string
   team_loadout_value: string
   opponent_loadout_value: string
   duration_ms: string
