@@ -1,161 +1,115 @@
 /**
- * Rate-limited GRID API client for local ETL scripts
- * Handles both VALORANT and LoL data fetching with exponential backoff
+ * GRID API Client for VALORANT ETL
+ * Supports all three GRID APIs:
+ * - Central Data API (tournament/series metadata)
+ * - Series State API (post-match data)
+ * - File Download API (event timeline files)
  */
 
 import Bottleneck from 'bottleneck'
 import pRetry from 'p-retry'
-import { z } from 'zod'
+import { createWriteStream } from 'fs'
+import { mkdir } from 'fs/promises'
+import { pipeline } from 'stream/promises'
+import { createGunzip } from 'zlib'
+import path from 'path'
 
-// ==========================================
-// GRID API CONFIGURATION
-// ==========================================
-
+// API Endpoints
 const GRID_CENTRAL_API = 'https://api-op.grid.gg/central-data/graphql'
 const GRID_SERIES_STATE_API = 'https://api-op.grid.gg/live-data-feed/series-state/graphql'
+const GRID_FILE_API = 'https://api.grid.gg/file-download/list'
 
-// Rate limits from GRID documentation
 const RATE_LIMITS = {
-  maxConcurrent: 3,
-  minTime: 333,           // 3 req/sec = 180 req/min
-  reservoir: 180,
-  reservoirRefreshAmount: 180,
+  maxConcurrent: 1,
+  minTime: 1500,        // 1.5 seconds between requests
+  reservoir: 40,
+  reservoirRefreshAmount: 40,
   reservoirRefreshInterval: 60 * 1000,
 }
 
-// ==========================================
-// TOURNAMENT IDS FROM HACKATHON ACCESS
-// ==========================================
+// VCT Americas Tournament IDs
+export const VALORANT_PARENT_TOURNAMENTS = [
+  '757371',  // VCT Americas - Kickoff 2024
+  '757481',  // VCT Americas - Stage 1 2024
+  '774782',  // VCT Americas - Stage 2 2024
+  '775516',  // VCT Americas - Kickoff 2025
+  '800675',  // VCT Americas - Stage 1 2025
+  '826660',  // VCT Americas - Stage 2 2025
+]
 
-export const VALORANT_TOURNAMENTS = {
-  'VCT Americas - Kickoff 2024': '757371',
-  'VCT Americas - Stage 1 2024': '757481',
-  'VCT Americas - Stage 2 2024': '774782',
-  'VCT Americas - Kickoff 2025': '775516',
-  'VCT Americas - Stage 1 2025': '800675',
-  'VCT Americas - Stage 2 2025': '826660',
-  'VALORANT Masters - Masters Madrid': '757614',
-} as const
+// Types
+export interface Tournament {
+  id: string
+  name: string
+  startDate?: string
+  endDate?: string
+}
 
-// ==========================================
-// ZOD SCHEMAS
-// ==========================================
+export interface Team {
+  id: string
+  name: string
+}
 
-const TeamSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  shortName: z.string().nullable().optional(),
-})
+export interface Player {
+  id: string
+  name: string
+  teamId?: string
+}
 
-const PlayerSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  nickname: z.string().nullable().optional(),
-})
+export interface Series {
+  id: string
+  startTimeScheduled?: string
+  format?: { name: string }
+  tournament: { id: string; name: string }
+  teams: Array<{ baseInfo: Team }>
+}
 
-const TournamentSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  startTimeScheduled: z.string().nullable(),
-  endTimeScheduled: z.string().nullable(),
-})
+export interface SeriesStateTeam {
+  id: string
+  name: string
+  won?: boolean
+  score?: number
+  players?: SeriesStatePlayer[]
+}
 
-const SeriesSchema = z.object({
-  id: z.string(),
-  tournamentId: z.string().nullable(),
-  startTimeScheduled: z.string().nullable(),
-  title: z.string().nullable(),
-  teams: z.array(TeamSchema).optional(),
-})
+export interface SeriesStatePlayer {
+  id: string
+  name: string
+  kills?: number
+  deaths?: number
+}
 
-// Series state schemas (for detailed match data)
-const PlayerStateSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  characterName: z.string().nullable(),
-  role: z.string().nullable(),
-})
+export interface SeriesStateGame {
+  id: string
+  sequenceNumber: number
+  map?: { name: string }
+  teams: SeriesStateTeam[]
+  finished?: boolean
+}
 
-const TeamStateSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  won: z.boolean().nullable(),
-  characterBans: z.array(z.string()).nullable(),
-  players: z.array(PlayerStateSchema),
-})
+export interface SeriesState {
+  id: string
+  started?: string
+  finished?: string
+  teams: SeriesStateTeam[]
+  games: SeriesStateGame[]
+}
 
-const GameStateSchema = z.object({
-  id: z.string(),
-  number: z.number().nullable(),
-  teams: z.array(TeamStateSchema),
-})
-
-const SeriesStateSchema = z.object({
-  id: z.string(),
-  started: z.string().nullable(),
-  finished: z.string().nullable(),
-  teams: z.array(TeamStateSchema),
-  games: z.array(GameStateSchema),
-})
-
-// Response schemas
-export const TournamentsResponseSchema = z.object({
-  data: z.object({
-    allTournament: z.object({
-      nodes: z.array(TournamentSchema),
-    }),
-  }),
-})
-
-export const SeriesResponseSchema = z.object({
-  data: z.object({
-    allSeries: z.object({
-      nodes: z.array(SeriesSchema),
-    }),
-  }),
-})
-
-export const TeamsResponseSchema = z.object({
-  data: z.object({
-    allTeam: z.object({
-      nodes: z.array(TeamSchema),
-    }),
-  }),
-})
-
-export const SeriesStateResponseSchema = z.object({
-  data: z.object({
-    seriesState: SeriesStateSchema.nullable(),
-  }),
-})
-
-// ==========================================
-// TYPES
-// ==========================================
-
-export type Tournament = z.infer<typeof TournamentSchema>
-export type Series = z.infer<typeof SeriesSchema>
-export type Team = z.infer<typeof TeamSchema>
-export type Player = z.infer<typeof PlayerSchema>
-export type SeriesState = z.infer<typeof SeriesStateSchema>
-
-// ==========================================
-// GRID API CLIENT
-// ==========================================
+export interface FileInfo {
+  id: string
+  description?: string
+  status?: string
+  fileName?: string
+  fullURL?: string
+}
 
 export class GridAPIClient {
   private limiter: Bottleneck
   private apiKey: string
-  private stats = {
-    requests: 0,
-    errors: 0,
-    retries: 0,
-  }
+  private stats = { requests: 0, errors: 0, downloads: 0 }
 
   constructor(apiKey: string) {
-    if (!apiKey) {
-      throw new Error('GRID_API_KEY is required')
-    }
+    if (!apiKey) throw new Error('GRID_API_KEY is required')
     this.apiKey = apiKey
 
     this.limiter = new Bottleneck({
@@ -166,174 +120,250 @@ export class GridAPIClient {
       reservoirRefreshInterval: RATE_LIMITS.reservoirRefreshInterval,
     })
 
-    this.limiter.on('depleted', () => {
-      console.log('  [rate-limit] Reservoir depleted, waiting...')
-    })
+    this.limiter.on('depleted', () => console.log('  [rate-limit] Waiting...'))
   }
 
-  getStats() {
-    return this.stats
-  }
+  getStats() { return this.stats }
 
-  private async query<T>(
-    url: string,
-    query: string,
-    variables: Record<string, unknown> = {}
-  ): Promise<T> {
+  private async query<T>(endpoint: string, gql: string, variables: Record<string, unknown> = {}): Promise<T> {
     return this.limiter.schedule(() =>
       pRetry(
         async () => {
           this.stats.requests++
-
-          const response = await fetch(url, {
+          const res = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-              'x-api-key': this.apiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ query, variables }),
+            headers: { 'x-api-key': this.apiKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: gql, variables }),
           })
 
-          if (response.status === 429) {
-            this.stats.retries++
-            const retryAfter = response.headers.get('Retry-After')
-            const delay = retryAfter ? parseInt(retryAfter) * 1000 : 5000
-            throw new Error(`Rate limit hit, retry after ${delay}ms`)
+          if (res.status === 429) {
+            console.log('  [rate-limit] 429 - Waiting 60s...')
+            await new Promise(r => setTimeout(r, 60000))
+            throw new Error('Rate limit')
           }
+          if (!res.ok) { this.stats.errors++; throw new Error(`HTTP ${res.status}`) }
 
-          if (!response.ok) {
-            this.stats.errors++
-            throw new Error(`HTTP ${response.status}: ${await response.text()}`)
-          }
-
-          const data = await response.json()
+          const data = await res.json()
           if (data.errors?.length) {
             this.stats.errors++
-            throw new Error(`GraphQL: ${data.errors.map((e: { message: string }) => e.message).join(', ')}`)
+            throw new Error(data.errors[0].message)
           }
-
-          return data as T
+          return data.data as T
         },
-        {
-          retries: 5,
-          factor: 2,
-          minTimeout: 1000,
-          maxTimeout: 30000,
-          onFailedAttempt: (error) => {
-            console.log(`  [retry] Attempt ${error.attemptNumber} failed: ${error.message}`)
-          },
-        }
+        { retries: 5, factor: 2, minTimeout: 5000, maxTimeout: 60000 }
       )
     )
   }
 
   // ==========================================
-  // TOURNAMENT & SERIES QUERIES
+  // CENTRAL DATA API
   // ==========================================
 
-  async getTournament(tournamentId: string): Promise<Tournament | null> {
-    const query = `
-      query GetTournament($id: ID!) {
-        tournament(id: $id) {
-          id
-          title
-          startTimeScheduled
-          endTimeScheduled
+  /** Get all VCT Americas child tournaments */
+  async getVCTTournaments(): Promise<Tournament[]> {
+    const result = await this.query<{
+      tournaments: { edges: Array<{ node: Tournament }>; totalCount: number }
+    }>(GRID_CENTRAL_API, `
+      query {
+        tournaments(first: 50, filter: { name: { contains: "VCT Americas" } }) {
+          edges { node { id name startDate endDate } }
+          totalCount
         }
       }
-    `
-    const response = await this.query<{ data: { tournament: Tournament | null } }>(
-      GRID_CENTRAL_API,
-      query,
-      { id: tournamentId }
-    )
-    return response.data.tournament
+    `)
+    return result.tournaments.edges.map(e => e.node)
   }
 
-  async getSeriesForTournament(tournamentId: string): Promise<Series[]> {
-    const query = `
-      query GetSeriesForTournament($tournamentId: ID!) {
-        allSeries(filter: { tournamentId: { equalTo: $tournamentId } }) {
-          nodes {
-            id
-            tournamentId
-            startTimeScheduled
-            title
-            teams { id name shortName }
+  /** Get series for a specific tournament (with pagination) */
+  async getSeriesForTournament(tournamentId: string, cursor?: string): Promise<{
+    series: Series[]
+    hasNext: boolean
+    endCursor?: string
+    total: number
+  }> {
+    const result = await this.query<{
+      allSeries: {
+        edges: Array<{ node: Series; cursor: string }>
+        pageInfo: { hasNextPage: boolean; endCursor: string }
+        totalCount: number
+      }
+    }>(GRID_CENTRAL_API, `
+      query($tid: ID!, $after: String) {
+        allSeries(
+          filter: { tournamentId: $tid }
+          first: 50
+          after: $after
+          orderBy: StartTimeScheduled
+          orderDirection: ASC
+        ) {
+          edges {
+            node {
+              id
+              startTimeScheduled
+              format { name }
+              tournament { id name }
+              teams { baseInfo { id name } }
+            }
+            cursor
           }
+          pageInfo { hasNextPage endCursor }
+          totalCount
         }
       }
-    `
-    const response = await this.query<z.infer<typeof SeriesResponseSchema>>(
-      GRID_CENTRAL_API,
-      query,
-      { tournamentId }
-    )
-    return response.data.allSeries.nodes
+    `, { tid: tournamentId, after: cursor })
+
+    return {
+      series: result.allSeries.edges.map(e => e.node),
+      hasNext: result.allSeries.pageInfo.hasNextPage,
+      endCursor: result.allSeries.pageInfo.endCursor,
+      total: result.allSeries.totalCount,
+    }
   }
 
+  // ==========================================
+  // SERIES STATE API (Post-match data)
+  // ==========================================
+
+  /** Get detailed series state (games, players, scores) */
   async getSeriesState(seriesId: string): Promise<SeriesState | null> {
-    const query = `
-      query GetSeriesState($seriesId: ID!) {
-        seriesState(id: $seriesId) {
-          id
-          started
-          finished
-          teams {
+    try {
+      const result = await this.query<{ seriesState: SeriesState | null }>(
+        GRID_SERIES_STATE_API,
+        `
+        query($id: ID!) {
+          seriesState(id: $id) {
             id
-            name
-            won
-            characterBans
-            players { id name characterName role }
-          }
-          games {
-            id
-            number
+            started
+            finished
             teams {
               id
               name
-              characterBans
-              players { id name characterName role }
+              won
+            }
+            games {
+              id
+              sequenceNumber
+              map { name }
+              teams {
+                id
+                name
+                score
+                won
+                players {
+                  id
+                  name
+                  kills
+                  deaths
+                }
+              }
             }
           }
         }
-      }
-    `
-    const response = await this.query<z.infer<typeof SeriesStateResponseSchema>>(
-      GRID_SERIES_STATE_API,
-      query,
-      { seriesId }
-    )
-    return response.data.seriesState
+      `,
+        { id: seriesId }
+      )
+      return result.seriesState
+    } catch (e) {
+      console.error(`  [error] SeriesState ${seriesId}: ${(e as Error).message}`)
+      return null
+    }
   }
 
   // ==========================================
-  // TEAM QUERIES
+  // FILE DOWNLOAD API (Event timelines)
   // ==========================================
 
-  async getTeamsForTournament(tournamentId: string): Promise<Team[]> {
-    const query = `
-      query GetTeams($tournamentId: ID!) {
-        allTeam(filter: {
-          seriesParticipationsByTeamId: {
-            some: {
-              series: { tournamentId: { equalTo: $tournamentId } }
-            }
+  /** Get list of available files for a series */
+  async getSeriesFiles(seriesId: string): Promise<FileInfo[]> {
+    return this.limiter.schedule(() =>
+      pRetry(
+        async () => {
+          this.stats.requests++
+          const res = await fetch(`${GRID_FILE_API}/${seriesId}`, {
+            headers: { 'x-api-key': this.apiKey },
+          })
+
+          if (res.status === 429) {
+            await new Promise(r => setTimeout(r, 60000))
+            throw new Error('Rate limit')
           }
-        }) {
-          nodes { id name shortName }
-        }
-      }
-    `
-    const response = await this.query<z.infer<typeof TeamsResponseSchema>>(
-      GRID_CENTRAL_API,
-      query,
-      { tournamentId }
+          if (res.status === 404) return []  // No files available
+          if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+          const data = await res.json()
+          return (data.files || []) as FileInfo[]
+        },
+        { retries: 3, minTimeout: 2000 }
+      )
     )
-    return response.data.allTeam.nodes
   }
 
-  async disconnect(): Promise<void> {
-    await this.limiter.disconnect()
+  /** Download and decompress events file for a series */
+  async downloadEventsFile(seriesId: string, outputDir: string): Promise<string | null> {
+    const files = await this.getSeriesFiles(seriesId)
+
+    // Find the events file (id contains 'events')
+    const eventsFile = files.find(f =>
+      f.id?.toLowerCase().includes('events') ||
+      f.fileName?.toLowerCase().includes('events')
+    )
+
+    if (!eventsFile?.fullURL) {
+      return null
+    }
+
+    await mkdir(outputDir, { recursive: true })
+    const outputPath = path.join(outputDir, `${seriesId}_events.jsonl`)
+
+    return this.limiter.schedule(() =>
+      pRetry(
+        async () => {
+          this.stats.downloads++
+          const res = await fetch(eventsFile.fullURL!, {
+            headers: { 'x-api-key': this.apiKey },
+          })
+
+          if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+          if (!res.body) throw new Error('No response body')
+
+          // Check content type for compression
+          const contentType = res.headers.get('content-type') || ''
+          const contentEncoding = res.headers.get('content-encoding') || ''
+
+          // Read first bytes to detect format
+          const arrayBuffer = await res.arrayBuffer()
+          const buffer = Buffer.from(arrayBuffer)
+
+          let content: Buffer
+
+          // Check magic bytes
+          if (buffer[0] === 0x1f && buffer[1] === 0x8b) {
+            // GZIP format
+            const { gunzipSync } = await import('zlib')
+            content = gunzipSync(buffer)
+          } else if (buffer[0] === 0x50 && buffer[1] === 0x4b) {
+            // ZIP format
+            const AdmZip = (await import('adm-zip')).default
+            const zip = new AdmZip(buffer)
+            const entries = zip.getEntries()
+            const jsonlEntry = entries.find(e => e.entryName.endsWith('.jsonl'))
+            if (!jsonlEntry) throw new Error('No JSONL in ZIP')
+            content = jsonlEntry.getData()
+          } else {
+            // Raw JSONL
+            content = buffer
+          }
+
+          // Write to file
+          const { writeFile } = await import('fs/promises')
+          await writeFile(outputPath, content)
+
+          return outputPath
+        },
+        { retries: 3, minTimeout: 2000 }
+      )
+    )
   }
+
+  async disconnect() { await this.limiter.disconnect() }
 }

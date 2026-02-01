@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +19,7 @@ import {
   Users,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { usePushScreenData } from '@/lib/hooks/use-screen-data'
 
 interface CoachingReportViewProps {
   seriesId: string
@@ -30,6 +31,48 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState('overview')
+
+  // Memoize coaching report data for screen context
+  const reportScreenData = useMemo(() => {
+    if (!report) return null
+    return {
+      summary: {
+        result: report.summary?.result,
+        score: report.summary?.score,
+        opponent: report.summary?.opponent_name,
+        keyStrength: report.summary?.key_strength,
+        keyWeakness: report.summary?.key_weakness,
+        totalRounds: report.summary?.total_rounds,
+        totalMaps: report.summary?.total_maps,
+      },
+      keyMetrics: report.key_metrics?.map((m: any) => ({
+        map: m.map_name,
+        score: m.score,
+        fbWinRate: `${(m.fb_win_rate * 100).toFixed(0)}%`,
+        fbConversionRate: `${(m.fb_conversion_rate * 100).toFixed(0)}%`,
+        tradeRate: `${(m.trade_rate * 100).toFixed(0)}%`,
+        untradedDeaths: m.untraded_deaths,
+      })),
+      topPlayers: report.opening_duels?.slice(0, 5).map((p: any) => ({
+        name: p.player_name,
+        firstKills: p.first_kills,
+        firstDeaths: p.first_deaths,
+        net: p.net,
+      })),
+      antiStratSignals: report.anti_strat_signals?.map((s: any) => ({
+        signal: s.signal,
+        severity: s.severity,
+        implication: s.implication,
+      })),
+      actionPlan: {
+        immediate: report.action_plan?.immediate?.map((a: any) => a.action),
+        mediumTerm: report.action_plan?.medium_term?.map((a: any) => a.action),
+      },
+    }
+  }, [report])
+
+  // Push coaching report data to screen context for chat
+  usePushScreenData('Coaching Report', reportScreenData, !loading && !!report)
 
   useEffect(() => {
     async function fetchReport() {
@@ -75,23 +118,23 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
   const { summary, key_metrics, opening_duels, anti_strat_signals, forced_mistakes, vod_review_notes, action_plan } = report
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-responsive">
       {/* Top Stats Row - Always Visible */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid-responsive-stats">
         {/* Result Card */}
         <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/20">
-          <CardContent className="p-4">
+          <CardContent className="p-responsive">
             <div className="flex items-center gap-2 mb-2">
-              <Trophy className={cn("w-4 h-4", summary.result === 'win' ? 'text-green-500' : 'text-red-500')} />
+              <Trophy className={cn("w-4 h-4 flex-shrink-0", summary.result === 'win' ? 'text-green-500' : 'text-red-500')} />
               <span className="text-xs text-muted-foreground font-medium">Result</span>
             </div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold tabular-nums">{summary.score}</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="metric-value-responsive tabular-nums">{summary.score}</span>
               <Badge variant={summary.result === 'win' ? 'default' : 'destructive'} className="text-xs">
                 {summary.result.toUpperCase()}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1 truncate">
               vs {summary.opponent_name}
             </p>
           </CardContent>
@@ -99,9 +142,9 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
 
         {/* Key Strength */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-responsive">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-green-500" />
+              <TrendingUp className="w-4 h-4 text-green-500 flex-shrink-0" />
               <span className="text-xs text-muted-foreground font-medium">Strength</span>
             </div>
             <p className="text-sm leading-relaxed line-clamp-3">{summary.key_strength}</p>
@@ -110,9 +153,9 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
 
         {/* Key Weakness */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-responsive">
             <div className="flex items-center gap-2 mb-2">
-              <TrendingDown className="w-4 h-4 text-red-500" />
+              <TrendingDown className="w-4 h-4 text-red-500 flex-shrink-0" />
               <span className="text-xs text-muted-foreground font-medium">Weakness</span>
             </div>
             <p className="text-sm leading-relaxed line-clamp-3">{summary.key_weakness}</p>
@@ -121,12 +164,12 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
 
         {/* Total Rounds */}
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-responsive">
             <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-muted-foreground" />
+              <Target className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <span className="text-xs text-muted-foreground font-medium">Rounds</span>
             </div>
-            <span className="text-3xl font-bold tabular-nums">{summary.total_rounds}</span>
+            <span className="metric-value-responsive tabular-nums">{summary.total_rounds}</span>
             <p className="text-xs text-muted-foreground mt-1">
               {summary.total_maps} maps played
             </p>
@@ -163,11 +206,11 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
         <TabsContent value="overview" className="mt-4">
           <Card>
             <CardHeader className="pb-3 pt-4 px-4">
-              <CardTitle className="text-base">Key Metrics by Map</CardTitle>
+              <CardTitle className="text-responsive-lg">Key Metrics by Map</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="table-responsive">
                   <thead>
                     <tr className="border-b text-xs">
                       <th className="text-left py-2 px-3 font-medium text-muted-foreground">Map</th>
@@ -304,10 +347,10 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
         <TabsContent value="actions" className="mt-4">
           <Card>
             <CardHeader className="pb-3 pt-4 px-4">
-              <CardTitle className="text-base">Action Plan</CardTitle>
+              <CardTitle className="text-responsive-lg">Action Plan</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid-responsive-2">
                 <div>
                   <h4 className="font-medium mb-3 flex items-center gap-2 text-sm">
                     <span className="w-2 h-2 rounded-full bg-red-500" />
@@ -379,8 +422,8 @@ function PriorityBadge({ priority }: { priority: string }) {
 
 function ReportSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-responsive">
+      <div className="grid-responsive-stats">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={`top-skeleton-${i}`} className="h-28" />
         ))}

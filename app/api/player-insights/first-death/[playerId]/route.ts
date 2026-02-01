@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryFirstDeathImpact } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, FirstDeathData } from '@/lib/analytics/types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -18,9 +18,15 @@ export async function GET(
     // Query first death impact data
     const row = await queryFirstDeathImpact(sql, playerId, tournamentId || undefined)
 
-    const total = parseInt(row.total)
-    const losses = parseInt(row.losses)
+    // Handle null/NaN values properly
+    const total = parseInt(row.total) || 0
+    const losses = parseInt(row.losses) || 0
     const lossRate = total > 0 ? losses / total : 0
+
+    // Don't return a card if there's no data
+    if (total === 0) {
+      return NextResponse.json(null)
+    }
 
     const data: FirstDeathData = {
       losses,
@@ -60,7 +66,5 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await sql.end()
   }
 }

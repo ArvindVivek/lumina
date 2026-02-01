@@ -54,8 +54,8 @@ export function CriticalMomentsList({ moments, teamName }: CriticalMomentsListPr
                 High Priority
               </h4>
               <div className="space-y-2">
-                {highPriority.slice(0, 5).map((moment) => (
-                  <MomentRow key={moment.round_number} moment={moment} />
+                {highPriority.slice(0, 5).map((moment, idx) => (
+                  <MomentRow key={`high-${moment.round_number}-${idx}`} moment={moment} />
                 ))}
               </div>
             </div>
@@ -67,8 +67,8 @@ export function CriticalMomentsList({ moments, teamName }: CriticalMomentsListPr
                 Medium Priority
               </h4>
               <div className="space-y-2">
-                {mediumPriority.slice(0, 5).map((moment) => (
-                  <MomentRow key={moment.round_number} moment={moment} />
+                {mediumPriority.slice(0, 5).map((moment, idx) => (
+                  <MomentRow key={`medium-${moment.round_number}-${idx}`} moment={moment} />
                 ))}
               </div>
             </div>

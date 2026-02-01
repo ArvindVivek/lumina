@@ -1,8 +1,7 @@
 --
 -- PostgreSQL database dump
+-- Lumina VALORANT Analytics Schema
 --
-
-\restrict npyXwMylGtDCDakyVYP4GQaNRSc5IdoPLXLNVUlc4q7aGcdz99EYe59tmZ9b5St
 
 -- Dumped from database version 17.6
 -- Dumped by pg_dump version 18.1
@@ -1056,6 +1055,4 @@ ALTER TABLE ONLY public.tournaments
 --
 -- PostgreSQL database dump complete
 --
-
-\unrestrict npyXwMylGtDCDakyVYP4GQaNRSc5IdoPLXLNVUlc4q7aGcdz99EYe59tmZ9b5St
 

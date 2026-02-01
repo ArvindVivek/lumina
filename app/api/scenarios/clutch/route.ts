@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { matchClutchSituations } from '@/lib/analytics/scenario-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type {
@@ -9,7 +9,7 @@ import type {
 } from '@/lib/analytics/scenario-types'
 
 export async function POST(request: NextRequest) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const body = await request.json()
@@ -113,7 +113,5 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error analyzing clutch scenario:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  } finally {
-    await sql.end()
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryAgentPerformance } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, AgentData, AgentStats } from '@/lib/analytics/types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -87,7 +87,5 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await sql.end()
   }
 }

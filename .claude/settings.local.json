@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm etl:dry-run:*)",
+      "Bash(supabase db reset:*)",
+      "Bash(psql \"postgresql://postgres:postgres@127.0.0.1:54322/postgres\" -c \"SELECT ''tournaments'' as table_name, COUNT\\(*\\) as count FROM tournaments UNION ALL SELECT ''series'', COUNT\\(*\\) FROM series UNION ALL SELECT ''teams'', COUNT\\(*\\) FROM teams;\")",
+      "Bash(pnpm install)",
+      "Bash(pnpm run etl:test:*)",
+      "Bash(npm run view-data:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm uninstall:*)",
+      "Read(//Users/**)"
+    ]
+  }
+}

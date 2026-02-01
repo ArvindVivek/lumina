@@ -2,11 +2,11 @@ import { Suspense } from 'react'
 import { PlayerSelector } from '@/components/player/player-selector'
 import { InsightCard } from '@/components/player/insight-card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { createServerClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server'
 
 async function getPlayers() {
   try {
-    const supabase = createServerClient()
+    const supabase = await createClient()
     const { data, error } = await supabase
       .from('players')
       .select('id, name, teams(name)')
@@ -86,7 +86,7 @@ async function PlayerInsights({ playerId }: { playerId: string }) {
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid-responsive-cards">
       {firstDeath && (
         <InsightCard
           title="First Death Impact"
@@ -165,10 +165,10 @@ export default async function PlayerAnalyticsPage({
   const players = await getPlayers()
 
   return (
-    <div className="space-y-8">
+    <div className="p-responsive space-y-responsive">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-responsive-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Player Analytics
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -206,7 +206,7 @@ export default async function PlayerAnalyticsPage({
 
 function InsightsSkeleton() {
   return (
-    <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid-responsive-cards">
       {Array.from({ length: 6 }).map((_, i) => (
         <Skeleton key={i} className="h-[220px] rounded-xl" />
       ))}

@@ -20,15 +20,17 @@ interface Series {
 }
 
 interface SeriesSelectorProps {
-  onSelect: (seriesId: string, teamAId: string, teamBId: string) => void
+  onSelect: (seriesId: string, teamAId: string, teamBId: string, teamAName?: string, teamBName?: string) => void
   selectedSeriesId: string | null
   compact?: boolean
+  autoSelectFirst?: boolean
 }
 
-export function SeriesSelector({ onSelect, selectedSeriesId, compact = false }: SeriesSelectorProps) {
+export function SeriesSelector({ onSelect, selectedSeriesId, compact = false, autoSelectFirst = false }: SeriesSelectorProps) {
   const [series, setSeries] = useState<Series[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [hasAutoSelected, setHasAutoSelected] = useState(false)
 
   useEffect(() => {
     async function fetchSeries() {
@@ -36,7 +38,15 @@ export function SeriesSelector({ onSelect, selectedSeriesId, compact = false }: 
         const res = await fetch('/api/series?limit=50')
         if (res.ok) {
           const data = await res.json()
-          setSeries(data.series || [])
+          const seriesList = data.series || []
+          setSeries(seriesList)
+
+          // Auto-select first series if enabled and nothing selected
+          if (autoSelectFirst && !selectedSeriesId && seriesList.length > 0 && !hasAutoSelected) {
+            const first = seriesList[0]
+            onSelect(first.id, first.team_a_id, first.team_b_id)
+            setHasAutoSelected(true)
+          }
         }
       } catch (error) {
         console.error('Failed to fetch series:', error)
@@ -45,7 +55,7 @@ export function SeriesSelector({ onSelect, selectedSeriesId, compact = false }: 
       }
     }
     fetchSeries()
-  }, [])
+  }, [autoSelectFirst, selectedSeriesId, hasAutoSelected, onSelect])
 
   const filteredSeries = series.filter((s) => {
     const query = searchQuery.toLowerCase()
@@ -115,7 +125,7 @@ export function SeriesSelector({ onSelect, selectedSeriesId, compact = false }: 
                         transition={{ duration: 0.15 }}
                       >
                         <button
-                          onClick={() => onSelect(s.id, s.team_a_id, s.team_b_id)}
+                          onClick={() => onSelect(s.id, s.team_a_id, s.team_b_id, s.team_a_name, s.team_b_name)}
                           className={cn(
                             "w-full text-left rounded-lg border-2 transition-all duration-200",
                             "hover:shadow-md hover:-translate-y-0.5",

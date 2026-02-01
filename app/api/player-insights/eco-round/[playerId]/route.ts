@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryEcoRoundPerformance } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, EcoRoundData, PhaseStats } from '@/lib/analytics/types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -22,10 +22,13 @@ export async function GET(
     let totalRounds = 0
 
     rows.forEach(row => {
-      const rounds = parseInt(row.rounds)
-      const totalKills = parseInt(row.total_kills)
-      const totalDeaths = parseInt(row.total_deaths)
-      const roundsWon = parseInt(row.rounds_won)
+      // Handle null/NaN values properly
+      const rounds = parseInt(row.rounds) || 0
+      const totalKills = parseInt(row.total_kills) || 0
+      const totalDeaths = parseInt(row.total_deaths) || 0
+      const roundsWon = parseInt(row.rounds_won) || 0
+
+      if (rounds === 0) return // Skip phases with no data
 
       totalRounds += rounds
 
@@ -38,6 +41,11 @@ export async function GET(
         win_rate: winRate,
       }
     })
+
+    // Don't return a card if there's no data
+    if (totalRounds === 0) {
+      return NextResponse.json(null)
+    }
 
     const data: EcoRoundData = {
       phases,
@@ -82,7 +90,5 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await sql.end()
   }
 }

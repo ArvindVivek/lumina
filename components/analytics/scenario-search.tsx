@@ -33,10 +33,13 @@ export function ScenarioSearch() {
   const [mapName, setMapName] = useState('Any')
   const [results, setResults] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
 
   const handleSearch = async () => {
     setLoading(true)
+    setError(null)
+    setResults(null)
     try {
       const res = await fetch('/api/analytics/scenarios/find-similar', {
         method: 'POST',
@@ -51,9 +54,13 @@ export function ScenarioSearch() {
       if (res.ok) {
         const data = await res.json()
         setResults(data)
+      } else {
+        const errorData = await res.json().catch(() => ({}))
+        setError(errorData.error || `Request failed with status ${res.status}`)
       }
-    } catch (error) {
-      console.error('Failed to search scenarios:', error)
+    } catch (err) {
+      console.error('Failed to search scenarios:', err)
+      setError('Failed to connect to server. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -136,6 +143,20 @@ export function ScenarioSearch() {
       {/* Results */}
       {loading ? (
         <ResultsSkeleton />
+      ) : error ? (
+        <Card className="border-destructive">
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <div className="text-destructive mb-2">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <p className="text-sm text-destructive font-medium">{error}</p>
+            <Button onClick={handleSearch} variant="outline" className="mt-4" size="sm">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       ) : results ? (
         <motion.div
           initial={{ opacity: 0 }}
@@ -143,91 +164,108 @@ export function ScenarioSearch() {
           className="space-y-4"
         >
           {/* Summary Stats - Compact */}
-          <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
-            <Card className="bg-gradient-to-br from-primary/10 to-transparent">
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <span className={cn(
-                    "text-3xl font-bold tabular-nums",
-                    results.stats.total_matches === 0 && "text-muted-foreground"
-                  )}>
-                    {results.stats.total_matches > 0
-                      ? `${(results.stats.attacker_win_rate * 100).toFixed(0)}%`
-                      : 'N/A'
-                    }
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-1">ATK Win Rate</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <span className="text-3xl font-bold tabular-nums">{results.stats.total_matches}</span>
-                  <p className="text-xs text-muted-foreground mt-1">Matches</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <Badge variant="outline" className="text-sm font-medium">
-                    {results.scenario_type}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground mt-1">Type</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-center">
-                  <Badge
-                    variant={results.confidence === 'high' ? 'default' : results.confidence === 'medium' ? 'secondary' : 'outline'}
-                    className="text-sm"
-                  >
-                    {results.confidence.toUpperCase()}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground mt-1">Confidence</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Tabbed Results */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="h-9 bg-muted/50">
-              <TabsTrigger value="overview" className="text-xs gap-1.5">
-                <Info className="w-3.5 h-3.5" />
-                Insights
-              </TabsTrigger>
-              <TabsTrigger value="maps" className="text-xs gap-1.5">
-                <Target className="w-3.5 h-3.5" />
-                By Map
-              </TabsTrigger>
-              <TabsTrigger value="matches" className="text-xs gap-1.5">
-                <Crosshair className="w-3.5 h-3.5" />
-                Matches
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Insights Tab */}
-            <TabsContent value="overview" className="mt-4">
-              <Card>
-                <CardContent className="px-4 py-4">
-                  <ul className="space-y-2">
-                    {results.insights.map((insight: string, i: number) => (
-                      <li key={`insight-${i}-${insight.substring(0, 20)}`} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                        <span className="text-sm leading-relaxed">{insight}</span>
-                      </li>
-                    ))}
-                  </ul>
+          {results.stats.total_matches > 0 ? (
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+              <Card className="bg-gradient-to-br from-primary/10 to-transparent">
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <span className="text-3xl font-bold tabular-nums">
+                      {(results.stats.attacker_win_rate * 100).toFixed(0)}%
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-1">ATK Win Rate</p>
+                  </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <span className="text-3xl font-bold tabular-nums">{results.stats.total_matches}</span>
+                    <p className="text-xs text-muted-foreground mt-1">Matches</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <Badge variant="outline" className="text-sm font-medium">
+                      {results.scenario_type}
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mt-1">Type</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <Badge
+                      variant={results.confidence === 'high' ? 'default' : results.confidence === 'medium' ? 'secondary' : 'outline'}
+                      className="text-sm"
+                    >
+                      {results.confidence?.toUpperCase() || 'LOW'}
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mt-1">Confidence</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="p-6">
+                <div className="text-center space-y-2">
+                  <Badge variant="outline" className="text-sm font-medium mb-2">
+                    {results.scenario_type}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    No historical matches found for this scenario
+                  </p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Try adjusting the parameters or the scenario database is still being built
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tabbed Results - Only show when we have data */}
+          {results.stats.total_matches > 0 && (
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="h-9 bg-muted/50">
+                <TabsTrigger value="overview" className="text-xs gap-1.5">
+                  <Info className="w-3.5 h-3.5" />
+                  Insights
+                </TabsTrigger>
+                <TabsTrigger value="maps" className="text-xs gap-1.5">
+                  <Target className="w-3.5 h-3.5" />
+                  By Map
+                </TabsTrigger>
+                <TabsTrigger value="matches" className="text-xs gap-1.5">
+                  <Crosshair className="w-3.5 h-3.5" />
+                  Matches
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Insights Tab */}
+              <TabsContent value="overview" className="mt-4">
+                <Card>
+                  <CardContent className="px-4 py-4">
+                    {results.insights && results.insights.length > 0 ? (
+                      <ul className="space-y-2">
+                        {results.insights.map((insight: string, i: number) => (
+                          <li key={`insight-${i}-${insight.substring(0, 20)}`} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-muted/50">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                            <span className="text-sm leading-relaxed">{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4">No insights available</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
             {/* Map Breakdown Tab */}
             <TabsContent value="maps" className="mt-4">
@@ -303,7 +341,8 @@ export function ScenarioSearch() {
                 </CardContent>
               </Card>
             </TabsContent>
-          </Tabs>
+            </Tabs>
+          )}
         </motion.div>
       ) : (
         <Card className="border-dashed">

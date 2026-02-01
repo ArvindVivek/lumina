@@ -1,6 +1,5 @@
-import { DashboardNav } from '@/components/layouts/dashboard-nav'
-import { Toaster } from '@/components/ui/sonner'
-import { Providers } from './providers'
+import { AppShell } from '@/components/layout/app-shell'
+import { ScreenDataProvider } from '@/lib/context/screen-data-context'
 
 export default function DashboardLayout({
   children,
@@ -8,16 +7,10 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <Providers>
-      <div className="relative flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-background/95">
-        <DashboardNav />
-        <main className="flex-1">
-          <div className="container max-w-7xl py-8 px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
-        </main>
-        <Toaster />
-      </div>
-    </Providers>
+    <ScreenDataProvider>
+      <AppShell>
+        {children}
+      </AppShell>
+    </ScreenDataProvider>
   )
 }

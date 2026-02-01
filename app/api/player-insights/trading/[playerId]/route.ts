@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryTradingEfficiency } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, TradingData } from '@/lib/analytics/types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -18,9 +18,15 @@ export async function GET(
     // Query trading efficiency data
     const row = await queryTradingEfficiency(sql, playerId, tournamentId || undefined)
 
-    const totalDeaths = parseInt(row.total_deaths)
-    const traded = parseInt(row.traded)
+    // Handle null/NaN values properly
+    const totalDeaths = parseInt(row.total_deaths) || 0
+    const traded = parseInt(row.traded) || 0
     const tradeRate = totalDeaths > 0 ? traded / totalDeaths : 0
+
+    // Don't return a card if there's no data
+    if (totalDeaths === 0) {
+      return NextResponse.json(null)
+    }
 
     const data: TradingData = {
       traded,
@@ -63,7 +69,5 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await sql.end()
   }
 }

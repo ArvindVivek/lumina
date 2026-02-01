@@ -12,16 +12,14 @@ Coaches can identify exactly why rounds are lost and get data-backed recommendat
 
 ### Validated
 
-(Reference implementation exists in `/Users/arvind/Documents/ValVision/valvision-ml/grid-gg`)
+(Prior research/prototype informed these patterns)
 
-- ✓ GRID.gg API integration (Central Data, Series State, File Download) — existing
-- ✓ ETL pipeline for VCT Americas tournaments (2024-2025) — existing
-- ✓ Database schema with 11 tables, 27 custom indexes — existing (SQLite)
-- ✓ Player insights: first death impact, trading efficiency, opening duels, clutch performance, agent performance — existing
-- ✓ Macro review: pistol analysis, economy management, execution timing, critical moments — existing
-- ✓ Hypothetical analyzer: save vs retake, force vs eco scenario analysis — existing
-- ✓ FastAPI backend with REST endpoints — existing
-- ✓ Basic frontend structure — existing
+- ✓ GRID.gg API integration (Central Data, Series State, File Download) — patterns established
+- ✓ ETL pipeline for VCT Americas tournaments (2024-2025) — data ingested
+- ✓ Database schema with 13 tables, 65 optimized indexes — migrated to PostgreSQL
+- ✓ Player insights: first death impact, trading efficiency, opening duels, clutch performance, agent performance — query patterns validated
+- ✓ Macro review: pistol analysis, economy management, execution timing, critical moments — patterns ready
+- ✓ Hypothetical analyzer: save vs retake, force vs eco scenario analysis — patterns ready
 
 ### Active
 
@@ -45,12 +43,11 @@ Coaches can identify exactly why rounds are lost and get data-backed recommendat
 
 ## Context
 
-**Existing Implementation:**
-Reference codebase at `/Users/arvind/Documents/ValVision/valvision-ml/grid-gg` contains:
-- Python FastAPI backend with analytics modules (insights.py, macro.py, hypotheticals.py)
-- SQLite database with VCT Americas data (~3,620 rounds, ~36,200 player stats)
-- Basic Next.js frontend
-- ETL pipeline for GRID.gg data ingestion
+**Infrastructure:**
+- Supabase instance: `c9-jetbrains-hackathon` (shared with synapse, mosaic, thrifty projects)
+- Lumina schema: `lumina.*` tables isolated from other projects
+- 170K+ rows of VCT Americas data migrated
+- 65 PostgreSQL indexes optimized for analytics queries
 
 **Data Source:**
 GRID.gg APIs provide official VCT Americas tournament data:
@@ -69,7 +66,8 @@ Statistical and probabilistic methods (not ML):
 
 ## Constraints
 
-- **Tech Stack**: Next.js + Supabase (Edge Functions + PostgreSQL) + Vercel — hackathon requirement for modern stack
+- **Tech Stack**: Next.js + Supabase PostgreSQL + Vercel — hackathon requirement for modern stack
+- **No Edge Functions**: All backend logic in Vercel API routes (not Supabase Edge Functions)
 - **Data Source**: GRID.gg APIs only — official VCT Americas data
 - **Performance**: API response time <2s — coaching insights must be fast
 - **Timeline**: Hackathon deadline — all 8 phases must be complete
@@ -79,10 +77,24 @@ Statistical and probabilistic methods (not ML):
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Supabase Edge Functions over Next.js API Routes | Edge functions run closer to database, better for analytics queries | — Pending |
-| PostgreSQL over SQLite | Supabase provides managed PostgreSQL, scales better, has Row Level Security | — Pending |
+| Vercel API routes over Supabase Edge Functions | Single deployment target (Vercel), simpler architecture, all code in one repo | ✓ Decided |
+| PostgreSQL over SQLite | Supabase provides managed PostgreSQL, scales better, has Row Level Security | ✓ Done |
 | Statistical methods over ML | Sample size (~15k rounds) insufficient for deep learning, statistical methods are explainable | ✓ Good |
-| TypeScript for backend | Consistent language across frontend/backend, Supabase Edge Functions use Deno | — Pending |
+| TypeScript for backend | Consistent language across frontend/backend, works in Vercel API routes | ✓ Decided |
+
+## Architecture
+
+**Backend:**
+- Vercel API routes in `app/api/` directory
+- Direct PostgreSQL connections via `@supabase/supabase-js` client
+- All analytics logic runs server-side in Vercel functions
+
+**Multi-Schema Setup:**
+This project shares a Supabase instance with other hackathon projects:
+- `lumina` schema: VALORANT Assistant Coach (this project)
+- `synapse` schema: (sibling hackathon project)
+- `mosaic` schema: (sibling hackathon project)
+- `thrifty` schema: (sibling hackathon project)
 
 ---
-*Last updated: 2026-01-28 after initialization*
+*Last updated: 2026-01-29 after multi-schema refactor*

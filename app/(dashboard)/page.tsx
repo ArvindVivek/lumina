@@ -1,133 +1,372 @@
 "use client"
 
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Users, Target, Lightbulb, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { Trophy, Users, TrendingUp, Target, BarChart3, Crosshair, Swords, Zap, Database, UserCircle } from 'lucide-react'
+import { useStats } from '@/lib/hooks/use-stats'
+import { usePushScreenData } from '@/lib/hooks/use-screen-data'
 
-const sections = [
-  {
-    title: 'Player Analytics',
-    description: 'Individual player performance insights including first death impact, trading efficiency, clutch performance, and agent analysis.',
-    href: '/player-analytics',
-    icon: Users,
-    metrics: ['First Death Impact', 'Trading Efficiency', 'Opening Duels', 'Clutch Performance', 'Agent Stats', 'Multi-Kill Rounds', 'Eco Performance'],
-  },
-  {
-    title: 'Macro Review',
-    description: 'Team-level tactical analysis including pistol rounds, economy management, execution timing, and critical moment identification.',
-    href: '/macro-review',
-    icon: Target,
-    metrics: ['Pistol Rounds', 'First Blood', 'Trade Discipline', 'Economy', 'Timing', 'Ultimates', 'Critical Moments', 'Round Breakdown'],
-  },
-  {
-    title: 'Scenario Analysis',
-    description: 'Hypothetical scenario queries with expected value calculations for save/retake, force/eco, and clutch decisions.',
-    href: '/scenario-analysis',
-    icon: Lightbulb,
-    metrics: ['Save vs Retake', 'Force vs Eco', 'Clutch Analysis'],
-  },
-]
+// Animated counter component
+function AnimatedCounter({
+  value,
+  duration = 2000,
+  suffix = '',
+  delay = 0
+}: {
+  value: number
+  duration?: number
+  suffix?: string
+  delay?: number
+}) {
+  const [count, setCount] = useState(0)
+  const [hasStarted, setHasStarted] = useState(false)
+
+  useEffect(() => {
+    if (value === 0) return
+
+    // Wait for delay before starting animation
+    const delayTimeout = setTimeout(() => {
+      setHasStarted(true)
+      const startTime = Date.now()
+      const endValue = value
+
+      const animate = () => {
+        const now = Date.now()
+        const progress = Math.min((now - startTime) / duration, 1)
+        // Easing function for smooth deceleration
+        const eased = 1 - Math.pow(1 - progress, 3)
+        setCount(Math.floor(eased * endValue))
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        }
+      }
+
+      requestAnimationFrame(animate)
+    }, delay)
+
+    return () => clearTimeout(delayTimeout)
+  }, [value, duration, delay])
+
+  return <span>{count.toLocaleString()}{suffix}</span>
+}
+
+// Stat card with animation
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  color,
+  delay = 0
+}: {
+  icon: React.ElementType
+  label: string
+  value: number
+  color: string
+  delay?: number
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+      className="panel-responsive relative overflow-hidden group hover:border-valorant-accent/30 transition-colors"
+    >
+      {/* Background glow effect */}
+      <div
+        className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity ${color}`}
+        style={{ filter: 'blur(40px)' }}
+      />
+
+      <div className="relative flex items-start gap-3">
+        <div className={`icon-container-responsive ${color}`}>
+          <Icon className="text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs uppercase tracking-wide text-text-secondary mb-1 truncate">{label}</p>
+          <p className="metric-value-responsive text-text-primary tabular-nums">
+            <AnimatedCounter value={value} delay={delay * 1000} />
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
 export default function DashboardPage() {
+  const { data: stats, isLoading } = useStats()
+
+  // Memoize the data object to avoid re-renders
+  const screenData = useMemo(() => {
+    if (!stats) return null
+    return {
+      tournaments: stats.tournaments,
+      teams: stats.teams,
+      players: stats.players,
+      matches: stats.series,
+      games: stats.games,
+      rounds: stats.rounds,
+      killEvents: stats.killEvents,
+      clutchSituations: stats.clutchSituations,
+    }
+  }, [stats])
+
+  // Push dashboard stats to screen context for chat
+  usePushScreenData('Dashboard Statistics', screenData, !isLoading && !!stats)
+
   return (
-    <div className="space-y-8">
-      {/* Header - grid.gg style */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-2"
-      >
-        <h1 className="text-3xl font-bold text-foreground">
-          Welcome to{" "}
-          <span className="text-valorant-red">Lumina</span>
-        </h1>
-        <p className="text-foreground-muted">
-          Your AI-powered VALORANT coaching assistant. Analyze players, review tactics, and optimize decisions.
-        </p>
-      </motion.div>
+    <div className="h-full overflow-auto">
+      <div className="max-w-responsive p-responsive space-y-responsive">
+        {/* Hero Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="space-y-2"
+        >
+          <h1 className="text-responsive-4xl font-bold text-text-primary">
+            VALORANT <span className="text-valorant-accent">Analytics</span>
+          </h1>
+          <p className="text-responsive-lg text-text-secondary">
+            AI-powered coaching insights for competitive VALORANT
+          </p>
+        </motion.div>
 
-      {/* Section Cards - grid.gg style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sections.map((section, i) => (
-          <motion.div
-            key={section.href}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: i * 0.1 }}
-            whileHover={{ scale: 1.02, y: -2 }}
+        {/* Data Statistics with Animations */}
+        <div>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-sm uppercase tracking-wider text-text-tertiary mb-4 flex items-center gap-2"
           >
-            <Link href={section.href}>
-              <div
-                className={cn(
-                  "relative overflow-hidden rounded-xl",
-                  "bg-surface border border-border",
-                  "p-6 transition-all duration-300",
-                  "hover:border-valorant-red/30 hover:shadow-lg hover:shadow-valorant-red/5",
-                  "cursor-pointer group h-full"
-                )}
-              >
-                {/* Background gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-valorant-red/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <Database className="w-4 h-4" />
+            Available Data
+          </motion.h2>
 
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className={cn(
-                        "w-12 h-12 rounded-xl",
-                        "bg-valorant-red/10 flex items-center justify-center"
-                      )}
-                    >
-                      <section.icon className="w-6 h-6 text-valorant-red" />
+          {isLoading ? (
+            <div className="grid-responsive-stats">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="panel-responsive animate-pulse">
+                  <div className="flex items-start gap-3">
+                    <div className="icon-container-responsive bg-surface-hover" />
+                    <div className="flex-1">
+                      <div className="h-3 w-16 bg-surface-hover rounded mb-2" />
+                      <div className="h-8 w-24 bg-surface-hover rounded" />
                     </div>
-                    <ArrowRight className="w-5 h-5 text-foreground-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-
-                  <h3 className="font-semibold text-foreground text-lg mb-2">
-                    {section.title}
-                  </h3>
-                  <p className="text-sm text-foreground-muted mb-4 leading-relaxed">
-                    {section.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {section.metrics.slice(0, 3).map((metric) => (
-                      <span
-                        key={metric}
-                        className="inline-flex items-center rounded-md bg-surface-hover px-2 py-1 text-xs font-medium text-foreground-muted border border-border/50"
-                      >
-                        {metric}
-                      </span>
-                    ))}
-                    {section.metrics.length > 3 && (
-                      <span className="inline-flex items-center rounded-md bg-surface-hover px-2 py-1 text-xs font-medium text-foreground-muted border border-border/50">
-                        +{section.metrics.length - 3} more
-                      </span>
-                    )}
                   </div>
                 </div>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid-responsive-stats">
+              <StatCard
+                icon={Trophy}
+                label="Tournaments"
+                value={stats?.tournaments || 0}
+                color="bg-valorant-accent"
+                delay={0}
+              />
+              <StatCard
+                icon={Users}
+                label="Teams"
+                value={stats?.teams || 0}
+                color="bg-chart-defense"
+                delay={0.1}
+              />
+              <StatCard
+                icon={UserCircle}
+                label="Players"
+                value={stats?.players || 0}
+                color="bg-chart-attack"
+                delay={0.2}
+              />
+              <StatCard
+                icon={Swords}
+                label="Matches"
+                value={stats?.series || 0}
+                color="bg-valorant-red"
+                delay={0.3}
+              />
+              <StatCard
+                icon={Target}
+                label="Games Played"
+                value={stats?.games || 0}
+                color="bg-purple-600"
+                delay={0.4}
+              />
+              <StatCard
+                icon={BarChart3}
+                label="Rounds"
+                value={stats?.rounds || 0}
+                color="bg-blue-600"
+                delay={0.5}
+              />
+              <StatCard
+                icon={Crosshair}
+                label="Kill Events"
+                value={stats?.killEvents || 0}
+                color="bg-orange-600"
+                delay={0.6}
+              />
+              <StatCard
+                icon={Zap}
+                label="Clutch Situations"
+                value={stats?.clutchSituations || 0}
+                color="bg-yellow-600"
+                delay={0.7}
+              />
+            </div>
+          )}
+        </div>
 
-      {/* Quick Start - grid.gg style */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="rounded-xl border border-border bg-surface/50 p-6"
-      >
-        <h2 className="font-semibold text-sm text-valorant-red uppercase tracking-wide mb-3 flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-valorant-red animate-pulse" />
-          Quick Start
-        </h2>
-        <p className="text-sm text-foreground-muted leading-relaxed">
-          Select a player or team from the filters in each section to view detailed analytics.
-          All insights include confidence scores based on sample size and data quality.
-        </p>
-      </motion.div>
+        {/* Quick Access */}
+        <div>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="text-responsive-2xl font-semibold text-text-primary mb-4"
+          >
+            Quick Access
+          </motion.h2>
+          <div className="grid-responsive-cards">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+            >
+              <Link href="/player-analytics">
+                <div className="panel-responsive group cursor-pointer h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="icon-container-responsive bg-valorant-accent/10 group-hover:bg-valorant-accent/20 transition-colors">
+                      <Users className="text-valorant-accent" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-text-primary mb-1 text-responsive-lg">Player Analytics</h3>
+                      <p className="text-sm text-text-secondary leading-relaxed">
+                        Deep dive into individual performance, trading efficiency, and clutch stats
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.0 }}
+            >
+              <Link href="/macro-review">
+                <div className="panel-responsive group cursor-pointer h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="icon-container-responsive bg-chart-defense/10 group-hover:bg-chart-defense/20 transition-colors">
+                      <Target className="text-chart-defense" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-text-primary mb-1 text-responsive-lg">Macro Review</h3>
+                      <p className="text-sm text-text-secondary leading-relaxed">
+                        Team tactics, economy management, and critical moment analysis
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1 }}
+            >
+              <Link href="/scenario-analysis">
+                <div className="panel-responsive group cursor-pointer h-full">
+                  <div className="flex items-start gap-3">
+                    <div className="icon-container-responsive bg-chart-attack/10 group-hover:bg-chart-attack/20 transition-colors">
+                      <BarChart3 className="text-chart-attack" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-text-primary mb-1 text-responsive-lg">Scenario Analysis</h3>
+                      <p className="text-sm text-text-secondary leading-relaxed">
+                        Save vs retake, force buy decisions, and clutch scenario insights
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Browse Data Section */}
+        <div>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="text-responsive-2xl font-semibold text-text-primary mb-4"
+          >
+            Browse Data
+          </motion.h2>
+          <div className="grid-responsive-cards">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.3 }}
+            >
+              <Link href="/tournaments">
+                <div className="panel-responsive group cursor-pointer text-center">
+                  <div className="icon-container-responsive bg-valorant-accent/10 mx-auto mb-3">
+                    <Trophy className="text-valorant-accent" />
+                  </div>
+                  <h3 className="font-semibold text-text-primary mb-1">Tournaments</h3>
+                  <p className="text-sm text-text-secondary">
+                    <AnimatedCounter value={stats?.tournaments || 0} /> tournaments
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.4 }}
+            >
+              <Link href="/teams">
+                <div className="panel-responsive group cursor-pointer text-center">
+                  <div className="icon-container-responsive bg-chart-defense/10 mx-auto mb-3">
+                    <Users className="text-chart-defense" />
+                  </div>
+                  <h3 className="font-semibold text-text-primary mb-1">Teams</h3>
+                  <p className="text-sm text-text-secondary">
+                    <AnimatedCounter value={stats?.teams || 0} /> teams
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.5 }}
+            >
+              <Link href="/players">
+                <div className="panel-responsive group cursor-pointer text-center">
+                  <div className="icon-container-responsive bg-chart-attack/10 mx-auto mb-3">
+                    <TrendingUp className="text-chart-attack" />
+                  </div>
+                  <h3 className="font-semibold text-text-primary mb-1">Players</h3>
+                  <p className="text-sm text-text-secondary">
+                    <AnimatedCounter value={stats?.players || 0} /> players
+                  </p>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

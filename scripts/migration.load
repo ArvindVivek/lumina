@@ -1,5 +1,8 @@
+-- Historical: pgloader config used for initial SQLite to PostgreSQL migration (Phase 1)
+-- Source data now archived; tables live in lumina schema
+
 LOAD DATABASE
-    FROM sqlite:///Users/arvind/Documents/ValVision/valvision-ml/grid-gg/data/valvision.db
+    FROM sqlite:///path/to/source/valvision.db  -- archived source
     INTO postgresql://postgres:postgres@localhost:54322/postgres
 
 WITH include drop,

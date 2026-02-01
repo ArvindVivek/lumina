@@ -168,35 +168,43 @@ export function HypotheticalView({ seriesId, teamId }: HypotheticalViewProps) {
               </div>
 
               {/* Kill Timeline */}
-              <div>
-                <h4 className="text-xs font-medium mb-2 flex items-center gap-1.5">
-                  <Crosshair className="w-3.5 h-3.5" />
-                  Kill Timeline
-                </h4>
-                <ScrollArea className="h-[140px]">
-                  <div className="space-y-1.5">
-                    {analysis.round_context.kill_timeline.map((kill: any) => (
-                      <div
-                        key={`${kill.killer_name}-${kill.victim_name}-${kill.game_time_ms}`}
-                        className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded bg-muted/50"
-                      >
-                        <span className="text-muted-foreground font-mono w-12">
-                          {(kill.game_time_ms / 1000).toFixed(1)}s
-                        </span>
-                        <span className="flex-1 px-2">
-                          <span className="font-medium">{kill.killer_name}</span>
-                          <span className="text-muted-foreground mx-1">→</span>
-                          <span>{kill.victim_name}</span>
-                        </span>
-                        <Badge variant="outline" className="text-[10px] h-5">
-                          {kill.weapon}
-                          {kill.headshot && ' HS'}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
+              {analysis.round_context.kill_timeline && analysis.round_context.kill_timeline.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium mb-2 flex items-center gap-1.5">
+                    <Crosshair className="w-3.5 h-3.5" />
+                    Kill Timeline
+                  </h4>
+                  <ScrollArea className="h-[140px]">
+                    <div className="space-y-1.5">
+                      {analysis.round_context.kill_timeline.map((kill: any, index: number) => {
+                        const hasValidTime = kill.game_time_ms && kill.game_time_ms > 0
+                        const hasValidWeapon = kill.weapon && kill.weapon.toLowerCase() !== 'unknown'
+                        return (
+                          <div
+                            key={`kill-${kill.killer_id}-${kill.victim_id}-${kill.game_time_ms}-${index}`}
+                            className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded bg-muted/50"
+                          >
+                            <span className="text-muted-foreground font-mono w-12">
+                              {hasValidTime ? `${(kill.game_time_ms / 1000).toFixed(1)}s` : `#${index + 1}`}
+                            </span>
+                            <span className="flex-1 px-2">
+                              <span className="font-medium">{kill.killer_name}</span>
+                              <span className="text-muted-foreground mx-1">→</span>
+                              <span>{kill.victim_name}</span>
+                            </span>
+                            {hasValidWeapon && (
+                              <Badge variant="outline" className="text-[10px] h-5">
+                                {kill.weapon}
+                                {kill.headshot && ' HS'}
+                              </Badge>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -205,11 +213,8 @@ export function HypotheticalView({ seriesId, teamId }: HypotheticalViewProps) {
             <CardHeader className="pb-3 pt-4 px-4">
               <CardTitle className="flex items-center gap-2 text-base">
                 <TrendingUp className="w-4 h-4" />
-                Historical Analysis
+                Scenario Analysis
               </CardTitle>
-              <CardDescription className="text-xs">
-                Based on {analysis.scenario_stats.total_matches} similar scenarios
-              </CardDescription>
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-4">
               {/* Scenario Type */}
@@ -218,42 +223,48 @@ export function HypotheticalView({ seriesId, teamId }: HypotheticalViewProps) {
                 <p className="font-semibold text-lg">{analysis.scenario_type}</p>
               </div>
 
-              {/* Win Rate */}
-              <div className="p-4 rounded-lg bg-muted/50">
-                <div className="text-center">
-                  <span className={cn(
-                    "text-4xl font-bold tabular-nums",
-                    analysis.scenario_stats.total_matches === 0 && "text-muted-foreground"
-                  )}>
-                    {analysis.scenario_stats.total_matches > 0
-                      ? `${(analysis.scenario_stats.attacker_win_rate * 100).toFixed(0)}%`
-                      : 'N/A'
-                    }
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {analysis.scenario_stats.total_matches > 0
-                      ? 'Historical attacker win rate'
-                      : 'No similar scenarios found'
-                    }
-                  </p>
+              {/* Win Rate - Only show if we have data */}
+              {analysis.scenario_stats.total_matches > 0 ? (
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <div className="text-center">
+                    <span className="text-4xl font-bold tabular-nums">
+                      {(analysis.scenario_stats.attacker_win_rate * 100).toFixed(0)}%
+                    </span>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Historical attacker win rate ({analysis.scenario_stats.total_matches} matches)
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-4 rounded-lg border border-dashed border-border bg-muted/20">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      No historical data available for this scenario
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 mt-1">
+                      Scenario database is being built
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Insights */}
-              <div>
-                <h4 className="text-xs font-medium mb-2 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  Insights
-                </h4>
-                <ul className="space-y-2">
-                  {analysis.insights.slice(0, 3).map((insight: string, i: number) => (
-                    <li key={`insight-${i}-${insight.substring(0, 20)}`} className="text-xs flex items-start gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1 flex-shrink-0" />
-                      <span className="leading-relaxed">{insight}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {analysis.insights && analysis.insights.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-medium mb-2 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Insights
+                  </h4>
+                  <ul className="space-y-2">
+                    {analysis.insights.slice(0, 3).map((insight: string, i: number) => (
+                      <li key={`insight-${i}-${insight.substring(0, 20)}`} className="text-xs flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1 flex-shrink-0" />
+                        <span className="leading-relaxed">{insight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Recommendation */}
               {analysis.recommendation && (

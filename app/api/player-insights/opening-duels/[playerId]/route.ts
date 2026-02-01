@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryOpeningDuels } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, OpeningDuelsData } from '@/lib/analytics/types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -18,12 +18,18 @@ export async function GET(
     // Query opening duels data
     const row = await queryOpeningDuels(sql, playerId, tournamentId || undefined)
 
-    const totalRounds = parseInt(row.total_rounds)
-    const firstKills = parseInt(row.first_kills)
-    const firstDeaths = parseInt(row.first_deaths)
+    // Handle null/NaN values properly
+    const totalRounds = parseInt(row.total_rounds) || 0
+    const firstKills = parseInt(row.first_kills) || 0
+    const firstDeaths = parseInt(row.first_deaths) || 0
     const openingDuels = firstKills + firstDeaths
     const openingDuelRate = totalRounds > 0 ? openingDuels / totalRounds : 0
     const successRate = openingDuels > 0 ? firstKills / openingDuels : 0
+
+    // Don't return a card if there's no data
+    if (totalRounds === 0) {
+      return NextResponse.json(null)
+    }
 
     const data: OpeningDuelsData = {
       first_kills: firstKills,
@@ -68,7 +74,5 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await sql.end()
   }
 }

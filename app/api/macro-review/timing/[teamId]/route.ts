@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryTimingPatterns } from '@/lib/analytics/macro-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { MacroInsightResponse, TimingPatternData } from '@/lib/analytics/macro-types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
@@ -65,7 +65,5 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching timing patterns:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  } finally {
-    await sql.end()
   }
 }

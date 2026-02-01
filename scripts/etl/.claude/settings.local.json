@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm view:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx get-shit-done-cc:*)"
+    ]
+  }
+}

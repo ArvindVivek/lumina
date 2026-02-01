@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createPostgresClient } from '@/lib/supabase/client'
+import { getPostgresPool } from '@/lib/supabase/server'
 import { queryMultiKillRounds } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, MultiKillData } from '@/lib/analytics/types'
@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = createPostgresClient()
+  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -18,13 +18,19 @@ export async function GET(
     // Query multi-kill rounds data
     const row = await queryMultiKillRounds(sql, playerId, tournamentId || undefined)
 
-    const totalRounds = parseInt(row.total_rounds)
-    const totalKills = parseInt(row.total_kills)
-    const twoPlusKills = parseInt(row.two_plus_kills)
-    const threePlusKills = parseInt(row.three_plus_kills)
-    const fourPlusKills = parseInt(row.four_plus_kills)
-    const aces = parseInt(row.aces)
+    // Handle null/NaN values properly
+    const totalRounds = parseInt(row.total_rounds) || 0
+    const totalKills = parseInt(row.total_kills) || 0
+    const twoPlusKills = parseInt(row.two_plus_kills) || 0
+    const threePlusKills = parseInt(row.three_plus_kills) || 0
+    const fourPlusKills = parseInt(row.four_plus_kills) || 0
+    const aces = parseInt(row.aces) || 0
     const killsPerRound = totalRounds > 0 ? totalKills / totalRounds : 0
+
+    // Don't return a card if there's no data
+    if (totalRounds === 0) {
+      return NextResponse.json(null)
+    }
 
     const data: MultiKillData = {
       two_plus_kills: twoPlusKills,
@@ -72,7 +78,5 @@ export async function GET(
       { error: 'Internal server error' },
       { status: 500 }
     )
-  } finally {
-    await sql.end()
   }
 }

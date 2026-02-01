@@ -1,27 +1,20 @@
 #!/bin/bash
-# Migration validation script
+# Lumina Migration Validation Script
+# Note: Original migration used SQLite source (now archived)
+# This script validates PostgreSQL data in the lumina schema
 
-SQLITE_DB="/Users/arvind/Documents/ValVision/valvision-ml/grid-gg/data/valvision.db"
 PG_CONN="postgresql://postgres:postgres@localhost:54322/postgres"
 PSQL="/opt/homebrew/opt/libpq/bin/psql"
+SCHEMA="lumina"
 
-echo "=== Row Count Comparison ==="
+echo "=== Row Count Validation (lumina schema) ==="
 echo ""
 
 TABLES="tournaments teams players series games rounds player_round_stats kill_events spike_events orb_events ability_events kill_assists scenario_index"
 
-ALL_MATCH=true
-
 for table in $TABLES; do
-  sqlite_count=$(sqlite3 "$SQLITE_DB" "SELECT COUNT(*) FROM $table;" 2>/dev/null)
-  pg_count=$($PSQL "$PG_CONN" -t -c "SELECT COUNT(*) FROM $table;" 2>/dev/null | tr -d ' ')
-
-  if [ "$sqlite_count" = "$pg_count" ]; then
-    echo "  $table: $pg_count rows [OK]"
-  else
-    echo "  $table: MISMATCH - SQLite=$sqlite_count, PostgreSQL=$pg_count [FAIL]"
-    ALL_MATCH=false
-  fi
+  pg_count=$($PSQL "$PG_CONN" -t -c "SELECT COUNT(*) FROM ${SCHEMA}.${table};" 2>/dev/null | tr -d ' ')
+  echo "  ${SCHEMA}.${table}: $pg_count rows"
 done
 
 echo ""
@@ -30,8 +23,8 @@ echo ""
 
 $PSQL "$PG_CONN" -c "
 SELECT p.name, COUNT(*) as first_deaths
-FROM player_round_stats prs
-JOIN players p ON prs.player_id = p.id
+FROM ${SCHEMA}.player_round_stats prs
+JOIN ${SCHEMA}.players p ON prs.player_id = p.id
 WHERE prs.first_death = TRUE
 GROUP BY p.id, p.name
 ORDER BY first_deaths DESC
@@ -45,7 +38,7 @@ echo ""
 # Check boolean type
 bool_type=$($PSQL "$PG_CONN" -t -c "
 SELECT data_type FROM information_schema.columns
-WHERE table_name = 'player_round_stats' AND column_name = 'first_death';
+WHERE table_schema = '${SCHEMA}' AND table_name = 'player_round_stats' AND column_name = 'first_death';
 " | tr -d ' ')
 
 if [ "$bool_type" = "boolean" ]; then
@@ -58,7 +51,7 @@ fi
 # Check timestamp type
 ts_type=$($PSQL "$PG_CONN" -t -c "
 SELECT data_type FROM information_schema.columns
-WHERE table_name = 'tournaments' AND column_name = 'start_date';
+WHERE table_schema = '${SCHEMA}' AND table_name = 'tournaments' AND column_name = 'start_date';
 " | tr -d ' ')
 
 if [ "$ts_type" = "timestampwithtimezone" ]; then
@@ -73,7 +66,7 @@ echo "=== Index Verification ==="
 echo ""
 
 # Count optimized indexes
-index_count=$($PSQL "$PG_CONN" -t -c "SELECT count(*) FROM pg_indexes WHERE schemaname = 'public';" | tr -d ' ')
+index_count=$($PSQL "$PG_CONN" -t -c "SELECT count(*) FROM pg_indexes WHERE schemaname = '${SCHEMA}';" | tr -d ' ')
 
 if [ "$index_count" -ge 45 ]; then
   echo "  Total indexes: $index_count [OK - expected 45+]"
@@ -83,7 +76,7 @@ else
 fi
 
 # Check partial index for first_death exists
-partial_idx=$($PSQL "$PG_CONN" -t -c "SELECT indexname FROM pg_indexes WHERE indexname = 'idx_prs_first_death_partial';" | tr -d ' ')
+partial_idx=$($PSQL "$PG_CONN" -t -c "SELECT indexname FROM pg_indexes WHERE schemaname = '${SCHEMA}' AND indexname = 'idx_prs_first_death_partial';" | tr -d ' ')
 if [ "$partial_idx" = "idx_prs_first_death_partial" ]; then
   echo "  Partial index (first_death): exists [OK]"
 else
@@ -92,7 +85,7 @@ else
 fi
 
 # Check scenario index exists
-scenario_idx=$($PSQL "$PG_CONN" -t -c "SELECT indexname FROM pg_indexes WHERE indexname = 'idx_scenario_state_full';" | tr -d ' ')
+scenario_idx=$($PSQL "$PG_CONN" -t -c "SELECT indexname FROM pg_indexes WHERE schemaname = '${SCHEMA}' AND indexname = 'idx_scenario_state_full';" | tr -d ' ')
 if [ "$scenario_idx" = "idx_scenario_state_full" ]; then
   echo "  Scenario index: exists [OK]"
 else
@@ -107,8 +100,8 @@ echo ""
 # Test first death query uses index (check for Index Scan in plan)
 first_death_plan=$($PSQL "$PG_CONN" -t -c "
 EXPLAIN SELECT p.name, COUNT(*) as first_deaths
-FROM player_round_stats prs
-JOIN players p ON prs.player_id = p.id
+FROM ${SCHEMA}.player_round_stats prs
+JOIN ${SCHEMA}.players p ON prs.player_id = p.id
 WHERE prs.first_death = TRUE
 GROUP BY p.id, p.name
 LIMIT 5;
@@ -124,7 +117,7 @@ fi
 # Test scenario query uses index only scan
 scenario_plan=$($PSQL "$PG_CONN" -t -c "
 EXPLAIN SELECT round_id, map_name, attacker_won
-FROM scenario_index
+FROM ${SCHEMA}.scenario_index
 WHERE attacker_alive = 2 AND defender_alive = 3 AND spike_planted = TRUE
 LIMIT 10;
 " 2>/dev/null)
@@ -139,8 +132,8 @@ fi
 # Test first death query execution time (should be under 100ms)
 first_death_time=$($PSQL "$PG_CONN" -t -c "
 EXPLAIN ANALYZE SELECT p.name, COUNT(*) as first_deaths
-FROM player_round_stats prs
-JOIN players p ON prs.player_id = p.id
+FROM ${SCHEMA}.player_round_stats prs
+JOIN ${SCHEMA}.players p ON prs.player_id = p.id
 WHERE prs.first_death = TRUE
 GROUP BY p.id, p.name
 LIMIT 5;

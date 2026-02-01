@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useScreenData } from '@/lib/context/screen-data-context'
 
 interface Player {
   id: string
@@ -17,6 +19,28 @@ interface PlayerSelectorProps {
 export function PlayerSelector({ players, selectedPlayerId }: PlayerSelectorProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { setPageInfo, pushData } = useScreenData()
+
+  // Update screen context when player is selected
+  useEffect(() => {
+    if (selectedPlayerId) {
+      const selectedPlayer = players.find(p => p.id === selectedPlayerId)
+      setPageInfo({
+        page: 'player-analytics',
+        pageTitle: selectedPlayer ? `${selectedPlayer.name} Analytics` : 'Player Analytics',
+        playerId: selectedPlayerId,
+      })
+
+      // Push player info to visible data for chat context
+      if (selectedPlayer) {
+        pushData('selected_player', {
+          id: selectedPlayer.id,
+          name: selectedPlayer.name,
+          team: selectedPlayer.team,
+        })
+      }
+    }
+  }, [selectedPlayerId, players, setPageInfo, pushData])
 
   const handleSelect = (playerId: string) => {
     const params = new URLSearchParams(searchParams.toString())
