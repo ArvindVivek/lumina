@@ -75,9 +75,9 @@ export async function GET(
     const focusedTeamId = teamFocus || defenderTeamId
     const isAnalyzingDefender = focusedTeamId === defenderTeamId
 
-    // Get spike site from spike events
+    // Get spike site from spike events (may be null if no plant event data)
     const plantEvent = roundContext.spike_events.find(e => e.event_type === 'plant')
-    const spikeSite = plantEvent?.site || 'unknown'
+    const spikeSite = plantEvent?.site || null
 
     // Build save/retake query parameters
     const saveRetakeQuery: SaveRetakeQuery = {
@@ -102,10 +102,11 @@ export async function GET(
 
     // Build insights
     const insights: string[] = []
-    const scenarioDesc = `${defenderAlive}v${attackerAlive} retake on ${spikeSite}-site`
+    // Clean scenario description - only include site if known
+    const scenarioDesc = `${defenderAlive}v${attackerAlive} retake`
 
     if (matches.length === 0) {
-      insights.push(`${scenarioDesc} on ${roundContext.map_name}`)
+      insights.push(`${scenarioDesc} on ${roundContext.map_name}${spikeSite ? ` (${spikeSite.toUpperCase()}-site)` : ''}`)
       insights.push('Limited historical data for this exact scenario')
     } else {
       const winRate = matches.filter(m => m.defender_won).length / matches.length

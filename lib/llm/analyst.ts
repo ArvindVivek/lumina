@@ -284,16 +284,17 @@ export async function generateRoundDecisionAnalysis(
   historicalMatches: number,
   defenderAlive: number,
   attackerAlive: number,
-  spikeSite: string,
+  spikeSite: string | null,
   defenderWonRound: boolean
 ): Promise<LLMAnalysisResult> {
   const client = getOpenAIClient()
 
+  const siteInfo = spikeSite ? ` on ${spikeSite}-site` : ''
   const prompt = `Analyze this VALORANT post-plant retake decision:
 
 **Scenario:**
 - Map: ${roundContext.map_name}, Round ${roundContext.round_number}
-- Spike planted on ${spikeSite}-site
+- Spike planted${siteInfo}
 - Defenders attempting ${defenderAlive}v${attackerAlive} retake
 - Defender economy: ~$${roundContext.player_states.filter(p => p.team_id !== (roundContext.round_number <= 12 ? roundContext.team_a_id : roundContext.team_b_id)).reduce((sum, p) => sum + (p.loadout_value || 0), 0)}
 
