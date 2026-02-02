@@ -1,40 +1,40 @@
 import { NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 
 export async function GET() {
-  const sql = getPostgresPool()
-
   try {
-    // Fetch all counts in parallel
+    const supabase = createServerClient()
+
+    // Fetch all counts in parallel using Supabase client
     const [
-      tournamentsResult,
-      teamsResult,
-      playersResult,
-      seriesResult,
-      gamesResult,
-      roundsResult,
-      killEventsResult,
-      clutchSituationsResult
+      { count: tournaments },
+      { count: teams },
+      { count: players },
+      { count: series },
+      { count: games },
+      { count: rounds },
+      { count: killEvents },
+      { count: clutchSituations }
     ] = await Promise.all([
-      sql`SELECT COUNT(*)::int as count FROM public.tournaments`,
-      sql`SELECT COUNT(*)::int as count FROM public.teams`,
-      sql`SELECT COUNT(*)::int as count FROM public.players`,
-      sql`SELECT COUNT(*)::int as count FROM public.series WHERE processed = true`,
-      sql`SELECT COUNT(*)::int as count FROM public.games`,
-      sql`SELECT COUNT(*)::int as count FROM public.rounds`,
-      sql`SELECT COUNT(*)::int as count FROM public.kill_events`,
-      sql`SELECT COUNT(*)::int as count FROM public.player_round_stats WHERE clutch_situation = true`
+      supabase.from('tournaments').select('*', { count: 'exact', head: true }),
+      supabase.from('teams').select('*', { count: 'exact', head: true }),
+      supabase.from('players').select('*', { count: 'exact', head: true }),
+      supabase.from('series').select('*', { count: 'exact', head: true }).eq('processed', true),
+      supabase.from('games').select('*', { count: 'exact', head: true }),
+      supabase.from('rounds').select('*', { count: 'exact', head: true }),
+      supabase.from('kill_events').select('*', { count: 'exact', head: true }),
+      supabase.from('player_round_stats').select('*', { count: 'exact', head: true }).eq('clutch_situation', true)
     ])
 
     return NextResponse.json({
-      tournaments: tournamentsResult[0]?.count || 0,
-      teams: teamsResult[0]?.count || 0,
-      players: playersResult[0]?.count || 0,
-      series: seriesResult[0]?.count || 0,
-      games: gamesResult[0]?.count || 0,
-      rounds: roundsResult[0]?.count || 0,
-      killEvents: killEventsResult[0]?.count || 0,
-      clutchSituations: clutchSituationsResult[0]?.count || 0
+      tournaments: tournaments || 0,
+      teams: teams || 0,
+      players: players || 0,
+      series: series || 0,
+      games: games || 0,
+      rounds: rounds || 0,
+      killEvents: killEvents || 0,
+      clutchSituations: clutchSituations || 0
     })
   } catch (error) {
     console.error('Error fetching stats:', error)
