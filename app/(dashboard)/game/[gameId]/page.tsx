@@ -1,9 +1,9 @@
 "use client"
 
-import { use, useMemo } from "react"
+import { use, useMemo, useState, Fragment } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Crosshair, Shield, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { ArrowLeft, Crosshair, Shield, TrendingUp, TrendingDown, Minus, ChevronDown, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useGame } from "@/lib/hooks/use-games"
 import { useGameRounds } from "@/lib/hooks/use-rounds"
@@ -11,6 +11,7 @@ import { MetricRow } from "@/components/metrics/metric-row"
 import { usePushScreenData } from "@/lib/hooks/use-screen-data"
 import { getMapImage, hasMapImage, getMapGradient, formatMapName } from "@/lib/valorant-assets"
 import { TeamLogo } from "@/components/valorant/team-logo"
+import { RoundAnalysisPanel } from "@/components/analytics/round-analysis-panel"
 
 // Economy comparison bar component - compact inline display
 function EconomyBar({
@@ -95,6 +96,7 @@ export default function GameDetailPage({
   const { gameId } = use(params)
   const { data: game, isLoading: gameLoading } = useGame(gameId)
   const { data: rounds, isLoading: roundsLoading } = useGameRounds(gameId)
+  const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
 
   // Memoize screen data for chat context
   const screenData = useMemo(() => {
@@ -253,7 +255,10 @@ export default function GameDetailPage({
 
         {/* Round List */}
         <div className="space-y-3">
-          <h2 className="label-tactical">Round Details</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="label-tactical">Round Details</h2>
+            <span className="text-xs text-text-tertiary">Click post-plant rounds for save/retake analysis</span>
+          </div>
           <div className="panel p-0 overflow-hidden">
             <table className="table-dense">
               <thead>
@@ -263,6 +268,7 @@ export default function GameDetailPage({
                   <th>End Condition</th>
                   <th className="text-center">Spike</th>
                   <th className="text-right">Economy</th>
+                  <th className="w-8"></th>
                 </tr>
               </thead>
               <tbody>
@@ -271,59 +277,90 @@ export default function GameDetailPage({
                     const teamAWon = round.winning_team_id === game.team_a_id
                     const teamBWon = round.winning_team_id === game.team_b_id
                     const isPistol = [1, 13].includes(round.round_number)
+                    const isSelected = selectedRoundId === round.id
+                    const hasAnalysis = round.spike_planted
 
                     return (
-                      <tr key={round.id}>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">{round.round_number}</span>
-                            {isPistol && (
-                              <span className="text-xs text-valorant-accent uppercase">Pistol</span>
-                            )}
-                          </div>
-                        </td>
-                        <td>
-                          <span className={cn(
-                            "text-xs uppercase font-bold",
-                            teamAWon ? "text-win" : teamBWon ? "text-loss" : "text-text-tertiary"
-                          )}>
-                            {teamAWon ? (game.team_a_name || "Team A") : teamBWon ? (game.team_b_name || "Team B") : "DRAW"}
-                          </span>
-                        </td>
-                        <td className="text-xs text-text-secondary capitalize">
-                          {round.winning_condition?.replace(/_/g, ' ') || "Unknown"}
-                        </td>
-                        <td className="text-center">
-                          {round.spike_planted && (
-                            <div className="inline-flex items-center gap-1 text-xs">
-                              <Shield className={cn(
-                                "h-3 w-3",
-                                round.spike_defused ? "text-chart-defense" : "text-chart-attack"
-                              )} />
-                              <span className="text-text-tertiary">
-                                {round.spike_defused ? "Defused" : "Planted"}
-                              </span>
+                      <Fragment key={round.id}>
+                        <tr
+                          onClick={() => hasAnalysis && setSelectedRoundId(isSelected ? null : round.id)}
+                          className={cn(
+                            hasAnalysis && "cursor-pointer hover:bg-surface-hover/50",
+                            isSelected && "bg-surface-hover/30"
+                          )}
+                        >
+                          <td>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">{round.round_number}</span>
+                              {isPistol && (
+                                <span className="text-xs text-valorant-accent uppercase">Pistol</span>
+                              )}
                             </div>
-                          )}
-                        </td>
-                        <td className="text-right">
-                          {round.team_a_loadout_value && round.team_b_loadout_value ? (
-                            <EconomyBar
-                              teamAValue={round.team_a_loadout_value}
-                              teamBValue={round.team_b_loadout_value}
-                              teamAName={game.team_a_name || "A"}
-                              teamBName={game.team_b_name || "B"}
-                            />
-                          ) : (
-                            <span className="text-text-muted text-xs">—</span>
-                          )}
-                        </td>
-                      </tr>
+                          </td>
+                          <td>
+                            <span className={cn(
+                              "text-xs uppercase font-bold",
+                              teamAWon ? "text-win" : teamBWon ? "text-loss" : "text-text-tertiary"
+                            )}>
+                              {teamAWon ? (game.team_a_name || "Team A") : teamBWon ? (game.team_b_name || "Team B") : "DRAW"}
+                            </span>
+                          </td>
+                          <td className="text-xs text-text-secondary capitalize">
+                            {round.winning_condition?.replace(/_/g, ' ') || "Unknown"}
+                          </td>
+                          <td className="text-center">
+                            {round.spike_planted && (
+                              <div className="inline-flex items-center gap-1 text-xs">
+                                <Shield className={cn(
+                                  "h-3 w-3",
+                                  round.spike_defused ? "text-chart-defense" : "text-chart-attack"
+                                )} />
+                                <span className="text-text-tertiary">
+                                  {round.spike_defused ? "Defused" : "Planted"}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="text-right">
+                            {round.team_a_loadout_value && round.team_b_loadout_value ? (
+                              <EconomyBar
+                                teamAValue={round.team_a_loadout_value}
+                                teamBValue={round.team_b_loadout_value}
+                                teamAName={game.team_a_name || "A"}
+                                teamBName={game.team_b_name || "B"}
+                              />
+                            ) : (
+                              <span className="text-text-muted text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="text-center">
+                            {hasAnalysis && (
+                              <ChevronDown className={cn(
+                                "h-4 w-4 text-text-tertiary transition-transform",
+                                isSelected && "rotate-180"
+                              )} />
+                            )}
+                          </td>
+                        </tr>
+                        {isSelected && hasAnalysis && (
+                          <tr>
+                            <td colSpan={6} className="p-0">
+                              <RoundAnalysisPanel
+                                roundId={round.id}
+                                roundNumber={round.round_number}
+                                mapName={game.map_name}
+                                spikePlanted={round.spike_planted}
+                                onClose={() => setSelectedRoundId(null)}
+                              />
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     )
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="text-center text-text-tertiary py-8">
+                    <td colSpan={6} className="text-center text-text-tertiary py-8">
                       No rounds data available
                     </td>
                   </tr>

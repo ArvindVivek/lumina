@@ -164,7 +164,7 @@ export default function SeriesDetailPage({
           <h2 className="label-tactical">Map-by-Map Breakdown</h2>
 
           {games && games.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {games.map((game, index) => {
                 const teamAWonGame = game.winner_id === series.team_a_id
                 const isDraw = game.team_a_score === game.team_b_score

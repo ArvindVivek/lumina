@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useMemo } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +18,7 @@ import {
   Zap,
   Shield,
   Users,
+  ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePushScreenData } from '@/lib/hooks/use-screen-data'
@@ -223,8 +225,13 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
                   </thead>
                   <tbody>
                     {key_metrics.map((m: any) => (
-                      <tr key={m.game_id} className="border-b border-border/50 hover:bg-muted/30">
-                        <td className="py-2 px-3 font-medium">{m.map_name}</td>
+                      <tr key={m.game_id} className="border-b border-border/50 hover:bg-muted/30 cursor-pointer group">
+                        <td className="py-2 px-3">
+                          <Link href={`/game/${m.game_id}`} className="font-medium hover:text-primary transition-colors flex items-center gap-1">
+                            {m.map_name}
+                            <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
+                        </td>
                         <td className="text-center py-2 px-3">{m.score}</td>
                         <td className="text-center py-2 px-3">
                           <MetricBadge value={m.fb_win_rate} threshold={0.5} />
@@ -309,33 +316,41 @@ export function CoachingReportView({ seriesId, teamId }: CoachingReportViewProps
           <Card>
             <CardHeader className="pb-3 pt-4 px-4">
               <CardTitle className="text-base">VOD Review Priority</CardTitle>
-              <CardDescription className="text-xs">Rounds prioritized for coaching review</CardDescription>
+              <CardDescription className="text-xs">Rounds prioritized for coaching review - click to view game details</CardDescription>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <ScrollArea className="h-[280px]">
                 <div className="space-y-2">
                   {vod_review_notes.slice(0, 12).map((note: any, i: number) => (
-                    <div
+                    <Link
                       key={`vod-${note.map_name}-${note.round_number}-${i}`}
-                      className={cn(
-                        "flex items-center justify-between p-2.5 rounded-lg",
-                        note.review_priority === 'critical' ? 'bg-red-500/10 border border-red-500/20' :
-                        note.review_priority === 'high' ? 'bg-amber-500/10 border border-amber-500/20' :
-                        'bg-muted/50'
-                      )}
+                      href={`/game/${note.game_id}`}
+                      className="block"
                     >
-                      <div className="flex items-center gap-2 flex-1">
-                        <Badge variant={
-                          note.review_priority === 'critical' ? 'destructive' :
-                          note.review_priority === 'high' ? 'default' :
-                          'secondary'
-                        } className="font-mono text-xs">
-                          {note.map_name} R{note.round_number}
-                        </Badge>
-                        <span className="text-xs">{note.reason}</span>
+                      <div
+                        className={cn(
+                          "group flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition-all hover:scale-[1.01]",
+                          note.review_priority === 'critical' ? 'bg-red-500/10 border border-red-500/20 hover:border-red-500/40' :
+                          note.review_priority === 'high' ? 'bg-amber-500/10 border border-amber-500/20 hover:border-amber-500/40' :
+                          'bg-muted/50 hover:bg-muted/70'
+                        )}
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <Badge variant={
+                            note.review_priority === 'critical' ? 'destructive' :
+                            note.review_priority === 'high' ? 'default' :
+                            'secondary'
+                          } className="font-mono text-xs">
+                            {note.map_name} R{note.round_number}
+                          </Badge>
+                          <span className="text-xs">{note.reason}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <PriorityBadge priority={note.review_priority} />
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                        </div>
                       </div>
-                      <PriorityBadge priority={note.review_priority} />
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </ScrollArea>

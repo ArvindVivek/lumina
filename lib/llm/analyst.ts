@@ -20,6 +20,7 @@ import type {
   AntiStratSignal,
   ForcedMistake,
 } from '../analytics/coaching-types'
+import type { SaveRetakeEV } from '../analytics/scenario-types'
 
 // OpenAI client - only created if API key exists
 let openai: OpenAI | null = null
@@ -265,6 +266,62 @@ Question: ${question}`
     ],
     temperature: 0.7,
     max_tokens: 800,
+  })
+
+  return {
+    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
+    model: MODEL,
+    tokens_used: response.usage?.total_tokens || 0,
+  }
+}
+
+/**
+ * Generate round decision analysis (save vs retake)
+ */
+export async function generateRoundDecisionAnalysis(
+  roundContext: RoundContext,
+  evAnalysis: SaveRetakeEV,
+  historicalMatches: number,
+  defenderAlive: number,
+  attackerAlive: number,
+  spikeSite: string,
+  defenderWonRound: boolean
+): Promise<LLMAnalysisResult> {
+  const client = getOpenAIClient()
+
+  const prompt = `Analyze this VALORANT post-plant retake decision:
+
+**Scenario:**
+- Map: ${roundContext.map_name}, Round ${roundContext.round_number}
+- Spike planted on ${spikeSite}-site
+- Defenders attempting ${defenderAlive}v${attackerAlive} retake
+- Defender economy: ~$${roundContext.player_states.filter(p => p.team_id !== (roundContext.round_number <= 12 ? roundContext.team_a_id : roundContext.team_b_id)).reduce((sum, p) => sum + (p.loadout_value || 0), 0)}
+
+**Expected Value Analysis:**
+- Retake EV: ${evAnalysis.retake.expected_value} (${(evAnalysis.retake.win_probability * 100).toFixed(0)}% win probability)
+- Save EV: ${evAnalysis.save.expected_value} (guaranteed ${evAnalysis.save.guaranteed_retention} retention)
+- Recommended: ${evAnalysis.recommended_decision.toUpperCase()} (+${evAnalysis.ev_difference} EV advantage)
+- Historical matches analyzed: ${historicalMatches}
+
+**Actual Outcome:**
+- Decision made: RETAKE
+- Result: ${defenderWonRound ? 'SUCCESS - Defenders won' : 'FAILURE - Attackers won'}
+
+Please provide:
+1. Was the retake attempt the right call given the numbers and economy?
+2. What factors might have influenced this ${defenderAlive}v${attackerAlive} situation?
+3. Key takeaway for future similar scenarios
+
+Keep the analysis concise and actionable (3-4 sentences max).`
+
+  const response = await client.chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.7,
+    max_tokens: 400,
   })
 
   return {

@@ -73,6 +73,8 @@ export interface ForcedMistake {
 
 // VOD Review Note
 export interface VODReviewNote {
+  game_id: string
+  round_id: string
   game_number: number
   map_name: string
   round_number: number

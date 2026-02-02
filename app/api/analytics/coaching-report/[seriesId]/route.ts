@@ -91,6 +91,8 @@ export async function GET(
       .slice(0, 20)
 
     const vodReviewNotes: VODReviewNote[] = priorityRounds.map(r => ({
+      game_id: r.game_id,
+      round_id: r.round_id,
       game_number: 1, // Would need game sequence mapping
       map_name: r.map_name,
       round_number: r.round_number,
