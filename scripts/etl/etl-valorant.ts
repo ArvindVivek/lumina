@@ -360,6 +360,26 @@ async function batchInsertKillAssists(supabase: SupabaseClient, killAssists: any
   }
 }
 
+async function refreshMaterializedViews(supabase: SupabaseClient) {
+  if (dryRun) return
+
+  console.log('\nStep 4: Refreshing materialized views...')
+
+  try {
+    // Use the convenience function that refreshes all views in correct order
+    const { error } = await supabase.rpc('refresh_all_mosaic_views')
+    if (error) {
+      console.error(`  [error] Failed to refresh views: ${error.message}`)
+      stats.errors++
+    } else {
+      console.log('  [ok] All mosaic materialized views refreshed')
+    }
+  } catch (e) {
+    console.error(`  [error] ${(e as Error).message}`)
+    stats.errors++
+  }
+}
+
 // ==========================================
 // MAIN ETL
 // ==========================================
@@ -553,6 +573,9 @@ async function runETL() {
   }
 
   await grid.disconnect()
+
+  // Step 4: Refresh materialized views for analytics
+  await refreshMaterializedViews(supabase)
 
   // Print stats
   console.log('\n========================================')

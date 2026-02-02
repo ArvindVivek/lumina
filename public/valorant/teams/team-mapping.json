@@ -1,0 +1,94 @@
+{
+  "teams": {
+    "c9": {
+      "name": "Cloud9",
+      "abbr": "C9",
+      "gridIds": [
+        "97"
+      ]
+    },
+    "sen": {
+      "name": "Sentinels",
+      "abbr": "SEN",
+      "gridIds": [
+        "98"
+      ]
+    },
+    "loud": {
+      "name": "LOUD",
+      "abbr": "LOUD",
+      "gridIds": [
+        "96"
+      ]
+    },
+    "furia": {
+      "name": "FURIA",
+      "abbr": "FUR",
+      "gridIds": [
+        "105"
+      ]
+    },
+    "lev": {
+      "name": "Leviatán",
+      "abbr": "LEV",
+      "gridIds": [
+        "99"
+      ]
+    },
+    "kru": {
+      "name": "KRÜ Esports",
+      "abbr": "KRÜ",
+      "gridIds": [
+        "102"
+      ]
+    },
+    "mibr": {
+      "name": "MIBR",
+      "abbr": "MIBR",
+      "gridIds": [
+        "104"
+      ]
+    },
+    "g2": {
+      "name": "G2 Esports",
+      "abbr": "G2",
+      "gridIds": [
+        "103"
+      ]
+    },
+    "nrg": {
+      "name": "NRG Esports",
+      "abbr": "NRG",
+      "gridIds": [
+        "100"
+      ]
+    },
+    "100t": {
+      "name": "100 Thieves",
+      "abbr": "100T",
+      "gridIds": [
+        "101"
+      ]
+    },
+    "eg": {
+      "name": "2Game Esports",
+      "abbr": "2G",
+      "gridIds": [
+        "106"
+      ]
+    }
+  },
+  "gridIdToTeam": {
+    "96": "loud",
+    "97": "c9",
+    "98": "sen",
+    "99": "lev",
+    "100": "nrg",
+    "101": "100t",
+    "102": "kru",
+    "103": "g2",
+    "104": "mibr",
+    "105": "furia",
+    "106": "eg"
+  }
+}
