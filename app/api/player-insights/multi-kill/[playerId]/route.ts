@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryMultiKillRounds } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, MultiKillData } from '@/lib/analytics/types'
@@ -8,7 +8,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -16,7 +15,7 @@ export async function GET(
     const tournamentId = searchParams.get('tournament_id')
 
     // Query multi-kill rounds data
-    const row = await queryMultiKillRounds(sql, playerId, tournamentId || undefined)
+    const row = await queryMultiKillRounds(playerId, tournamentId || undefined)
 
     // Handle null/NaN values properly
     const totalRounds = parseInt(row.total_rounds) || 0

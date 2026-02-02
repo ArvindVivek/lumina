@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres'
+import { getPostgresPool } from '@/lib/supabase/server'
 import {
   PistolAnalysisRow,
   FirstBloodConversionRow,
@@ -16,11 +17,11 @@ import { RoundDataForClassification } from './priority-classifier'
  * MACRO-01: Pistol Analysis
  */
 export async function queryPistolAnalysis(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
   mapName?: string,
 ): Promise<PistolAnalysisRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<PistolAnalysisRow[]>`
       WITH pistol_rounds AS (
@@ -102,10 +103,10 @@ export async function queryPistolAnalysis(
  * MACRO-02: First Blood Conversion
  */
 export async function queryFirstBloodConversion(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
 ): Promise<FirstBloodConversionRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<FirstBloodConversionRow[]>`
       WITH first_blood_rounds AS (
@@ -171,10 +172,10 @@ export async function queryFirstBloodConversion(
  * MACRO-03: Trade Discipline
  */
 export async function queryTradeDiscipline(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
 ): Promise<TradeDisciplineRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<TradeDisciplineRow[]>`
       WITH team_deaths AS (
@@ -269,10 +270,10 @@ export async function queryTradeDiscipline(
  * MACRO-04: Opening Duels by Player
  */
 export async function queryOpeningDuelsByPlayer(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
 ): Promise<OpeningDuelsByPlayerRow[]> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<OpeningDuelsByPlayerRow[]>`
       SELECT
@@ -312,10 +313,10 @@ export async function queryOpeningDuelsByPlayer(
  * MACRO-05: Economy Management
  */
 export async function queryEconomyManagement(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
 ): Promise<EconomyManagementRow[]> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<EconomyManagementRow[]>`
       WITH round_economy AS (
@@ -395,10 +396,10 @@ export async function queryEconomyManagement(
  * MACRO-06: Timing Patterns
  */
 export async function queryTimingPatterns(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
 ): Promise<TimingPatternRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<TimingPatternRow[]>`
       SELECT
@@ -453,10 +454,10 @@ export async function queryTimingPatterns(
  * MACRO-07: Ultimate Economy
  */
 export async function queryUltimateEconomy(
-  sql: Sql,
   teamId: string,
   tournamentId?: string,
 ): Promise<UltimateEconomyRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<UltimateEconomyRow[]>`
       SELECT
@@ -516,11 +517,11 @@ export async function queryUltimateEconomy(
  * REVW-01: Round Breakdown
  */
 export async function queryRoundBreakdown(
-  sql: Sql,
   teamId: string,
   gameId?: string,
   tournamentId?: string,
 ): Promise<RoundBreakdownRow[]> {
+  const sql = getPostgresPool()
   const result = await sql<RoundBreakdownRow[]>`
     SELECT
       r.id as round_id,
@@ -560,11 +561,11 @@ export async function queryRoundBreakdown(
  * MACRO-08, REVW-02: Critical Moments
  */
 export async function queryRoundsForCriticalMoments(
-  sql: Sql,
   teamId: string,
   gameId?: string,
   tournamentId?: string,
 ): Promise<RoundDataForClassification[]> {
+  const sql = getPostgresPool()
   const result = await sql<RoundDataForClassification[]>`
     SELECT
       r.id as round_id,

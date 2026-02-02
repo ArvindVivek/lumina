@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres'
+import { getPostgresPool } from '@/lib/supabase/server'
 import type {
   SeriesSummary,
   MapMetrics,
@@ -18,10 +19,10 @@ import type {
  * Query series summary for coaching report
  */
 export async function querySeriesSummary(
-  sql: Sql,
   seriesId: string,
   teamId: string
 ): Promise<SeriesSummary | null> {
+  const sql = getPostgresPool()
   const result = await sql`
     WITH series_data AS (
       SELECT
@@ -98,10 +99,10 @@ export async function querySeriesSummary(
  * Query map metrics for each game in series
  */
 export async function queryMapMetrics(
-  sql: Sql,
   seriesId: string,
   teamId: string
 ): Promise<MapMetrics[]> {
+  const sql = getPostgresPool()
   const result = await sql`
     WITH game_rounds AS (
       SELECT
@@ -206,10 +207,10 @@ export async function queryMapMetrics(
  * Query opening duels by player
  */
 export async function queryPlayerOpeningDuels(
-  sql: Sql,
   seriesId: string,
   teamId: string
 ): Promise<PlayerOpeningDuels[]> {
+  const sql = getPostgresPool()
   const result = await sql`
     WITH player_duels AS (
       SELECT
@@ -259,10 +260,10 @@ export async function queryPlayerOpeningDuels(
  * Query rounds for VOD review with priority scoring
  */
 export async function queryRoundsForReview(
-  sql: Sql,
   seriesId: string,
   teamId: string
 ): Promise<RoundForReview[]> {
+  const sql = getPostgresPool()
   // Get all rounds with context
   const rounds = await sql`
     WITH round_data AS (
@@ -505,9 +506,9 @@ function calculateVODPriority(
  * Query round context for hypothetical analysis
  */
 export async function queryRoundContext(
-  sql: Sql,
   roundId: string
 ): Promise<RoundContext | null> {
+  const sql = getPostgresPool()
   // Get round basic info
   const roundResult = await sql`
     SELECT
@@ -695,13 +696,13 @@ export async function queryRoundContext(
  * First tries scenario_index table, then falls back to computing from rounds table
  */
 export async function findSimilarScenarios(
-  sql: Sql,
   attackerAlive: number,
   defenderAlive: number,
   spikePlanted: boolean,
   mapName?: string,
   limit: number = 50
 ): Promise<ScenarioMatch[]> {
+  const sql = getPostgresPool()
   const mapFilter = mapName || ''
   const hasMapFilter = !!mapName
 
@@ -819,10 +820,10 @@ export async function findSimilarScenarios(
  * Detect anti-strat signals (patterns opponent may have prepared for)
  */
 export async function detectAntiStratSignals(
-  sql: Sql,
   seriesId: string,
   teamId: string
 ): Promise<{ signal: string; severity: 'critical' | 'moderate' | 'minor'; detail: string; implication: string; occurrences: number }[]> {
+  const sql = getPostgresPool()
   // Find repeated first deaths by same player at similar times
   const repeatedDeaths = await sql`
     WITH first_death_rounds AS (
@@ -886,10 +887,10 @@ export async function detectAntiStratSignals(
  * Detect forced mistakes (errors caused by opponent pressure)
  */
 export async function detectForcedMistakes(
-  sql: Sql,
   seriesId: string,
   teamId: string
 ): Promise<{ mistake: string; severity: 'critical' | 'high' | 'medium' | 'low'; detail: string; fix: string; rounds_impacted: number }[]> {
+  const sql = getPostgresPool()
   // Find rounds with multiple untraded deaths
   const untradedPatterns = await sql`
     WITH round_trades AS (

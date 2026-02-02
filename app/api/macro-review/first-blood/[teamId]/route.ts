@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryFirstBloodConversion } from '@/lib/analytics/macro-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { MacroInsightResponse, FirstBloodConversionData } from '@/lib/analytics/macro-types'
@@ -8,14 +8,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
-    const row = await queryFirstBloodConversion(sql, teamId, tournamentId || undefined)
+    const row = await queryFirstBloodConversion(teamId, tournamentId || undefined)
 
     const firstBloods = parseInt(row.first_bloods)
     const firstBloodWins = parseInt(row.first_blood_wins)

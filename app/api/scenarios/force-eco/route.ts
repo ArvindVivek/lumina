@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { matchForceEcoSituations } from '@/lib/analytics/scenario-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type {
@@ -9,7 +9,6 @@ import type {
 } from '@/lib/analytics/scenario-types'
 
 export async function POST(request: NextRequest) {
-  const sql = getPostgresPool()
 
   try {
     const body = await request.json()
@@ -41,7 +40,7 @@ export async function POST(request: NextRequest) {
       : 'full_buy'
 
     // Match similar situations
-    const matches = await matchForceEcoSituations(sql, params)
+    const matches = await matchForceEcoSituations(params)
 
     // Calculate win rates by category
     const ecoMatches = matches.filter(m => m.economy_category === 'eco')

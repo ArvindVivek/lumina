@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryRoundsForCriticalMoments } from '@/lib/analytics/macro-queries'
 import { classifyRoundsAsCriticalMoments } from '@/lib/analytics/priority-classifier'
 import { calculateConfidence } from '@/lib/analytics/confidence'
@@ -9,7 +9,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
@@ -19,7 +18,6 @@ export async function GET(
     const priorityFilter = searchParams.get('priority')
 
     const rounds = await queryRoundsForCriticalMoments(
-      sql,
       teamId,
       gameId || undefined,
       tournamentId || undefined

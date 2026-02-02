@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { findSimilarScenarios } from '@/lib/analytics/coaching-queries'
 import type { ScenarioStats } from '@/lib/analytics/coaching-types'
 
 export async function POST(request: NextRequest) {
-  const sql = getPostgresPool()
 
   try {
     const body = await request.json()
@@ -33,7 +32,6 @@ export async function POST(request: NextRequest) {
 
     // Find similar scenarios
     const similarScenarios = await findSimilarScenarios(
-      sql,
       atkAlive,
       defAlive,
       spiked,

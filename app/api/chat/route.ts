@@ -441,9 +441,8 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
 
 // Execute tool calls - uses shared connection pool
 async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
-  const sql = getPostgresPool()
-
   try {
+    const sql = getPostgresPool()
     switch (name) {
       case "get_player_by_name": {
         const { name: playerName } = args as { name: string }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryFirstDeathImpact } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, FirstDeathData } from '@/lib/analytics/types'
@@ -8,7 +8,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -16,7 +15,7 @@ export async function GET(
     const tournamentId = searchParams.get('tournament_id')
 
     // Query first death impact data
-    const row = await queryFirstDeathImpact(sql, playerId, tournamentId || undefined)
+    const row = await queryFirstDeathImpact(playerId, tournamentId || undefined)
 
     // Handle null/NaN values properly
     const total = parseInt(row.total) || 0

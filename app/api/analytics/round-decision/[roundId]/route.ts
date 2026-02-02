@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryRoundContext } from '@/lib/analytics/coaching-queries'
 import {
   matchSaveRetakeSituations,
@@ -20,7 +20,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ roundId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { roundId } = await params
@@ -29,7 +28,7 @@ export async function GET(
     const includeLLM = searchParams.get('include_llm') === 'true'
 
     // Get full round context
-    const roundContext = await queryRoundContext(sql, roundId)
+    const roundContext = await queryRoundContext(roundId)
 
     if (!roundContext) {
       return NextResponse.json(
@@ -89,7 +88,7 @@ export async function GET(
     }
 
     // Find similar historical scenarios
-    const matches = await matchSaveRetakeSituations(sql, saveRetakeQuery)
+    const matches = await matchSaveRetakeSituations(saveRetakeQuery)
 
     // Calculate EV analysis
     const evAnalysis = calculateSaveRetakeEV(matches, Math.round(avgDefenderLoadout * 0.8))

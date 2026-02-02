@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getPostgresPool } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+
 import { queryRoundsForReview } from '@/lib/analytics/coaching-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { RoundBreakdownResponse, GameBreakdown } from '@/lib/analytics/coaching-types'
@@ -8,6 +9,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ seriesId: string }> }
 ) {
+
   const sql = getPostgresPool()
 
   try {
@@ -23,7 +25,7 @@ export async function GET(
     }
 
     // Get all rounds for review
-    const rounds = await queryRoundsForReview(sql, seriesId, teamId)
+    const rounds = await queryRoundsForReview(seriesId, teamId)
 
     if (rounds.length === 0) {
       return NextResponse.json(

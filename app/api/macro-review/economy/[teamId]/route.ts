@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryEconomyManagement } from '@/lib/analytics/macro-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { MacroInsightResponse, EconomyManagementData, EconomyDecisionData } from '@/lib/analytics/macro-types'
@@ -8,14 +8,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
-    const rows = await queryEconomyManagement(sql, teamId, tournamentId || undefined)
+    const rows = await queryEconomyManagement(teamId, tournamentId || undefined)
 
     const decisions: EconomyDecisionData[] = rows.map(row => ({
       economy_decision: row.economy_decision,

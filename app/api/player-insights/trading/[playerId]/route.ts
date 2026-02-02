@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryTradingEfficiency } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, TradingData } from '@/lib/analytics/types'
@@ -8,7 +8,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -16,7 +15,7 @@ export async function GET(
     const tournamentId = searchParams.get('tournament_id')
 
     // Query trading efficiency data
-    const row = await queryTradingEfficiency(sql, playerId, tournamentId || undefined)
+    const row = await queryTradingEfficiency(playerId, tournamentId || undefined)
 
     // Handle null/NaN values properly
     const totalDeaths = parseInt(row.total_deaths) || 0

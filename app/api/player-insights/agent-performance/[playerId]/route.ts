@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
 import { queryAgentPerformance } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, AgentData, AgentStats } from '@/lib/analytics/types'
@@ -8,15 +7,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = getPostgresPool()
-
   try {
     const { playerId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
     // Query agent performance data
-    const rows = await queryAgentPerformance(sql, playerId, tournamentId || undefined)
+    const rows = await queryAgentPerformance(playerId, tournamentId || undefined)
 
     let totalRounds = 0
     const agents: AgentStats[] = rows.map(row => {

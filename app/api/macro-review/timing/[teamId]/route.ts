@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryTimingPatterns } from '@/lib/analytics/macro-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { MacroInsightResponse, TimingPatternData } from '@/lib/analytics/macro-types'
@@ -8,14 +8,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
-    const row = await queryTimingPatterns(sql, teamId, tournamentId || undefined)
+    const row = await queryTimingPatterns(teamId, tournamentId || undefined)
 
     const avgRoundDurationMs = parseFloat(row.avg_round_duration_ms)
     const avgFirstKillTimeMs = parseFloat(row.avg_first_kill_time_ms)

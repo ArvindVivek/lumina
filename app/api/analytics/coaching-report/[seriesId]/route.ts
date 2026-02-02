@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
 import {
   querySeriesSummary,
   queryMapMetrics,
@@ -16,7 +15,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ seriesId: string }> }
 ) {
-  const sql = getPostgresPool()
   const startTime = Date.now()
 
   try {
@@ -40,12 +38,12 @@ export async function GET(
       antiStratSignals,
       forcedMistakes,
     ] = await Promise.all([
-      querySeriesSummary(sql, seriesId, teamId),
-      queryMapMetrics(sql, seriesId, teamId),
-      queryPlayerOpeningDuels(sql, seriesId, teamId),
-      queryRoundsForReview(sql, seriesId, teamId),
-      detectAntiStratSignals(sql, seriesId, teamId),
-      detectForcedMistakes(sql, seriesId, teamId),
+      querySeriesSummary(seriesId, teamId),
+      queryMapMetrics(seriesId, teamId),
+      queryPlayerOpeningDuels(seriesId, teamId),
+      queryRoundsForReview(seriesId, teamId),
+      detectAntiStratSignals(seriesId, teamId),
+      detectForcedMistakes(seriesId, teamId),
     ])
 
     if (!summary) {

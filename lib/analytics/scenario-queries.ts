@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres'
+import { getPostgresPool } from '@/lib/supabase/server'
 import {
   SaveRetakeQuery,
   SaveRetakeMatch,
@@ -18,9 +19,9 @@ const ECONOMY_SAVE_BONUS = 1900
  * SCEN-01: Save/Retake Similarity Matching
  */
 export async function matchSaveRetakeSituations(
-  sql: Sql,
   params: SaveRetakeQuery
 ): Promise<SaveRetakeMatch[]> {
+  const sql = getPostgresPool()
   const {
     defender_economy: defenderEconomy,
     defender_alive: defenderAlive,
@@ -122,9 +123,9 @@ export function calculateSaveRetakeEV(
  * SCEN-03: Force/Eco Decision Analysis
  */
 export async function matchForceEcoSituations(
-  sql: Sql,
   params: ForceEcoQuery
 ): Promise<ForceEcoMatch[]> {
+  const sql = getPostgresPool()
   const {
     team_economy: teamEconomy,
     opponent_economy: opponentEconomy,
@@ -184,9 +185,9 @@ export async function matchForceEcoSituations(
  * SCEN-04: Clutch Situation Analysis
  */
 export async function matchClutchSituations(
-  sql: Sql,
   params: ClutchQuery
 ): Promise<ClutchMatch[]> {
+  const sql = getPostgresPool()
   const {
     opponent_count: opponentCount,
     map_name: mapName,

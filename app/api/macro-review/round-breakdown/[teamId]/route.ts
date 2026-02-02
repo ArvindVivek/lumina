@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryRoundBreakdown } from '@/lib/analytics/macro-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { MacroInsightResponse, RoundBreakdownData } from '@/lib/analytics/macro-types'
@@ -8,7 +8,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
@@ -17,7 +16,6 @@ export async function GET(
     const gameId = searchParams.get('game_id')
 
     const rows = await queryRoundBreakdown(
-      sql,
       teamId,
       gameId || undefined,
       tournamentId || undefined

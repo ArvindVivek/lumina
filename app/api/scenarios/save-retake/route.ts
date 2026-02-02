@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import {
   matchSaveRetakeSituations,
   calculateSaveRetakeEV
@@ -12,7 +12,6 @@ import type {
 } from '@/lib/analytics/scenario-types'
 
 export async function POST(request: NextRequest) {
-  const sql = getPostgresPool()
 
   try {
     const body = await request.json()
@@ -35,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Match similar situations
-    const matches = await matchSaveRetakeSituations(sql, params)
+    const matches = await matchSaveRetakeSituations(params)
 
     // Calculate retake win rate
     const retakeWins = matches.filter(m => m.defender_won).length

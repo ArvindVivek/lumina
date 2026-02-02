@@ -1,48 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
-  const sql = getPostgresPool()
+  const supabase = createServerClient()
 
   try {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '20')
     const tournamentId = searchParams.get('tournament_id')
 
-    const result = await sql`
-      SELECT
-        s.id,
-        s.tournament_id,
-        s.start_time,
-        s.format,
-        s.team_a_id,
-        s.team_b_id,
-        s.winner_id,
-        ta.name as team_a_name,
-        tb.name as team_b_name,
-        t.name as tournament_name
-      FROM public.series s
-      JOIN public.teams ta ON s.team_a_id = ta.id
-      JOIN public.teams tb ON s.team_b_id = tb.id
-      LEFT JOIN public.tournaments t ON s.tournament_id = t.id
-      WHERE s.processed = true
-        ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
-      ORDER BY s.start_time DESC
-      LIMIT ${limit}
-    `
+    // Build query
+    let query = supabase
+      .from('series')
+      .select(`
+        id,
+        tournament_id,
+        start_time,
+        format,
+        team_a_id,
+        team_b_id,
+        winner_id,
+        team_a:teams!series_team_a_id_fkey(name),
+        team_b:teams!series_team_b_id_fkey(name),
+        tournament:tournaments(name)
+      `)
+      .eq('processed', true)
+      .order('start_time', { ascending: false })
+      .limit(limit)
+
+    if (tournamentId) {
+      query = query.eq('tournament_id', tournamentId)
+    }
+
+    const { data: result, error } = await query
+
+    if (error) throw error
 
     return NextResponse.json({
-      series: result.map(row => ({
+      series: (result || []).map(row => ({
         id: row.id,
         start_time: row.start_time,
         format: row.format,
         team_a_id: row.team_a_id,
         team_b_id: row.team_b_id,
-        team_a_name: row.team_a_name,
-        team_b_name: row.team_b_name,
+        team_a_name: (row.team_a as unknown as { name: string } | null)?.name || 'Unknown',
+        team_b_name: (row.team_b as unknown as { name: string } | null)?.name || 'Unknown',
         winner_id: row.winner_id,
         tournament_id: row.tournament_id,
-        tournament_name: row.tournament_name || 'Unknown Tournament',
+        tournament_name: (row.tournament as unknown as { name: string } | null)?.name || 'Unknown Tournament',
       })),
     })
   } catch (error) {

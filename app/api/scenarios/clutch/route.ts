@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { matchClutchSituations } from '@/lib/analytics/scenario-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type {
@@ -9,8 +9,6 @@ import type {
 } from '@/lib/analytics/scenario-types'
 
 export async function POST(request: NextRequest) {
-  const sql = getPostgresPool()
-
   try {
     const body = await request.json()
 
@@ -31,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Match similar situations
-    const matches = await matchClutchSituations(sql, params)
+    const matches = await matchClutchSituations(params)
 
     // Calculate overall clutch win rate
     const clutchesWon = matches.filter(m => m.clutch_won).length

@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres'
+import { getPostgresPool } from '@/lib/supabase/server'
 
 export interface ResolvedEntities {
   players: { id: string; name: string; team_id: string | null }[]
@@ -13,9 +14,9 @@ export interface ResolvedEntities {
  * Identifies players, teams, and series mentioned in the query
  */
 export async function resolveEntities(
-  sql: Sql,
   query: string
 ): Promise<ResolvedEntities> {
+  const sql = getPostgresPool()
   const lowerQuery = query.toLowerCase()
   const result: ResolvedEntities = {
     players: [],
@@ -188,10 +189,10 @@ async function findSeriesBetweenTeams(
  * Get recent series for a team
  */
 export async function getRecentSeriesForTeam(
-  sql: Sql,
   teamId: string,
   limit: number = 5
 ): Promise<{ id: string; opponent_name: string; result: string; tournament_name: string }[]> {
+  const sql = getPostgresPool()
   const result = await sql`
     SELECT
       s.id,
@@ -222,10 +223,10 @@ export async function getRecentSeriesForTeam(
  * Get player's recent series
  */
 export async function getRecentSeriesForPlayer(
-  sql: Sql,
   playerId: string,
   limit: number = 5
 ): Promise<{ series_id: string; team_name: string; opponent_name: string }[]> {
+  const sql = getPostgresPool()
   const result = await sql`
     SELECT DISTINCT
       s.id as series_id,

@@ -1,4 +1,5 @@
 import type { Sql } from 'postgres'
+import { getPostgresPool } from '@/lib/supabase/server'
 import {
   FirstDeathRow,
   TradingRow,
@@ -14,10 +15,10 @@ import {
  * PLAY-01: First Death Impact Analysis
  */
 export async function queryFirstDeathImpact(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<FirstDeathRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<FirstDeathRow[]>`
       SELECT
@@ -55,10 +56,10 @@ export async function queryFirstDeathImpact(
  * PLAY-02: Trading Efficiency Metrics
  */
 export async function queryTradingEfficiency(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<TradingRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<TradingRow[]>`
       SELECT
@@ -90,10 +91,10 @@ export async function queryTradingEfficiency(
  * PLAY-03: Opening Duel Performance
  */
 export async function queryOpeningDuels(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<OpeningDuelsRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<OpeningDuelsRow[]>`
       SELECT
@@ -127,10 +128,10 @@ export async function queryOpeningDuels(
  * PLAY-04: Clutch Situation Analysis
  */
 export async function queryClutchPerformance(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<ClutchRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<ClutchRow[]>`
       SELECT
@@ -164,10 +165,10 @@ export async function queryClutchPerformance(
  * PLAY-05: Agent Performance Comparison
  */
 export async function queryAgentPerformance(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<AgentRow[]> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<AgentRow[]>`
       SELECT
@@ -213,10 +214,10 @@ export async function queryAgentPerformance(
  * PLAY-06: Multi-Kill Round Tracking
  */
 export async function queryMultiKillRounds(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<MultiKillRow> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<MultiKillRow[]>`
       SELECT
@@ -263,10 +264,10 @@ export async function queryMultiKillRounds(
  * PLAY-07: Eco Round Performance by Phase
  */
 export async function queryEcoRoundPerformance(
-  sql: Sql,
   playerId: string,
   tournamentId?: string,
 ): Promise<EcoRoundRow[]> {
+  const sql = getPostgresPool()
   const result = tournamentId
     ? await sql<EcoRoundRow[]>`
       SELECT

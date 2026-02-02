@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getPostgresPool } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+
 import {
   resolveEntities,
   getRecentSeriesForTeam,
@@ -14,6 +15,7 @@ import { answerQuestion, isLLMAvailable } from '@/lib/llm/analyst'
 import type { SeriesSummary, MapMetrics, PlayerOpeningDuels } from '@/lib/analytics/coaching-types'
 
 export async function POST(request: NextRequest) {
+
   const sql = getPostgresPool()
 
   try {
@@ -28,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Resolve entities from the query
-    const entities = await resolveEntities(sql, query)
+    const entities = await resolveEntities(query)
 
     // Build response based on query type
     let response: {
@@ -48,7 +50,7 @@ export async function POST(request: NextRequest) {
           const player = entities.players[0]
 
           // Get recent series for this player
-          const recentSeries = await getRecentSeriesForPlayer(sql, player.id)
+          const recentSeries = await getRecentSeriesForPlayer(player.id)
 
           // Get player stats from most recent series
           let playerStats = null
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
             const teamId = player.team_id || ''
 
             if (teamId) {
-              const openingDuels = await queryPlayerOpeningDuels(sql, seriesId, teamId)
+              const openingDuels = await queryPlayerOpeningDuels(seriesId, teamId)
               playerStats = openingDuels.find(p => p.player_id === player.id)
             }
           }
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
           const team = entities.teams[0]
 
           // Get recent series for this team
-          const recentSeries = await getRecentSeriesForTeam(sql, team.id)
+          const recentSeries = await getRecentSeriesForTeam(team.id)
 
           // Get team's roster
           const roster = await sql`
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest) {
           let teamStats = null
           if (recentSeries.length > 0) {
             const seriesId = recentSeries[0].id
-            teamStats = await queryMapMetrics(sql, seriesId, team.id)
+            teamStats = await queryMapMetrics(seriesId, team.id)
           }
 
           response.data = {
@@ -139,9 +141,9 @@ export async function POST(request: NextRequest) {
           if (teamInfo.length > 0) {
             const teamAId = teamInfo[0].team_a_id
             const [summary, mapMetrics, openingDuels] = await Promise.all([
-              querySeriesSummary(sql, series.id, teamAId),
-              queryMapMetrics(sql, series.id, teamAId),
-              queryPlayerOpeningDuels(sql, series.id, teamAId),
+              querySeriesSummary(series.id, teamAId),
+              queryMapMetrics(series.id, teamAId),
+              queryPlayerOpeningDuels(series.id, teamAId),
             ])
 
             response.data = {

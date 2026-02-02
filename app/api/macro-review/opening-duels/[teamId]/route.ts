@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryOpeningDuelsByPlayer } from '@/lib/analytics/macro-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { MacroInsightResponse, PlayerOpeningDuelsData } from '@/lib/analytics/macro-types'
@@ -8,14 +8,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { teamId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
-    const rows = await queryOpeningDuelsByPlayer(sql, teamId, tournamentId || undefined)
+    const rows = await queryOpeningDuelsByPlayer(teamId, tournamentId || undefined)
 
     const players: PlayerOpeningDuelsData[] = rows.map(row => {
       const firstKills = parseInt(row.first_kills)

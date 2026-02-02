@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { getPostgresPool } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+
 import {
   querySeriesSummary,
   queryMapMetrics,
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
       { status: 503 }
     )
   }
+
 
   const sql = getPostgresPool()
 
@@ -62,11 +64,11 @@ export async function POST(request: NextRequest) {
         }
 
         const [summary, mapMetrics, openingDuels, antiStrat, mistakes] = await Promise.all([
-          querySeriesSummary(sql, series_id, team_focus),
-          queryMapMetrics(sql, series_id, team_focus),
-          queryPlayerOpeningDuels(sql, series_id, team_focus),
-          detectAntiStratSignals(sql, series_id, team_focus),
-          detectForcedMistakes(sql, series_id, team_focus),
+          querySeriesSummary(series_id, team_focus),
+          queryMapMetrics(series_id, team_focus),
+          queryPlayerOpeningDuels(series_id, team_focus),
+          detectAntiStratSignals(series_id, team_focus),
+          detectForcedMistakes(series_id, team_focus),
         ])
 
         if (!summary) {
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get player data
-        const openingDuels = await queryPlayerOpeningDuels(sql, series_id, team_focus)
+        const openingDuels = await queryPlayerOpeningDuels(series_id, team_focus)
         const playerDuels = openingDuels.find(p => p.player_id === player_id)
 
         if (!playerDuels) {
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
           )
         }
 
-        const roundContext = await queryRoundContext(sql, round_id)
+        const roundContext = await queryRoundContext(round_id)
         if (!roundContext) {
           return NextResponse.json({ error: 'Round not found' }, { status: 404 })
         }
@@ -161,14 +163,14 @@ export async function POST(request: NextRequest) {
         } = {}
 
         if (series_id && team_focus) {
-          const summary = await querySeriesSummary(sql, series_id, team_focus)
+          const summary = await querySeriesSummary(series_id, team_focus)
           if (summary) context.summary = summary
-          context.mapMetrics = await queryMapMetrics(sql, series_id, team_focus)
-          context.openingDuels = await queryPlayerOpeningDuels(sql, series_id, team_focus)
+          context.mapMetrics = await queryMapMetrics(series_id, team_focus)
+          context.openingDuels = await queryPlayerOpeningDuels(series_id, team_focus)
         }
 
         if (round_id) {
-          const roundContext = await queryRoundContext(sql, round_id)
+          const roundContext = await queryRoundContext(round_id)
           if (roundContext) context.roundContext = roundContext
         }
 

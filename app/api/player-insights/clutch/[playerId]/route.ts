@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
 import { queryClutchPerformance } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, ClutchData } from '@/lib/analytics/types'
@@ -8,15 +7,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = getPostgresPool()
-
   try {
     const { playerId } = await params
     const { searchParams } = new URL(request.url)
     const tournamentId = searchParams.get('tournament_id')
 
     // Query clutch performance data
-    const row = await queryClutchPerformance(sql, playerId, tournamentId || undefined)
+    const row = await queryClutchPerformance(playerId, tournamentId || undefined)
 
     // Handle null/NaN values properly
     const clutchSituations = parseInt(row.clutch_situations) || 0

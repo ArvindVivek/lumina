@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPostgresPool } from '@/lib/supabase/server'
+
 import { queryEcoRoundPerformance } from '@/lib/analytics/queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
 import type { InsightResponse, EcoRoundData, PhaseStats } from '@/lib/analytics/types'
@@ -8,7 +8,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ playerId: string }> }
 ) {
-  const sql = getPostgresPool()
 
   try {
     const { playerId } = await params
@@ -16,7 +15,7 @@ export async function GET(
     const tournamentId = searchParams.get('tournament_id')
 
     // Query eco round performance data
-    const rows = await queryEcoRoundPerformance(sql, playerId, tournamentId || undefined)
+    const rows = await queryEcoRoundPerformance(playerId, tournamentId || undefined)
 
     const phases: Record<string, PhaseStats> = {}
     let totalRounds = 0
