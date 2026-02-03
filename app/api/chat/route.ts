@@ -439,7 +439,23 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   }
 ]
 
-import { getPlayerByName, getTeamByName } from "@/lib/chat/tools"
+import {
+  getPlayerByName,
+  getTeamByName,
+  queryPlayerStats,
+  queryTeamStats,
+  querySeriesStats,
+  getRoundDetails,
+  getMatchSummary,
+  queryRoundBreakdown,
+  comparePlayers,
+  searchData,
+  getTeamRosterStats,
+  getEconomyAnalysis,
+  getCounterStrategies,
+  getUntradedDeaths,
+  getSiteAnalysis
+} from "@/lib/chat/tools"
 
 // Execute tool calls - uses Supabase client
 async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
@@ -456,25 +472,74 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         return await getTeamByName(teamName)
       }
 
-      // All remaining tools temporarily return unavailable message
-      // TODO: Migrate remaining tools to Supabase client
-      case "query_team_stats":
-      case "query_player_stats":
-      case "query_series_stats":
-      case "query_round_breakdown":
-      case "compare_players":
-      case "search_data":
-      case "get_team_roster_stats":
-      case "get_match_summary":
-      case "get_round_details":
-      case "get_economy_analysis":
-      case "get_counter_strategies":
-      case "get_untraded_deaths":
-      case "get_site_analysis":
-        return JSON.stringify({
-          error: "This tool is temporarily unavailable",
-          message: "We're migrating to a new database system. For now, you can ask about specific players or teams by name."
-        })
+      case "query_team_stats": {
+        const { team_id, metric } = args as { team_id: string; metric: string }
+        return await queryTeamStats(team_id, metric)
+      }
+
+      case "query_player_stats": {
+        const { player_id, metric } = args as { player_id: string; metric: string }
+        return await queryPlayerStats(player_id, metric)
+      }
+
+      case "query_series_stats": {
+        const { series_id, team_id } = args as { series_id: string; team_id?: string }
+        return await querySeriesStats(series_id, team_id)
+      }
+
+      case "query_round_breakdown": {
+        const { series_id, round_type } = args as { series_id: string; round_type?: string }
+        return await queryRoundBreakdown(series_id, round_type)
+      }
+
+      case "compare_players": {
+        const { player_ids, metrics } = args as { player_ids: string[]; metrics?: string[] }
+        return await comparePlayers(player_ids, metrics)
+      }
+
+      case "search_data": {
+        const { query, type } = args as { query: string; type?: string }
+        return await searchData(query, type)
+      }
+
+      case "get_team_roster_stats": {
+        const { team_id } = args as { team_id: string }
+        return await getTeamRosterStats(team_id)
+      }
+
+      case "get_match_summary": {
+        const { series_id } = args as { series_id: string }
+        return await getMatchSummary(series_id)
+      }
+
+      case "get_round_details": {
+        const { series_id, game_number, round_number } = args as {
+          series_id: string
+          game_number?: number
+          round_number: number
+        }
+        return await getRoundDetails(series_id, round_number, game_number)
+      }
+
+      case "get_economy_analysis": {
+        const { series_id, team_id } = args as { series_id: string; team_id: string }
+        return await getEconomyAnalysis(series_id, team_id)
+      }
+
+      case "get_counter_strategies": {
+        const { team_id, focus } = args as { team_id: string; focus?: string }
+        return await getCounterStrategies(team_id, focus)
+      }
+
+      case "get_untraded_deaths": {
+        const { series_id, team_id } = args as { series_id: string; team_id: string }
+        return await getUntradedDeaths(series_id, team_id)
+      }
+
+      case "get_site_analysis": {
+        const { team_id, map_name } = args as { team_id: string; map_name?: string }
+        return await getSiteAnalysis(team_id, map_name)
+      }
 
       /* OLD POSTGRES CODE - REMOVE AFTER MIGRATION
       case "query_team_stats": {

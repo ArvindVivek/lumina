@@ -170,12 +170,12 @@ export default function GameDetailPage({
                 src={getMapImage(game.map_name)}
                 alt={formatMapName(game.map_name)}
                 fill
-                className="object-cover opacity-25"
+                className="object-cover opacity-50"
               />
             ) : (
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30", getMapGradient(game.map_name))} />
+              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50", getMapGradient(game.map_name))} />
             )}
-            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/75 to-background/60" />
           </div>
 
           <div className="relative p-6">
