@@ -2,6 +2,16 @@
 -- This migration creates PostgreSQL functions to support coaching queries
 -- These replace direct SQL queries from the postgres library
 
+-- Drop existing functions if they exist to avoid signature conflicts
+DROP FUNCTION IF EXISTS query_series_summary(TEXT, TEXT);
+DROP FUNCTION IF EXISTS query_series_maps(TEXT);
+DROP FUNCTION IF EXISTS query_map_metrics(TEXT, TEXT);
+DROP FUNCTION IF EXISTS query_player_opening_duels(TEXT, TEXT);
+DROP FUNCTION IF EXISTS query_rounds_for_review(TEXT, TEXT, INTEGER);
+DROP FUNCTION IF EXISTS find_similar_scenarios(INTEGER, INTEGER, BOOLEAN, TEXT, INTEGER);
+DROP FUNCTION IF EXISTS detect_anti_strat_signals(TEXT, TEXT);
+DROP FUNCTION IF EXISTS detect_forced_mistakes(TEXT, TEXT);
+
 -- ============================================================================
 -- COACHING ANALYTICS (coaching-queries.ts)
 -- ============================================================================

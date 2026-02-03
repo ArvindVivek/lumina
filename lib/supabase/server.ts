@@ -80,9 +80,14 @@ export function getPostgresPool(): Sql {
     }
 
     sharedPool = postgres(databaseUrl, {
-      max: 20, // Maximum connections in pool
-      idle_timeout: 30, // Close idle connections after 30 seconds
-      connect_timeout: 10, // Connection timeout
+      max: 1, // Reduced for pooler compatibility
+      idle_timeout: 20,
+      connect_timeout: 10,
+      ssl: 'require',
+      prepare: false, // Disable prepared statements for pooler
+      connection: {
+        application_name: 'lumina',
+      },
     })
   }
 
