@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server"
 import OpenAI from "openai"
-import { getPostgresPool } from "@/lib/supabase/server"
+import { createServerClient } from "@/lib/supabase/server"
 
 // Helper to format visible data for chat context
 function formatVisibleData(data: unknown, depth = 0): string {
@@ -439,238 +439,44 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   }
 ]
 
-// Execute tool calls - uses shared connection pool
+import { getPlayerByName, getTeamByName } from "@/lib/chat/tools"
+
+// Execute tool calls - uses Supabase client
 async function executeTool(name: string, args: Record<string, unknown>): Promise<string> {
   try {
-    const sql = getPostgresPool()
+    const supabase = createServerClient()
     switch (name) {
       case "get_player_by_name": {
         const { name: playerName } = args as { name: string }
-        const searchTerm = `%${playerName}%`
-
-        // First find the player
-        const players = await sql`
-          SELECT p.id, p.name, t.name as team_name, t.id as team_id
-          FROM public.players p
-          LEFT JOIN public.teams t ON p.team_id = t.id
-          WHERE p.name ILIKE ${searchTerm}
-          LIMIT 1
-        `
-
-        if (players.length === 0) {
-          return JSON.stringify({ error: `No player found matching "${playerName}"`, suggestion: "Try a different spelling or check the player name" })
-        }
-
-        const player = players[0]
-        const playerId = player.id
-
-        // Now get comprehensive stats
-        const [overview, clutch, agents, trading, openingDuels] = await Promise.all([
-          sql`
-            SELECT
-              COUNT(DISTINCT prs.round_id) as rounds_played,
-              SUM(prs.kills) as total_kills,
-              SUM(prs.deaths) as total_deaths,
-              SUM(prs.assists) as total_assists,
-              ROUND(SUM(prs.kills)::numeric / NULLIF(SUM(prs.deaths), 0), 2) as kd_ratio,
-              SUM(CASE WHEN prs.first_kill THEN 1 ELSE 0 END) as first_kills,
-              SUM(CASE WHEN prs.first_death THEN 1 ELSE 0 END) as first_deaths
-            FROM public.player_round_stats prs
-            WHERE prs.player_id = ${playerId}
-          `,
-          sql`
-            SELECT
-              SUM(CASE WHEN clutch_situation THEN 1 ELSE 0 END) as clutch_situations,
-              SUM(CASE WHEN clutch_won THEN 1 ELSE 0 END) as clutch_wins,
-              ROUND(SUM(CASE WHEN clutch_won THEN 1 ELSE 0 END)::numeric / NULLIF(SUM(CASE WHEN clutch_situation THEN 1 ELSE 0 END), 0) * 100, 1) as clutch_rate
-            FROM public.player_round_stats
-            WHERE player_id = ${playerId}
-          `,
-          sql`
-            SELECT
-              agent,
-              COUNT(*) as rounds_played,
-              SUM(kills) as kills,
-              SUM(deaths) as deaths,
-              ROUND(SUM(kills)::numeric / NULLIF(SUM(deaths), 0), 2) as kd_ratio
-            FROM public.player_round_stats
-            WHERE player_id = ${playerId}
-            GROUP BY agent
-            ORDER BY rounds_played DESC
-            LIMIT 5
-          `,
-          sql`
-            SELECT
-              COUNT(*) as total_deaths,
-              SUM(CASE WHEN traded THEN 1 ELSE 0 END) as traded_deaths,
-              ROUND(SUM(CASE WHEN traded THEN 1 ELSE 0 END)::numeric / NULLIF(COUNT(*), 0) * 100, 1) as trade_rate
-            FROM public.player_round_stats
-            WHERE player_id = ${playerId} AND deaths > 0
-          `,
-          sql`
-            SELECT
-              SUM(CASE WHEN first_kill THEN 1 ELSE 0 END) as first_kills,
-              SUM(CASE WHEN first_death THEN 1 ELSE 0 END) as first_deaths,
-              SUM(CASE WHEN first_kill THEN 1 ELSE 0 END) - SUM(CASE WHEN first_death THEN 1 ELSE 0 END) as opening_diff
-            FROM public.player_round_stats
-            WHERE player_id = ${playerId}
-          `
-        ])
-
-        // Process overview stats with null handling
-        const stats = overview[0] || {}
-        const roundsPlayed = Number(stats.rounds_played) || 0
-        const totalKills = Number(stats.total_kills) || 0
-        const totalDeaths = Number(stats.total_deaths) || 0
-        const kdRatio = stats.kd_ratio ? Number(stats.kd_ratio) : (totalDeaths > 0 ? totalKills / totalDeaths : totalKills)
-
-        // Calculate ACS approximation (kills * 150 + assists * 50) / rounds
-        const totalAssists = Number(stats.total_assists) || 0
-        const acsApprox = roundsPlayed > 0 ? Math.round((totalKills * 150 + totalAssists * 50) / roundsPlayed) : 0
-
-        // Process clutch stats with null handling
-        const clutchStats = clutch[0] || {}
-        const clutchSituations = Number(clutchStats.clutch_situations) || 0
-        const clutchWins = Number(clutchStats.clutch_wins) || 0
-        const clutchRate = clutchStats.clutch_rate ? Number(clutchStats.clutch_rate) : (clutchSituations > 0 ? (clutchWins / clutchSituations * 100) : 0)
-
-        // Process trading stats
-        const tradeStats = trading[0] || {}
-        const tradeRate = Number(tradeStats.trade_rate) || 0
-
-        // Process opening duels
-        const openingStats = openingDuels[0] || {}
-        const firstKills = Number(openingStats.first_kills) || 0
-        const firstDeaths = Number(openingStats.first_deaths) || 0
-        const openingDiff = firstKills - firstDeaths
-
-        // Filter agents to only include valid ones
-        const validAgents = agents.filter(a => a.agent && a.rounds_played)
-
-        return JSON.stringify({
-          player: {
-            id: player.id,
-            name: player.name,
-            team: player.team_name || "Free Agent",
-            team_id: player.team_id
-          },
-          stats: {
-            rounds_played: roundsPlayed,
-            total_kills: totalKills,
-            total_deaths: totalDeaths,
-            total_assists: totalAssists,
-            kd_ratio: kdRatio.toFixed(2),
-            acs_approx: acsApprox
-          },
-          clutch: clutchSituations > 0 ? {
-            situations: clutchSituations,
-            wins: clutchWins,
-            rate: clutchRate.toFixed(1) + "%"
-          } : null,
-          trading: {
-            rate: tradeRate.toFixed(1) + "%",
-            total_deaths: Number(tradeStats.total_deaths) || 0
-          },
-          opening_duels: {
-            first_kills: firstKills,
-            first_deaths: firstDeaths,
-            differential: openingDiff > 0 ? `+${openingDiff}` : openingDiff.toString()
-          },
-          agents: validAgents.map(a => ({
-            name: a.agent,
-            rounds: Number(a.rounds_played) || 0,
-            kd: a.kd_ratio ? Number(a.kd_ratio).toFixed(2) : "N/A"
-          }))
-        })
+        return await getPlayerByName(playerName)
       }
 
       case "get_team_by_name": {
         const { name: teamName } = args as { name: string }
-        const searchTerm = `%${teamName}%`
-
-        // First find the team
-        const teams = await sql`
-          SELECT id, name, short_name
-          FROM public.teams
-          WHERE name ILIKE ${searchTerm} OR short_name ILIKE ${searchTerm}
-          LIMIT 1
-        `
-
-        if (teams.length === 0) {
-          return JSON.stringify({ error: `No team found matching "${teamName}"`, suggestion: "Try a different spelling or check the team name" })
-        }
-
-        const team = teams[0]
-        const teamId = team.id
-
-        // Get comprehensive team stats
-        const [overview, pistol, trading, players, recentMatches] = await Promise.all([
-          sql`
-            SELECT
-              COUNT(DISTINCT s.id) as total_series,
-              COUNT(DISTINCT CASE WHEN s.winner_id = ${teamId} THEN s.id END) as series_wins,
-              COUNT(DISTINCT g.id) as total_games,
-              COUNT(DISTINCT CASE WHEN g.winner_id = ${teamId} THEN g.id END) as game_wins,
-              ROUND(COUNT(DISTINCT CASE WHEN g.winner_id = ${teamId} THEN g.id END)::numeric / NULLIF(COUNT(DISTINCT g.id), 0) * 100, 1) as map_win_rate
-            FROM public.series s
-            LEFT JOIN public.games g ON g.series_id = s.id
-            WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId}) AND s.processed = true
-          `,
-          sql`
-            SELECT
-              COUNT(*) as total_pistol_rounds,
-              SUM(CASE WHEN r.winning_team_id = ${teamId} THEN 1 ELSE 0 END) as wins,
-              ROUND(SUM(CASE WHEN r.winning_team_id = ${teamId} THEN 1 ELSE 0 END)::numeric / NULLIF(COUNT(*), 0) * 100, 1) as win_rate
-            FROM public.rounds r
-            JOIN public.games g ON r.game_id = g.id
-            JOIN public.series s ON g.series_id = s.id
-            WHERE r.round_number IN (1, 13)
-              AND (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-          `,
-          sql`
-            SELECT
-              COUNT(*) as total_deaths,
-              SUM(CASE WHEN prs.traded THEN 1 ELSE 0 END) as traded_deaths,
-              ROUND(SUM(CASE WHEN prs.traded THEN 1 ELSE 0 END)::numeric / NULLIF(COUNT(*), 0) * 100, 1) as trade_rate
-            FROM public.player_round_stats prs
-            WHERE prs.team_id = ${teamId} AND prs.deaths > 0
-          `,
-          sql`
-            SELECT p.id, p.name
-            FROM public.players p
-            WHERE p.team_id = ${teamId}
-            ORDER BY p.name
-            LIMIT 10
-          `,
-          sql`
-            SELECT
-              s.id as series_id,
-              CASE WHEN s.team_a_id = ${teamId} THEN tb.name ELSE ta.name END as opponent,
-              CASE WHEN s.winner_id = ${teamId} THEN true ELSE false END as won,
-              s.start_time
-            FROM public.series s
-            JOIN public.teams ta ON s.team_a_id = ta.id
-            JOIN public.teams tb ON s.team_b_id = tb.id
-            WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId}) AND s.processed = true
-            ORDER BY s.start_time DESC
-            LIMIT 5
-          `
-        ])
-
-        return JSON.stringify({
-          team: {
-            id: team.id,
-            name: team.name,
-            short_name: team.short_name
-          },
-          overview: overview[0],
-          pistol_rounds: pistol[0],
-          trading: trading[0],
-          players: players,
-          recent_matches: recentMatches
-        })
+        return await getTeamByName(teamName)
       }
 
+      // All remaining tools temporarily return unavailable message
+      // TODO: Migrate remaining tools to Supabase client
+      case "query_team_stats":
+      case "query_player_stats":
+      case "query_series_stats":
+      case "query_round_breakdown":
+      case "compare_players":
+      case "search_data":
+      case "get_team_roster_stats":
+      case "get_match_summary":
+      case "get_round_details":
+      case "get_economy_analysis":
+      case "get_counter_strategies":
+      case "get_untraded_deaths":
+      case "get_site_analysis":
+        return JSON.stringify({
+          error: "This tool is temporarily unavailable",
+          message: "We're migrating to a new database system. For now, you can ask about specific players or teams by name."
+        })
+
+      /* OLD POSTGRES CODE - REMOVE AFTER MIGRATION
       case "query_team_stats": {
         const { team_id, metric } = args as { team_id: string; metric: string }
 
@@ -1395,6 +1201,8 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
         })
       }
 
+      END OF OLD POSTGRES CODE */
+
       default:
         return JSON.stringify({ error: "Unknown tool" })
     }
@@ -1402,7 +1210,6 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
     console.error("Tool execution error:", error)
     return JSON.stringify({ error: "Failed to execute query", details: String(error) })
   }
-  // Note: No sql.end() - we use a shared connection pool
 }
 
 export async function POST(req: NextRequest) {
