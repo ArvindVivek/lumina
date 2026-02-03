@@ -1,5 +1,4 @@
-import type { Sql } from 'postgres'
-import { getPostgresPool } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 import {
   PistolAnalysisRow,
   FirstBloodConversionRow,
@@ -21,75 +20,26 @@ export async function queryPistolAnalysis(
   tournamentId?: string,
   mapName?: string,
 ): Promise<PistolAnalysisRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<PistolAnalysisRow[]>`
-      WITH pistol_rounds AS (
-        SELECT
-          r.id,
-          r.round_number,
-          r.winning_team_id,
-          g.map_name,
-          CASE
-            WHEN r.round_number IN (1, 13) THEN 'pistol'
-            WHEN r.round_number IN (2, 14) THEN 'bonus'
-          END as round_type
-        FROM public.rounds r
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-          AND s.tournament_id = ${tournamentId}
-          ${mapName ? sql`AND g.map_name = ${mapName}` : sql``}
-      )
-      SELECT
-        COUNT(*) FILTER (WHERE round_type = 'pistol')::text as pistol_rounds,
-        COUNT(*) FILTER (WHERE round_type = 'pistol' AND winning_team_id = ${teamId})::text as pistol_wins,
-        COUNT(*) FILTER (WHERE round_type = 'bonus' AND winning_team_id = ${teamId})::text as bonus_wins,
-        COUNT(*) FILTER (WHERE round_type = 'bonus')::text as total_bonus_rounds,
-        ROUND(
-          CASE
-            WHEN COUNT(*) FILTER (WHERE round_type = 'pistol') > 0
-            THEN (COUNT(*) FILTER (WHERE round_type = 'pistol' AND winning_team_id = ${teamId})::numeric /
-                  COUNT(*) FILTER (WHERE round_type = 'pistol')::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as pistol_win_rate
-      FROM pistol_rounds
-    `
-    : await sql<PistolAnalysisRow[]>`
-      WITH pistol_rounds AS (
-        SELECT
-          r.id,
-          r.round_number,
-          r.winning_team_id,
-          g.map_name,
-          CASE
-            WHEN r.round_number IN (1, 13) THEN 'pistol'
-            WHEN r.round_number IN (2, 14) THEN 'bonus'
-          END as round_type
-        FROM public.rounds r
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-          ${mapName ? sql`AND g.map_name = ${mapName}` : sql``}
-      )
-      SELECT
-        COUNT(*) FILTER (WHERE round_type = 'pistol')::text as pistol_rounds,
-        COUNT(*) FILTER (WHERE round_type = 'pistol' AND winning_team_id = ${teamId})::text as pistol_wins,
-        COUNT(*) FILTER (WHERE round_type = 'bonus' AND winning_team_id = ${teamId})::text as bonus_wins,
-        COUNT(*) FILTER (WHERE round_type = 'bonus')::text as total_bonus_rounds,
-        ROUND(
-          CASE
-            WHEN COUNT(*) FILTER (WHERE round_type = 'pistol') > 0
-            THEN (COUNT(*) FILTER (WHERE round_type = 'pistol' AND winning_team_id = ${teamId})::numeric /
-                  COUNT(*) FILTER (WHERE round_type = 'pistol')::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as pistol_win_rate
-      FROM pistol_rounds
-    `
+  const supabase = createServerClient()
 
-  return result[0] || {
+  const { data, error } = await supabase.rpc('query_pistol_analysis', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+    p_map_name: mapName || null,
+  })
+
+  if (error) {
+    console.error('Error querying pistol analysis:', error)
+    return {
+      pistol_rounds: "0",
+      pistol_wins: "0",
+      bonus_wins: "0",
+      total_bonus_rounds: "0",
+      pistol_win_rate: "0.00"
+    }
+  }
+
+  return data?.[0] || {
     pistol_rounds: "0",
     pistol_wins: "0",
     bonus_wins: "0",
@@ -106,61 +56,23 @@ export async function queryFirstBloodConversion(
   teamId: string,
   tournamentId?: string,
 ): Promise<FirstBloodConversionRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<FirstBloodConversionRow[]>`
-      WITH first_blood_rounds AS (
-        SELECT
-          r.id,
-          r.winning_team_id,
-          prs.team_id as first_blood_team_id
-        FROM public.rounds r
-        JOIN public.player_round_stats prs ON prs.round_id = r.id AND prs.first_kill = TRUE
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-          AND s.tournament_id = ${tournamentId}
-      )
-      SELECT
-        COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId})::text as first_bloods,
-        COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId} AND winning_team_id = ${teamId})::text as first_blood_wins,
-        ROUND(
-          CASE
-            WHEN COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId}) > 0
-            THEN (COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId} AND winning_team_id = ${teamId})::numeric /
-                  COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId})::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as first_blood_conversion_rate
-      FROM first_blood_rounds
-    `
-    : await sql<FirstBloodConversionRow[]>`
-      WITH first_blood_rounds AS (
-        SELECT
-          r.id,
-          r.winning_team_id,
-          prs.team_id as first_blood_team_id
-        FROM public.rounds r
-        JOIN public.player_round_stats prs ON prs.round_id = r.id AND prs.first_kill = TRUE
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-      )
-      SELECT
-        COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId})::text as first_bloods,
-        COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId} AND winning_team_id = ${teamId})::text as first_blood_wins,
-        ROUND(
-          CASE
-            WHEN COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId}) > 0
-            THEN (COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId} AND winning_team_id = ${teamId})::numeric /
-                  COUNT(*) FILTER (WHERE first_blood_team_id = ${teamId})::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as first_blood_conversion_rate
-      FROM first_blood_rounds
-    `
+  const supabase = createServerClient()
 
-  return result[0] || {
+  const { data, error } = await supabase.rpc('query_first_blood_conversion', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying first blood conversion:', error)
+    return {
+      first_bloods: "0",
+      first_blood_wins: "0",
+      first_blood_conversion_rate: "0.00"
+    }
+  }
+
+  return data?.[0] || {
     first_bloods: "0",
     first_blood_wins: "0",
     first_blood_conversion_rate: "0.00"
@@ -175,87 +87,26 @@ export async function queryTradeDiscipline(
   teamId: string,
   tournamentId?: string,
 ): Promise<TradeDisciplineRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<TradeDisciplineRow[]>`
-      WITH team_deaths AS (
-        SELECT
-          prs.round_id,
-          prs.player_id,
-          prs.team_id,
-          prs.deaths,
-          prs.traded,
-          prs.first_death
-        FROM public.player_round_stats prs
-        JOIN public.rounds r ON prs.round_id = r.id
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE prs.team_id = ${teamId}
-          AND prs.deaths > 0
-          AND s.tournament_id = ${tournamentId}
-      )
-      SELECT
-        COUNT(*)::text as total_deaths,
-        COUNT(*) FILTER (WHERE traded = TRUE)::text as traded_deaths,
-        COUNT(*) FILTER (WHERE first_death = TRUE)::text as first_deaths,
-        COUNT(*) FILTER (WHERE first_death = TRUE AND traded = TRUE)::text as first_deaths_traded,
-        ROUND(
-          CASE
-            WHEN COUNT(*) > 0
-            THEN (COUNT(*) FILTER (WHERE traded = TRUE)::numeric / COUNT(*)::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as overall_trade_rate,
-        ROUND(
-          CASE
-            WHEN COUNT(*) FILTER (WHERE first_death = TRUE) > 0
-            THEN (COUNT(*) FILTER (WHERE first_death = TRUE AND traded = TRUE)::numeric /
-                  COUNT(*) FILTER (WHERE first_death = TRUE)::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as first_death_trade_rate
-      FROM team_deaths
-    `
-    : await sql<TradeDisciplineRow[]>`
-      WITH team_deaths AS (
-        SELECT
-          prs.round_id,
-          prs.player_id,
-          prs.team_id,
-          prs.deaths,
-          prs.traded,
-          prs.first_death
-        FROM public.player_round_stats prs
-        JOIN public.rounds r ON prs.round_id = r.id
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE prs.team_id = ${teamId}
-          AND prs.deaths > 0
-      )
-      SELECT
-        COUNT(*)::text as total_deaths,
-        COUNT(*) FILTER (WHERE traded = TRUE)::text as traded_deaths,
-        COUNT(*) FILTER (WHERE first_death = TRUE)::text as first_deaths,
-        COUNT(*) FILTER (WHERE first_death = TRUE AND traded = TRUE)::text as first_deaths_traded,
-        ROUND(
-          CASE
-            WHEN COUNT(*) > 0
-            THEN (COUNT(*) FILTER (WHERE traded = TRUE)::numeric / COUNT(*)::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as overall_trade_rate,
-        ROUND(
-          CASE
-            WHEN COUNT(*) FILTER (WHERE first_death = TRUE) > 0
-            THEN (COUNT(*) FILTER (WHERE first_death = TRUE AND traded = TRUE)::numeric /
-                  COUNT(*) FILTER (WHERE first_death = TRUE)::numeric * 100)
-            ELSE 0
-          END, 2
-        )::text as first_death_trade_rate
-      FROM team_deaths
-    `
+  const supabase = createServerClient()
 
-  return result[0] || {
+  const { data, error } = await supabase.rpc('query_trade_discipline', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying trade discipline:', error)
+    return {
+      total_deaths: "0",
+      traded_deaths: "0",
+      first_deaths: "0",
+      first_deaths_traded: "0",
+      overall_trade_rate: "0.00",
+      first_death_trade_rate: "0.00"
+    }
+  }
+
+  return data?.[0] || {
     total_deaths: "0",
     traded_deaths: "0",
     first_deaths: "0",
@@ -273,39 +124,19 @@ export async function queryOpeningDuelsByPlayer(
   teamId: string,
   tournamentId?: string,
 ): Promise<OpeningDuelsByPlayerRow[]> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<OpeningDuelsByPlayerRow[]>`
-      SELECT
-        prs.player_id,
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
-        COUNT(*)::text as total_rounds
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.team_id = ${teamId}
-        AND s.tournament_id = ${tournamentId}
-      GROUP BY prs.player_id
-      ORDER BY SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END) DESC
-    `
-    : await sql<OpeningDuelsByPlayerRow[]>`
-      SELECT
-        prs.player_id,
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
-        COUNT(*)::text as total_rounds
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.team_id = ${teamId}
-      GROUP BY prs.player_id
-      ORDER BY SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END) DESC
-    `
+  const supabase = createServerClient()
 
-  return result
+  const { data, error } = await supabase.rpc('query_opening_duels_by_player', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying opening duels by player:', error)
+    return []
+  }
+
+  return data || []
 }
 
 /**
@@ -316,79 +147,19 @@ export async function queryEconomyManagement(
   teamId: string,
   tournamentId?: string,
 ): Promise<EconomyManagementRow[]> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<EconomyManagementRow[]>`
-      WITH round_economy AS (
-        SELECT
-          r.id,
-          r.round_number,
-          r.winning_team_id,
-          CASE
-            WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
-            ELSE r.team_b_loadout_value
-          END as team_loadout_value,
-          CASE
-            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
-            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
-            ELSE 'eco'
-          END as economy_decision
-        FROM public.rounds r
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-          AND s.tournament_id = ${tournamentId}
-      )
-      SELECT
-        economy_decision,
-        COUNT(*)::text as rounds,
-        COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::text as wins,
-        ROUND(
-          COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::numeric /
-          NULLIF(COUNT(*), 0),
-          3
-        )::text as win_rate,
-        AVG(team_loadout_value)::text as avg_loadout_value
-      FROM round_economy
-      GROUP BY economy_decision
-      ORDER BY economy_decision
-    `
-    : await sql<EconomyManagementRow[]>`
-      WITH round_economy AS (
-        SELECT
-          r.id,
-          r.round_number,
-          r.winning_team_id,
-          CASE
-            WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
-            ELSE r.team_b_loadout_value
-          END as team_loadout_value,
-          CASE
-            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 20000 THEN 'full_buy'
-            WHEN (CASE WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value ELSE r.team_b_loadout_value END) >= 10000 THEN 'force_buy'
-            ELSE 'eco'
-          END as economy_decision
-        FROM public.rounds r
-        JOIN public.games g ON r.game_id = g.id
-        JOIN public.series s ON g.series_id = s.id
-        WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-      )
-      SELECT
-        economy_decision,
-        COUNT(*)::text as rounds,
-        COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::text as wins,
-        ROUND(
-          COUNT(*) FILTER (WHERE winning_team_id = ${teamId})::numeric /
-          NULLIF(COUNT(*), 0),
-          3
-        )::text as win_rate,
-        AVG(team_loadout_value)::text as avg_loadout_value
-      FROM round_economy
-      GROUP BY economy_decision
-      ORDER BY economy_decision
-    `
+  const supabase = createServerClient()
 
-  return result
+  const { data, error } = await supabase.rpc('query_economy_management', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying economy management:', error)
+    return []
+  }
+
+  return data || []
 }
 
 /**
@@ -399,50 +170,23 @@ export async function queryTimingPatterns(
   teamId: string,
   tournamentId?: string,
 ): Promise<TimingPatternRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<TimingPatternRow[]>`
-      SELECT
-        AVG(r.duration_ms)::text as avg_round_duration_ms,
-        (SELECT AVG(ke.game_time_ms)::text
-         FROM public.kill_events ke
-         WHERE ke.is_first_kill = TRUE
-           AND ke.round_id IN (
-             SELECT r2.id FROM public.rounds r2
-             JOIN public.games g2 ON r2.game_id = g2.id
-             JOIN public.series s2 ON g2.series_id = s2.id
-             WHERE (s2.team_a_id = ${teamId} OR s2.team_b_id = ${teamId})
-               AND s2.tournament_id = ${tournamentId}
-           )
-        ) as avg_first_kill_time_ms,
-        COUNT(*)::text as rounds_analyzed
-      FROM public.rounds r
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<TimingPatternRow[]>`
-      SELECT
-        AVG(r.duration_ms)::text as avg_round_duration_ms,
-        (SELECT AVG(ke.game_time_ms)::text
-         FROM public.kill_events ke
-         WHERE ke.is_first_kill = TRUE
-           AND ke.round_id IN (
-             SELECT r2.id FROM public.rounds r2
-             JOIN public.games g2 ON r2.game_id = g2.id
-             JOIN public.series s2 ON g2.series_id = s2.id
-             WHERE (s2.team_a_id = ${teamId} OR s2.team_b_id = ${teamId})
-           )
-        ) as avg_first_kill_time_ms,
-        COUNT(*)::text as rounds_analyzed
-      FROM public.rounds r
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-    `
+  const supabase = createServerClient()
 
-  return result[0] || {
+  const { data, error } = await supabase.rpc('query_timing_patterns', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying timing patterns:', error)
+    return {
+      avg_round_duration_ms: "0",
+      avg_first_kill_time_ms: "0",
+      rounds_analyzed: "0"
+    }
+  }
+
+  return data?.[0] || {
     avg_round_duration_ms: "0",
     avg_first_kill_time_ms: "0",
     rounds_analyzed: "0"
@@ -457,53 +201,25 @@ export async function queryUltimateEconomy(
   teamId: string,
   tournamentId?: string,
 ): Promise<UltimateEconomyRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<UltimateEconomyRow[]>`
-      SELECT
-        COUNT(*)::text as total_rounds,
-        SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::text as ultimates_used,
-        ROUND(
-          SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::numeric /
-          NULLIF(COUNT(*), 0),
-          3
-        )::text as usage_rate,
-        SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END)::text as rounds_with_ult_available,
-        ROUND(
-          SUM(CASE WHEN prs.ultimate_points >= 7 AND r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::numeric /
-          NULLIF(SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END), 0),
-          3
-        )::text as ult_availability_win_rate
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.team_id = ${teamId}
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<UltimateEconomyRow[]>`
-      SELECT
-        COUNT(*)::text as total_rounds,
-        SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::text as ultimates_used,
-        ROUND(
-          SUM(CASE WHEN prs.ultimate_used = TRUE THEN 1 ELSE 0 END)::numeric /
-          NULLIF(COUNT(*), 0),
-          3
-        )::text as usage_rate,
-        SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END)::text as rounds_with_ult_available,
-        ROUND(
-          SUM(CASE WHEN prs.ultimate_points >= 7 AND r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::numeric /
-          NULLIF(SUM(CASE WHEN prs.ultimate_points >= 7 THEN 1 ELSE 0 END), 0),
-          3
-        )::text as ult_availability_win_rate
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.team_id = ${teamId}
-    `
+  const supabase = createServerClient()
 
-  return result[0] || {
+  const { data, error } = await supabase.rpc('query_ultimate_economy', {
+    p_team_id: teamId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying ultimate economy:', error)
+    return {
+      total_rounds: "0",
+      ultimates_used: "0",
+      usage_rate: "0.000",
+      rounds_with_ult_available: "0",
+      ult_availability_win_rate: "0.000"
+    }
+  }
+
+  return data?.[0] || {
     total_rounds: "0",
     ultimates_used: "0",
     usage_rate: "0.000",
@@ -521,39 +237,101 @@ export async function queryRoundBreakdown(
   gameId?: string,
   tournamentId?: string,
 ): Promise<RoundBreakdownRow[]> {
-  const sql = getPostgresPool()
-  const result = await sql<RoundBreakdownRow[]>`
-    SELECT
-      r.id as round_id,
-      r.round_number::text,
-      r.game_id,
-      g.map_name,
-      r.winning_team_id,
-      r.spike_planted::text,
-      r.spike_defused::text,
-      r.team_a_alive::text,
-      r.team_b_alive::text,
-      CASE
-        WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
-        ELSE r.team_b_loadout_value
-      END::text as team_loadout_value,
-      CASE
-        WHEN s.team_a_id = ${teamId} THEN r.team_b_loadout_value
-        ELSE r.team_a_loadout_value
-      END::text as opponent_loadout_value,
-      r.duration_ms::text,
-      (SELECT prs.team_id FROM public.player_round_stats prs
-       WHERE prs.round_id = r.id AND prs.first_kill = TRUE LIMIT 1) as first_blood_team_id
-    FROM public.rounds r
-    JOIN public.games g ON r.game_id = g.id
-    JOIN public.series s ON g.series_id = s.id
-    WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-      ${gameId ? sql`AND r.game_id = ${gameId}` : sql``}
-      ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
-    ORDER BY g.sequence_number, r.round_number
-  `
+  const supabase = createServerClient()
 
-  return result
+  // Get games for this series/tournament first to get series info
+  let gamesQuery = supabase
+    .from('games')
+    .select(`
+      id,
+      map_name,
+      sequence_number,
+      series!inner(team_a_id, team_b_id, tournament_id)
+    `)
+
+  if (gameId) {
+    gamesQuery = gamesQuery.eq('id', gameId)
+  }
+
+  if (tournamentId) {
+    gamesQuery = gamesQuery.eq('series.tournament_id', tournamentId)
+  }
+
+  const { data: games, error: gamesError } = await gamesQuery
+
+  if (gamesError || !games || games.length === 0) {
+    console.error('Error querying games:', gamesError)
+    return []
+  }
+
+  // Get series info from first game
+  const firstGame = games[0]
+  const series = Array.isArray(firstGame.series) ? firstGame.series[0] : firstGame.series
+  const isTeamA = series?.team_a_id === teamId
+
+  // Get rounds for these games
+  const gameIds = games.map(g => g.id)
+  const { data: rounds, error: roundsError } = await supabase
+    .from('rounds')
+    .select(`
+      id,
+      round_number,
+      game_id,
+      winning_team_id,
+      spike_planted,
+      spike_defused,
+      team_a_alive,
+      team_b_alive,
+      team_a_loadout_value,
+      team_b_loadout_value,
+      duration_ms
+    `)
+    .in('game_id', gameIds)
+    .order('game_id')
+    .order('round_number')
+
+  if (roundsError || !rounds) {
+    console.error('Error querying rounds:', roundsError)
+    return []
+  }
+
+  // Get first blood info for each round
+  const roundIds = rounds.map(r => r.id)
+  const { data: firstBloods } = await supabase
+    .from('player_round_stats')
+    .select('round_id, team_id')
+    .in('round_id', roundIds)
+    .eq('first_kill', true)
+
+  const firstBloodMap = new Map(
+    firstBloods?.map(fb => [fb.round_id, fb.team_id]) || []
+  )
+
+  // Create game map for lookups
+  const gameMap = new Map(games.map(g => [g.id, g]))
+
+  // Transform results
+  return rounds.map(row => {
+    const game = gameMap.get(row.game_id) as typeof games[0] | undefined
+    const teamLoadoutValue = isTeamA ? row.team_a_loadout_value : row.team_b_loadout_value
+    const opponentLoadoutValue = isTeamA ? row.team_b_loadout_value : row.team_a_loadout_value
+
+    return {
+      round_id: row.id,
+      round_number: String(row.round_number),
+      game_id: row.game_id,
+      map_name: game?.map_name || '',
+      winning_team_id: row.winning_team_id,
+      spike_planted: String(row.spike_planted),
+      spike_defused: String(row.spike_defused),
+      team_a_alive: String(row.team_a_alive),
+      team_b_alive: String(row.team_b_alive),
+      team_loadout_value: String(teamLoadoutValue),
+      opponent_loadout_value: String(opponentLoadoutValue),
+      duration_ms: String(row.duration_ms),
+      first_blood_team_id: firstBloodMap.get(row.id) || null,
+    }
+  })
 }
 
 /**
@@ -565,39 +343,89 @@ export async function queryRoundsForCriticalMoments(
   gameId?: string,
   tournamentId?: string,
 ): Promise<RoundDataForClassification[]> {
-  const sql = getPostgresPool()
-  const result = await sql<RoundDataForClassification[]>`
-    SELECT
-      r.id as round_id,
-      r.round_number,
-      r.game_id,
-      r.winning_team_id,
-      r.team_a_alive,
-      r.team_b_alive,
-      CASE
-        WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value
-        ELSE r.team_b_loadout_value
-      END as team_loadout_value,
-      r.spike_planted,
-      COALESCE(
-        (SELECT prs.traded FROM public.player_round_stats prs
-         WHERE prs.round_id = r.id AND prs.first_death = TRUE AND prs.team_id = ${teamId}
-         LIMIT 1),
-        true
-      ) as first_death_traded,
-      (r.round_number IN (1, 13)) as is_pistol_round,
-      (CASE
-        WHEN s.team_a_id = ${teamId} THEN r.team_a_loadout_value < 10000
-        ELSE r.team_b_loadout_value < 10000
-      END) as is_eco_round
-    FROM public.rounds r
-    JOIN public.games g ON r.game_id = g.id
-    JOIN public.series s ON g.series_id = s.id
-    WHERE (s.team_a_id = ${teamId} OR s.team_b_id = ${teamId})
-      ${gameId ? sql`AND r.game_id = ${gameId}` : sql``}
-      ${tournamentId ? sql`AND s.tournament_id = ${tournamentId}` : sql``}
-    ORDER BY g.sequence_number, r.round_number
-  `
+  const supabase = createServerClient()
 
-  return result
+  // Get games for this series/tournament first to get series info
+  let gamesQuery = supabase
+    .from('games')
+    .select(`
+      id,
+      sequence_number,
+      series!inner(team_a_id, team_b_id, tournament_id)
+    `)
+
+  if (gameId) {
+    gamesQuery = gamesQuery.eq('id', gameId)
+  }
+
+  if (tournamentId) {
+    gamesQuery = gamesQuery.eq('series.tournament_id', tournamentId)
+  }
+
+  const { data: games, error: gamesError } = await gamesQuery
+
+  if (gamesError || !games || games.length === 0) {
+    console.error('Error querying games:', gamesError)
+    return []
+  }
+
+  // Get series info from first game
+  const firstGame = games[0]
+  const series = Array.isArray(firstGame.series) ? firstGame.series[0] : firstGame.series
+  const isTeamA = series?.team_a_id === teamId
+
+  // Get rounds for these games
+  const gameIds = games.map(g => g.id)
+  const { data: rounds, error: roundsError } = await supabase
+    .from('rounds')
+    .select(`
+      id,
+      round_number,
+      game_id,
+      winning_team_id,
+      team_a_alive,
+      team_b_alive,
+      team_a_loadout_value,
+      team_b_loadout_value,
+      spike_planted
+    `)
+    .in('game_id', gameIds)
+    .order('game_id')
+    .order('round_number')
+
+  if (roundsError || !rounds) {
+    console.error('Error querying rounds:', roundsError)
+    return []
+  }
+
+  // Get first death traded info
+  const roundIds = rounds.map(r => r.id)
+  const { data: firstDeaths } = await supabase
+    .from('player_round_stats')
+    .select('round_id, traded')
+    .in('round_id', roundIds)
+    .eq('first_death', true)
+    .eq('team_id', teamId)
+
+  const firstDeathMap = new Map(
+    firstDeaths?.map(fd => [fd.round_id, fd.traded]) || []
+  )
+
+  return rounds.map(row => {
+    const teamLoadoutValue = isTeamA ? row.team_a_loadout_value : row.team_b_loadout_value
+
+    return {
+      round_id: row.id,
+      round_number: row.round_number,
+      game_id: row.game_id,
+      winning_team_id: row.winning_team_id,
+      team_a_alive: row.team_a_alive,
+      team_b_alive: row.team_b_alive,
+      team_loadout_value: teamLoadoutValue,
+      spike_planted: row.spike_planted,
+      first_death_traded: firstDeathMap.get(row.id) ?? true,
+      is_pistol_round: row.round_number === 1 || row.round_number === 13,
+      is_eco_round: teamLoadoutValue < 10000,
+    }
+  })
 }

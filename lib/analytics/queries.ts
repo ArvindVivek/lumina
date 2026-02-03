@@ -1,5 +1,4 @@
-import type { Sql } from 'postgres'
-import { getPostgresPool } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 import {
   FirstDeathRow,
   TradingRow,
@@ -18,37 +17,19 @@ export async function queryFirstDeathImpact(
   playerId: string,
   tournamentId?: string,
 ): Promise<FirstDeathRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<FirstDeathRow[]>`
-      SELECT
-        SUM(CASE WHEN r.winning_team_id != prs.team_id THEN 1 ELSE 0 END)::text as losses,
-        COUNT(*)::text as total
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND prs.first_death = TRUE
-        AND prs.kills = 0
-        AND prs.assists = 0
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<FirstDeathRow[]>`
-      SELECT
-        SUM(CASE WHEN r.winning_team_id != prs.team_id THEN 1 ELSE 0 END)::text as losses,
-        COUNT(*)::text as total
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND prs.first_death = TRUE
-        AND prs.kills = 0
-        AND prs.assists = 0
-    `
+  const supabase = createServerClient()
 
-  return result[0] || { losses: "0", total: "0" }
+  const { data, error } = await supabase.rpc('query_first_death_impact', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying first death impact:', error)
+    return { losses: "0", total: "0" }
+  }
+
+  return data?.[0] || { losses: "0", total: "0" }
 }
 
 /**
@@ -59,31 +40,19 @@ export async function queryTradingEfficiency(
   playerId: string,
   tournamentId?: string,
 ): Promise<TradingRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<TradingRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.traded = TRUE THEN 1 ELSE 0 END)::text as traded,
-        SUM(CASE WHEN prs.deaths > 0 THEN 1 ELSE 0 END)::text as total_deaths
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<TradingRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.traded = TRUE THEN 1 ELSE 0 END)::text as traded,
-        SUM(CASE WHEN prs.deaths > 0 THEN 1 ELSE 0 END)::text as total_deaths
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-    `
+  const supabase = createServerClient()
 
-  return result[0] || { traded: "0", total_deaths: "0" }
+  const { data, error } = await supabase.rpc('query_trading_efficiency', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying trading efficiency:', error)
+    return { traded: "0", total_deaths: "0" }
+  }
+
+  return data?.[0] || { traded: "0", total_deaths: "0" }
 }
 
 /**
@@ -94,33 +63,19 @@ export async function queryOpeningDuels(
   playerId: string,
   tournamentId?: string,
 ): Promise<OpeningDuelsRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<OpeningDuelsRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
-        COUNT(*)::text as total_rounds
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<OpeningDuelsRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
-        COUNT(*)::text as total_rounds
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-    `
+  const supabase = createServerClient()
 
-  return result[0] || { first_kills: "0", first_deaths: "0", total_rounds: "0" }
+  const { data, error } = await supabase.rpc('query_opening_duels', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying opening duels:', error)
+    return { first_kills: "0", first_deaths: "0", total_rounds: "0" }
+  }
+
+  return data?.[0] || { first_kills: "0", first_deaths: "0", total_rounds: "0" }
 }
 
 /**
@@ -131,33 +86,19 @@ export async function queryClutchPerformance(
   playerId: string,
   tournamentId?: string,
 ): Promise<ClutchRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<ClutchRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.clutch_won = TRUE THEN 1 ELSE 0 END)::text as clutches_won,
-        COUNT(*)::text as clutch_situations
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND prs.clutch_situation = TRUE
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<ClutchRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.clutch_won = TRUE THEN 1 ELSE 0 END)::text as clutches_won,
-        COUNT(*)::text as clutch_situations
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND prs.clutch_situation = TRUE
-    `
+  const supabase = createServerClient()
 
-  return result[0] || { clutches_won: "0", clutch_situations: "0" }
+  const { data, error } = await supabase.rpc('query_clutch_performance', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying clutch performance:', error)
+    return { clutches_won: "0", clutch_situations: "0" }
+  }
+
+  return data?.[0] || { clutches_won: "0", clutch_situations: "0" }
 }
 
 /**
@@ -168,45 +109,19 @@ export async function queryAgentPerformance(
   playerId: string,
   tournamentId?: string,
 ): Promise<AgentRow[]> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<AgentRow[]>`
-      SELECT
-        prs.agent,
-        COUNT(*)::text as rounds_played,
-        SUM(prs.kills)::text as total_kills,
-        SUM(prs.deaths)::text as total_deaths,
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
-        SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND s.tournament_id = ${tournamentId}
-      GROUP BY prs.agent
-      ORDER BY COUNT(*) DESC
-    `
-    : await sql<AgentRow[]>`
-      SELECT
-        prs.agent,
-        COUNT(*)::text as rounds_played,
-        SUM(prs.kills)::text as total_kills,
-        SUM(prs.deaths)::text as total_deaths,
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::text as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::text as first_deaths,
-        SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-      GROUP BY prs.agent
-      ORDER BY COUNT(*) DESC
-    `
+  const supabase = createServerClient()
 
-  return result
+  const { data, error } = await supabase.rpc('query_agent_performance', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying agent performance:', error)
+    return []
+  }
+
+  return data || []
 }
 
 /**
@@ -217,39 +132,26 @@ export async function queryMultiKillRounds(
   playerId: string,
   tournamentId?: string,
 ): Promise<MultiKillRow> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<MultiKillRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.kills >= 2 THEN 1 ELSE 0 END)::text as two_plus_kills,
-        SUM(CASE WHEN prs.kills >= 3 THEN 1 ELSE 0 END)::text as three_plus_kills,
-        SUM(CASE WHEN prs.kills >= 4 THEN 1 ELSE 0 END)::text as four_plus_kills,
-        SUM(CASE WHEN prs.kills = 5 THEN 1 ELSE 0 END)::text as aces,
-        COUNT(*)::text as total_rounds,
-        SUM(prs.kills)::text as total_kills
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND s.tournament_id = ${tournamentId}
-    `
-    : await sql<MultiKillRow[]>`
-      SELECT
-        SUM(CASE WHEN prs.kills >= 2 THEN 1 ELSE 0 END)::text as two_plus_kills,
-        SUM(CASE WHEN prs.kills >= 3 THEN 1 ELSE 0 END)::text as three_plus_kills,
-        SUM(CASE WHEN prs.kills >= 4 THEN 1 ELSE 0 END)::text as four_plus_kills,
-        SUM(CASE WHEN prs.kills = 5 THEN 1 ELSE 0 END)::text as aces,
-        COUNT(*)::text as total_rounds,
-        SUM(prs.kills)::text as total_kills
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-    `
+  const supabase = createServerClient()
 
-  return result[0] || {
+  const { data, error } = await supabase.rpc('query_multi_kill_rounds', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying multi-kill rounds:', error)
+    return {
+      two_plus_kills: "0",
+      three_plus_kills: "0",
+      four_plus_kills: "0",
+      aces: "0",
+      total_rounds: "0",
+      total_kills: "0"
+    }
+  }
+
+  return data?.[0] || {
     two_plus_kills: "0",
     three_plus_kills: "0",
     four_plus_kills: "0",
@@ -267,41 +169,17 @@ export async function queryEcoRoundPerformance(
   playerId: string,
   tournamentId?: string,
 ): Promise<EcoRoundRow[]> {
-  const sql = getPostgresPool()
-  const result = tournamentId
-    ? await sql<EcoRoundRow[]>`
-      SELECT
-        r.phase,
-        COUNT(*)::text as rounds,
-        SUM(prs.kills)::text as total_kills,
-        SUM(prs.deaths)::text as total_deaths,
-        SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND r.phase IS NOT NULL
-        AND s.tournament_id = ${tournamentId}
-      GROUP BY r.phase
-      ORDER BY r.phase
-    `
-    : await sql<EcoRoundRow[]>`
-      SELECT
-        r.phase,
-        COUNT(*)::text as rounds,
-        SUM(prs.kills)::text as total_kills,
-        SUM(prs.deaths)::text as total_deaths,
-        SUM(CASE WHEN r.winning_team_id = prs.team_id THEN 1 ELSE 0 END)::text as rounds_won
-      FROM public.player_round_stats prs
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE prs.player_id = ${playerId}
-        AND r.phase IS NOT NULL
-      GROUP BY r.phase
-      ORDER BY r.phase
-    `
+  const supabase = createServerClient()
 
-  return result
+  const { data, error } = await supabase.rpc('query_eco_round_performance', {
+    p_player_id: playerId,
+    p_tournament_id: tournamentId || null,
+  })
+
+  if (error) {
+    console.error('Error querying eco round performance:', error)
+    return []
+  }
+
+  return data || []
 }
