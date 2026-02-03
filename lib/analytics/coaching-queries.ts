@@ -1,5 +1,4 @@
-import type { Sql } from 'postgres'
-import { getPostgresPool } from '@/lib/supabase/server'
+import { createServerClient } from '@/lib/supabase/server'
 import type {
   SeriesSummary,
   MapMetrics,
@@ -22,56 +21,34 @@ export async function querySeriesSummary(
   seriesId: string,
   teamId: string
 ): Promise<SeriesSummary | null> {
-  const sql = getPostgresPool()
-  const result = await sql`
-    WITH series_data AS (
-      SELECT
-        s.id,
-        s.team_a_id,
-        s.team_b_id,
-        s.winner_id,
-        ta.name as team_a_name,
-        tb.name as team_b_name,
-        (SELECT COUNT(*) FROM public.games WHERE series_id = s.id AND winner_id = s.team_a_id) as team_a_wins,
-        (SELECT COUNT(*) FROM public.games WHERE series_id = s.id AND winner_id = s.team_b_id) as team_b_wins,
-        (SELECT COUNT(*) FROM public.games WHERE series_id = s.id) as total_maps
-      FROM public.series s
-      JOIN public.teams ta ON s.team_a_id = ta.id
-      JOIN public.teams tb ON s.team_b_id = tb.id
-      WHERE s.id = ${seriesId}
-    )
-    SELECT * FROM series_data
-  `
+  const supabase = createServerClient()
 
-  if (result.length === 0) return null
+  // Get series summary
+  const { data: summaryData, error: summaryError } = await supabase.rpc('query_series_summary', {
+    p_series_id: seriesId,
+    p_team_id: teamId,
+  })
 
-  const row = result[0]
+  if (summaryError || !summaryData || summaryData.length === 0) {
+    console.error('Error querying series summary:', summaryError)
+    return null
+  }
+
+  const row = summaryData[0]
   const isTeamA = row.team_a_id === teamId
-  const teamScore = isTeamA ? row.team_a_wins : row.team_b_wins
-  const opponentScore = isTeamA ? row.team_b_wins : row.team_a_wins
+  const teamScore = isTeamA ? Number(row.team_a_wins) : Number(row.team_b_wins)
+  const opponentScore = isTeamA ? Number(row.team_b_wins) : Number(row.team_a_wins)
   const won = row.winner_id === teamId
 
   // Get map details
-  const maps = await sql`
-    SELECT
-      g.id as game_id,
-      g.map_name,
-      g.team_a_score,
-      g.team_b_score,
-      g.winner_id,
-      g.sequence_number
-    FROM public.games g
-    WHERE g.series_id = ${seriesId}
-    ORDER BY g.sequence_number
-  `
+  const { data: mapsData, error: mapsError } = await supabase.rpc('query_series_maps', {
+    p_series_id: seriesId,
+  })
 
-  // Get total rounds
-  const roundCount = await sql`
-    SELECT COUNT(*)::int as count
-    FROM public.rounds r
-    JOIN public.games g ON r.game_id = g.id
-    WHERE g.series_id = ${seriesId}
-  `
+  if (mapsError) {
+    console.error('Error querying series maps:', mapsError)
+    return null
+  }
 
   return {
     series_id: seriesId,
@@ -81,9 +58,9 @@ export async function querySeriesSummary(
     opponent_name: isTeamA ? row.team_b_name : row.team_a_name,
     result: won ? 'win' : 'loss',
     score: `${teamScore}-${opponentScore}`,
-    total_rounds: roundCount[0]?.count || 0,
+    total_rounds: Number(row.total_rounds) || 0,
     total_maps: Number(row.total_maps),
-    maps: maps.map(m => ({
+    maps: (mapsData || []).map((m: any) => ({
       game_id: m.game_id,
       map_name: m.map_name,
       team_score: isTeamA ? Number(m.team_a_score) : Number(m.team_b_score),
@@ -102,90 +79,19 @@ export async function queryMapMetrics(
   seriesId: string,
   teamId: string
 ): Promise<MapMetrics[]> {
-  const sql = getPostgresPool()
-  const result = await sql`
-    WITH game_rounds AS (
-      SELECT
-        g.id as game_id,
-        g.map_name,
-        g.team_a_score,
-        g.team_b_score,
-        r.id as round_id,
-        r.winning_team_id,
-        r.spike_planted,
-        s.team_a_id,
-        s.team_b_id
-      FROM public.games g
-      JOIN public.series s ON g.series_id = s.id
-      JOIN public.rounds r ON r.game_id = g.id
-      WHERE g.series_id = ${seriesId}
-    ),
-    first_bloods AS (
-      SELECT
-        gr.game_id,
-        gr.round_id,
-        prs.team_id as fb_team_id,
-        gr.winning_team_id
-      FROM game_rounds gr
-      JOIN public.player_round_stats prs ON prs.round_id = gr.round_id AND prs.first_kill = TRUE
-    ),
-    trades AS (
-      SELECT
-        gr.game_id,
-        prs.player_id,
-        prs.traded,
-        prs.deaths
-      FROM game_rounds gr
-      JOIN public.player_round_stats prs ON prs.round_id = gr.round_id
-      WHERE prs.team_id = ${teamId} AND prs.deaths > 0
-    ),
-    post_plants AS (
-      SELECT
-        gr.game_id,
-        gr.round_id,
-        gr.winning_team_id,
-        gr.spike_planted
-      FROM game_rounds gr
-      WHERE gr.spike_planted = TRUE
-    )
-    SELECT
-      g.id as game_id,
-      g.map_name,
-      g.team_a_score,
-      g.team_b_score,
-      s.team_a_id,
-      s.team_b_id,
-      COALESCE((
-        SELECT COUNT(*) FILTER (WHERE fb.fb_team_id = ${teamId})::float /
-               NULLIF(COUNT(*)::float, 0)
-        FROM first_bloods fb WHERE fb.game_id = g.id
-      ), 0) as fb_win_rate,
-      COALESCE((
-        SELECT COUNT(*) FILTER (WHERE fb.fb_team_id = ${teamId} AND fb.winning_team_id = ${teamId})::float /
-               NULLIF(COUNT(*) FILTER (WHERE fb.fb_team_id = ${teamId})::float, 0)
-        FROM first_bloods fb WHERE fb.game_id = g.id
-      ), 0) as fb_conversion_rate,
-      COALESCE((
-        SELECT COUNT(*) FILTER (WHERE t.traded = TRUE)::float /
-               NULLIF(COUNT(*)::float, 0)
-        FROM trades t WHERE t.game_id = g.id
-      ), 0) as trade_rate,
-      COALESCE((
-        SELECT COUNT(*) FILTER (WHERE t.traded = FALSE)
-        FROM trades t WHERE t.game_id = g.id
-      ), 0) as untraded_deaths,
-      COALESCE((
-        SELECT COUNT(*) FILTER (WHERE pp.winning_team_id = ${teamId})::float /
-               NULLIF(COUNT(*)::float, 0)
-        FROM post_plants pp WHERE pp.game_id = g.id
-      ), 0) as post_plant_win_rate
-    FROM public.games g
-    JOIN public.series s ON g.series_id = s.id
-    WHERE g.series_id = ${seriesId}
-    ORDER BY g.sequence_number
-  `
+  const supabase = createServerClient()
 
-  return result.map(row => {
+  const { data, error } = await supabase.rpc('query_map_metrics', {
+    p_series_id: seriesId,
+    p_team_id: teamId,
+  })
+
+  if (error) {
+    console.error('Error querying map metrics:', error)
+    return []
+  }
+
+  return (data || []).map((row: any) => {
     const isTeamA = row.team_a_id === teamId
     const teamScore = isTeamA ? Number(row.team_a_score) : Number(row.team_b_score)
     const opponentScore = isTeamA ? Number(row.team_b_score) : Number(row.team_a_score)
@@ -210,41 +116,19 @@ export async function queryPlayerOpeningDuels(
   seriesId: string,
   teamId: string
 ): Promise<PlayerOpeningDuels[]> {
-  const sql = getPostgresPool()
-  const result = await sql`
-    WITH player_duels AS (
-      SELECT
-        prs.player_id,
-        p.name as player_name,
-        SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END) as first_kills,
-        SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END) as first_deaths,
-        COUNT(*) as total_rounds,
-        -- FK conversion: rounds won when got FK
-        SUM(CASE WHEN prs.first_kill = TRUE AND r.winning_team_id = ${teamId} THEN 1 ELSE 0 END) as fk_wins,
-        -- FD loss: rounds lost when got FD
-        SUM(CASE WHEN prs.first_death = TRUE AND r.winning_team_id != ${teamId} THEN 1 ELSE 0 END) as fd_losses
-      FROM public.player_round_stats prs
-      JOIN public.players p ON prs.player_id = p.id
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      WHERE g.series_id = ${seriesId}
-        AND prs.team_id = ${teamId}
-      GROUP BY prs.player_id, p.name
-    )
-    SELECT
-      player_id,
-      player_name,
-      first_kills,
-      first_deaths,
-      (first_kills - first_deaths) as net,
-      total_rounds,
-      CASE WHEN first_kills > 0 THEN fk_wins::float / first_kills ELSE 0 END as fk_conversion_rate,
-      CASE WHEN first_deaths > 0 THEN fd_losses::float / first_deaths ELSE 0 END as fd_loss_rate
-    FROM player_duels
-    ORDER BY net DESC, first_kills DESC
-  `
+  const supabase = createServerClient()
 
-  return result.map(row => ({
+  const { data, error } = await supabase.rpc('query_player_opening_duels', {
+    p_series_id: seriesId,
+    p_team_id: teamId,
+  })
+
+  if (error) {
+    console.error('Error querying player opening duels:', error)
+    return []
+  }
+
+  return (data || []).map((row: any) => ({
     player_id: row.player_id,
     player_name: row.player_name,
     first_kills: Number(row.first_kills),
@@ -263,96 +147,19 @@ export async function queryRoundsForReview(
   seriesId: string,
   teamId: string
 ): Promise<RoundForReview[]> {
-  const sql = getPostgresPool()
-  // Get all rounds with context
-  const rounds = await sql`
-    WITH round_data AS (
-      SELECT
-        r.id as round_id,
-        r.game_id,
-        g.map_name,
-        g.sequence_number,
-        r.round_number,
-        r.winning_team_id,
-        r.winning_condition,
-        r.spike_planted,
-        r.team_a_alive,
-        r.team_b_alive,
-        r.duration_ms,
-        s.team_a_id,
-        s.team_b_id,
-        -- Running scores
-        SUM(CASE WHEN r2.winning_team_id = s.team_a_id AND r2.round_number < r.round_number AND r2.game_id = r.game_id THEN 1 ELSE 0 END) as team_a_score_before,
-        SUM(CASE WHEN r2.winning_team_id = s.team_b_id AND r2.round_number < r.round_number AND r2.game_id = r.game_id THEN 1 ELSE 0 END) as team_b_score_before
-      FROM public.rounds r
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      LEFT JOIN public.rounds r2 ON r2.game_id = r.game_id
-      WHERE g.series_id = ${seriesId}
-      GROUP BY r.id, r.game_id, g.map_name, g.sequence_number, r.round_number, r.winning_team_id, r.winning_condition, r.spike_planted, r.team_a_alive, r.team_b_alive, r.duration_ms, s.team_a_id, s.team_b_id
-    ),
-    first_bloods AS (
-      SELECT
-        prs.round_id,
-        prs.player_id,
-        p.name as player_name,
-        prs.team_id,
-        ke.game_time_ms
-      FROM public.player_round_stats prs
-      JOIN public.players p ON prs.player_id = p.id
-      LEFT JOIN public.kill_events ke ON ke.round_id = prs.round_id AND ke.is_first_kill = TRUE AND ke.killer_id = prs.player_id
-      WHERE prs.first_kill = TRUE
-    ),
-    untraded AS (
-      SELECT
-        prs.round_id,
-        COUNT(*) as untraded_count
-      FROM public.player_round_stats prs
-      WHERE prs.team_id = ${teamId}
-        AND prs.deaths > 0
-        AND prs.traded = FALSE
-      GROUP BY prs.round_id
-    ),
-    multi_kills AS (
-      SELECT
-        prs.round_id,
-        prs.player_id,
-        p.name as player_name,
-        prs.kills
-      FROM public.player_round_stats prs
-      JOIN public.players p ON prs.player_id = p.id
-      WHERE prs.team_id = ${teamId}
-        AND prs.kills >= 3
-    ),
-    clutches AS (
-      SELECT
-        prs.round_id,
-        prs.player_id,
-        p.name as player_name,
-        prs.clutch_won
-      FROM public.player_round_stats prs
-      JOIN public.players p ON prs.player_id = p.id
-      WHERE prs.team_id = ${teamId}
-        AND prs.clutch_situation = TRUE
-    )
-    SELECT
-      rd.*,
-      fb.player_id as fb_player_id,
-      fb.player_name as fb_player_name,
-      fb.team_id as fb_team_id,
-      fb.game_time_ms as fb_time_ms,
-      COALESCE(ut.untraded_count, 0) as untraded_deaths,
-      (SELECT json_agg(json_build_object('player_id', mk.player_id, 'player_name', mk.player_name, 'kills', mk.kills))
-       FROM multi_kills mk WHERE mk.round_id = rd.round_id) as multi_kills,
-      (SELECT json_agg(json_build_object('player_id', c.player_id, 'player_name', c.player_name, 'won', c.clutch_won))
-       FROM clutches c WHERE c.round_id = rd.round_id) as clutches
-    FROM round_data rd
-    LEFT JOIN first_bloods fb ON fb.round_id = rd.round_id
-    LEFT JOIN untraded ut ON ut.round_id = rd.round_id
-    ORDER BY rd.sequence_number, rd.round_number
-  `
+  const supabase = createServerClient()
 
-  return rounds.map(row => {
+  const { data, error } = await supabase.rpc('query_rounds_for_review', {
+    p_series_id: seriesId,
+    p_team_id: teamId,
+  })
+
+  if (error) {
+    console.error('Error querying rounds for review:', error)
+    return []
+  }
+
+  return (data || []).map((row: any) => {
     const isTeamA = row.team_a_id === teamId
     const won = row.winning_team_id === teamId
     const teamScoreBefore = isTeamA ? Number(row.team_a_score_before) : Number(row.team_b_score_before)
@@ -508,160 +315,177 @@ function calculateVODPriority(
 export async function queryRoundContext(
   roundId: string
 ): Promise<RoundContext | null> {
-  const sql = getPostgresPool()
-  // Get round basic info
-  const roundResult = await sql`
-    SELECT
-      r.id as round_id,
-      r.game_id,
-      g.map_name,
-      r.round_number,
-      s.team_a_id,
-      s.team_b_id,
-      g.team_a_score,
-      g.team_b_score,
-      r.winning_team_id,
-      r.winning_condition,
-      r.spike_planted,
-      r.spike_defused,
-      r.duration_ms,
-      r.phase
-    FROM public.rounds r
-    JOIN public.games g ON r.game_id = g.id
-    JOIN public.series s ON g.series_id = s.id
-    WHERE r.id = ${roundId}
-  `
+  const supabase = createServerClient()
 
-  if (roundResult.length === 0) return null
-  const round = roundResult[0]
+  // Get round basic info
+  const { data: roundData, error: roundError } = await supabase
+    .from('rounds')
+    .select(`
+      id,
+      game_id,
+      round_number,
+      winning_team_id,
+      winning_condition,
+      spike_planted,
+      spike_defused,
+      duration_ms,
+      phase,
+      games (
+        map_name,
+        team_a_score,
+        team_b_score,
+        series (
+          team_a_id,
+          team_b_id
+        )
+      )
+    `)
+    .eq('id', roundId)
+    .single()
+
+  if (roundError || !roundData) {
+    console.error('Error querying round context:', roundError)
+    return null
+  }
 
   // Get kill timeline
-  const kills = await sql`
-    SELECT
-      ke.game_time_ms,
-      ke.killer_id,
-      pk.name as killer_name,
-      prsk.agent as killer_agent,
-      ke.victim_id,
-      pv.name as victim_name,
-      prsv.agent as victim_agent,
-      ke.weapon,
-      ke.headshot,
-      ke.is_trade,
-      ke.is_first_kill
-    FROM public.kill_events ke
-    JOIN public.players pk ON ke.killer_id = pk.id
-    JOIN public.players pv ON ke.victim_id = pv.id
-    LEFT JOIN public.player_round_stats prsk ON prsk.round_id = ke.round_id AND prsk.player_id = ke.killer_id
-    LEFT JOIN public.player_round_stats prsv ON prsv.round_id = ke.round_id AND prsv.player_id = ke.victim_id
-    WHERE ke.round_id = ${roundId}
-    ORDER BY ke.game_time_ms
-  `
+  const { data: killsData, error: killsError } = await supabase
+    .from('kill_events')
+    .select(`
+      game_time_ms,
+      killer_id,
+      victim_id,
+      weapon,
+      headshot,
+      is_trade,
+      is_first_kill,
+      killer:players!kill_events_killer_id_fkey (
+        name
+      ),
+      victim:players!kill_events_victim_id_fkey (
+        name
+      )
+    `)
+    .eq('round_id', roundId)
+    .order('game_time_ms')
+
+  if (killsError) {
+    console.error('Error querying kill events:', killsError)
+  }
 
   // Get player states
-  const playerStates = await sql`
-    SELECT
-      prs.player_id,
-      p.name as player_name,
-      prs.team_id,
-      prs.agent,
-      prs.kills,
-      prs.deaths,
-      prs.assists,
-      prs.first_kill,
-      prs.first_death,
-      prs.traded,
-      prs.clutch_situation,
-      prs.clutch_won,
-      prs.loadout_value
-    FROM public.player_round_stats prs
-    JOIN public.players p ON prs.player_id = p.id
-    WHERE prs.round_id = ${roundId}
-  `
+  const { data: playerStatesData, error: playerStatesError } = await supabase
+    .from('player_round_stats')
+    .select(`
+      player_id,
+      team_id,
+      agent,
+      kills,
+      deaths,
+      assists,
+      first_kill,
+      first_death,
+      traded,
+      clutch_situation,
+      clutch_won,
+      loadout_value,
+      players (
+        name
+      )
+    `)
+    .eq('round_id', roundId)
+
+  if (playerStatesError) {
+    console.error('Error querying player states:', playerStatesError)
+  }
 
   // Get spike events
-  const spikeEvents = await sql`
-    SELECT
-      se.game_time_ms,
-      se.event_type,
-      se.player_id,
-      p.name as player_name,
-      se.site
-    FROM public.spike_events se
-    JOIN public.players p ON se.player_id = p.id
-    WHERE se.round_id = ${roundId}
-    ORDER BY se.game_time_ms
-  `
+  const { data: spikeEventsData, error: spikeEventsError } = await supabase
+    .from('spike_events')
+    .select(`
+      game_time_ms,
+      event_type,
+      player_id,
+      site,
+      players (
+        name
+      )
+    `)
+    .eq('round_id', roundId)
+    .order('game_time_ms')
 
-  // Get first blood
-  const killsData = kills as unknown as Array<{
-    game_time_ms: number
-    killer_id: string
-    killer_name: string
-    killer_agent: string
-    victim_id: string
-    victim_name: string
-    victim_agent: string
-    weapon: string
-    headshot: boolean
-    is_trade: boolean
-    is_first_kill: boolean
-  }>
-  const playerStatesData = playerStates as unknown as Array<{
-    player_id: string
-    player_name: string
-    team_id: string
-    agent: string
-    kills: number
-    deaths: number
-    assists: number
-    first_kill: boolean
-    first_death: boolean
-    traded: boolean
-    clutch_situation: boolean
-    clutch_won: boolean
-    loadout_value: number
-  }>
-  const firstBloodKill = killsData.find(k => k.is_first_kill)
+  if (spikeEventsError) {
+    console.error('Error querying spike events:', spikeEventsError)
+  }
+
+  // Process kill events to get agent info
+  const killsWithAgents = await Promise.all(
+    (killsData || []).map(async (kill) => {
+      const { data: killerStats } = await supabase
+        .from('player_round_stats')
+        .select('agent')
+        .eq('round_id', roundId)
+        .eq('player_id', kill.killer_id)
+        .single()
+
+      const { data: victimStats } = await supabase
+        .from('player_round_stats')
+        .select('agent')
+        .eq('round_id', roundId)
+        .eq('player_id', kill.victim_id)
+        .single()
+
+      return {
+        ...kill,
+        killer_agent: killerStats?.agent || 'Unknown',
+        victim_agent: victimStats?.agent || 'Unknown',
+      }
+    })
+  )
+
+  const firstBloodKill = killsWithAgents.find(k => k.is_first_kill)
   const firstBlood: FirstBlood | null = firstBloodKill ? {
     player_id: firstBloodKill.killer_id,
-    player_name: firstBloodKill.killer_name,
-    team_id: playerStatesData.find(p => p.player_id === firstBloodKill.killer_id)?.team_id || '',
+    player_name: (firstBloodKill.killer as any)?.name || '',
+    team_id: playerStatesData?.find(p => p.player_id === firstBloodKill.killer_id)?.team_id || '',
     time_ms: Number(firstBloodKill.game_time_ms),
     weapon: firstBloodKill.weapon,
   } : null
 
+  const game = roundData.games as any
+  const series = game?.series as any
+
   return {
-    round_id: round.round_id,
-    game_id: round.game_id,
-    map_name: round.map_name,
-    round_number: Number(round.round_number),
-    team_a_id: round.team_a_id,
-    team_b_id: round.team_b_id,
-    team_a_score: Number(round.team_a_score),
-    team_b_score: Number(round.team_b_score),
-    winning_team_id: round.winning_team_id,
-    winning_condition: round.winning_condition,
-    spike_planted: round.spike_planted,
-    spike_defused: round.spike_defused,
-    duration_ms: Number(round.duration_ms),
-    phase: round.phase,
-    kill_timeline: killsData.map(k => ({
+    round_id: roundData.id,
+    game_id: roundData.game_id,
+    map_name: game?.map_name || '',
+    round_number: Number(roundData.round_number),
+    team_a_id: series?.team_a_id || '',
+    team_b_id: series?.team_b_id || '',
+    team_a_score: Number(game?.team_a_score) || 0,
+    team_b_score: Number(game?.team_b_score) || 0,
+    winning_team_id: roundData.winning_team_id,
+    winning_condition: roundData.winning_condition,
+    spike_planted: roundData.spike_planted,
+    spike_defused: roundData.spike_defused,
+    duration_ms: Number(roundData.duration_ms),
+    phase: roundData.phase,
+    kill_timeline: killsWithAgents.map(k => ({
       game_time_ms: Number(k.game_time_ms),
       killer_id: k.killer_id,
-      killer_name: k.killer_name,
+      killer_name: (k.killer as any)?.name || '',
       killer_agent: k.killer_agent || 'Unknown',
       victim_id: k.victim_id,
-      victim_name: k.victim_name,
+      victim_name: (k.victim as any)?.name || '',
       victim_agent: k.victim_agent || 'Unknown',
       weapon: k.weapon,
       headshot: k.headshot,
       is_trade: k.is_trade,
       is_first_kill: k.is_first_kill,
     })),
-    player_states: playerStatesData.map(p => ({
+    player_states: (playerStatesData || []).map(p => ({
       player_id: p.player_id,
-      player_name: p.player_name,
+      player_name: (p.players as any)?.name || '',
       team_id: p.team_id,
       agent: p.agent || 'Unknown',
       kills: Number(p.kills),
@@ -674,17 +498,11 @@ export async function queryRoundContext(
       clutch_won: p.clutch_won,
       loadout_value: Number(p.loadout_value),
     })),
-    spike_events: (spikeEvents as unknown as Array<{
-      game_time_ms: string | number
-      event_type: string
-      player_id: string
-      player_name: string
-      site: string
-    }>).map(s => ({
+    spike_events: (spikeEventsData || []).map(s => ({
       game_time_ms: Number(s.game_time_ms),
       event_type: s.event_type as 'plant' | 'defuse_start' | 'defuse' | 'explode',
       player_id: s.player_id,
-      player_name: s.player_name,
+      player_name: (s.players as any)?.name || '',
       site: s.site,
     })),
     first_blood: firstBlood,
@@ -702,108 +520,22 @@ export async function findSimilarScenarios(
   mapName?: string,
   limit: number = 50
 ): Promise<ScenarioMatch[]> {
-  const sql = getPostgresPool()
-  const mapFilter = mapName || ''
-  const hasMapFilter = !!mapName
+  const supabase = createServerClient()
 
-  // First try scenario_index table
-  const indexResult = await sql`
-    SELECT
-      si.round_id,
-      si.game_id,
-      si.map_name,
-      si.round_number,
-      si.attacker_alive,
-      si.defender_alive,
-      si.spike_planted,
-      si.attacker_won,
-      1.0 -
-        (ABS(si.attacker_alive - ${attackerAlive}) * 0.15) -
-        (ABS(si.defender_alive - ${defenderAlive}) * 0.15) -
-        (CASE WHEN si.spike_planted != ${spikePlanted} THEN 0.3 ELSE 0 END) -
-        (CASE WHEN ${hasMapFilter} AND si.map_name != ${mapFilter} THEN 0.1 ELSE 0 END)
-      as similarity_score
-    FROM public.scenario_index si
-    WHERE si.attacker_alive BETWEEN ${attackerAlive - 1} AND ${attackerAlive + 1}
-      AND si.defender_alive BETWEEN ${defenderAlive - 1} AND ${defenderAlive + 1}
-      AND (NOT ${hasMapFilter} OR si.map_name = ${mapFilter})
-    ORDER BY similarity_score DESC
-    LIMIT ${limit}
-  `
+  const { data, error } = await supabase.rpc('find_similar_scenarios', {
+    p_attacker_alive: attackerAlive,
+    p_defender_alive: defenderAlive,
+    p_spike_planted: spikePlanted,
+    p_map_name: mapName || null,
+    p_limit: limit,
+  })
 
-  if (indexResult.length > 0) {
-    return indexResult.map(row => ({
-      round_id: row.round_id,
-      game_id: row.game_id,
-      map_name: row.map_name,
-      round_number: Number(row.round_number),
-      attacker_alive: Number(row.attacker_alive),
-      defender_alive: Number(row.defender_alive),
-      spike_planted: row.spike_planted,
-      attacker_won: row.attacker_won,
-      similarity_score: Number(row.similarity_score),
-    }))
+  if (error) {
+    console.error('Error finding similar scenarios:', error)
+    return []
   }
 
-  // Fallback: Query rounds table directly
-  // In VALORANT: rounds 1-12 team_a attacks, rounds 13-24 team_b attacks
-  // team_a_alive/team_b_alive are end-of-round survivors (we need to invert for scenario matching)
-  const roundsResult = await sql`
-    WITH round_scenarios AS (
-      SELECT
-        r.id as round_id,
-        r.game_id,
-        g.map_name,
-        r.round_number,
-        s.team_a_id,
-        s.team_b_id,
-        r.winning_team_id,
-        r.spike_planted,
-        -- For end-of-round analysis, we look at final state
-        -- Attackers: team_a for rounds 1-12, team_b for rounds 13-24
-        CASE
-          WHEN r.round_number <= 12 THEN COALESCE(r.team_a_alive, 0)
-          ELSE COALESCE(r.team_b_alive, 0)
-        END as attacker_alive,
-        CASE
-          WHEN r.round_number <= 12 THEN COALESCE(r.team_b_alive, 0)
-          ELSE COALESCE(r.team_a_alive, 0)
-        END as defender_alive,
-        -- Determine if attackers won
-        CASE
-          WHEN r.round_number <= 12 THEN r.winning_team_id = s.team_a_id
-          ELSE r.winning_team_id = s.team_b_id
-        END as attacker_won
-      FROM public.rounds r
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.series s ON g.series_id = s.id
-      WHERE r.team_a_alive IS NOT NULL
-        AND r.team_b_alive IS NOT NULL
-    )
-    SELECT
-      rs.round_id,
-      rs.game_id,
-      rs.map_name,
-      rs.round_number,
-      rs.attacker_alive,
-      rs.defender_alive,
-      rs.spike_planted,
-      rs.attacker_won,
-      1.0 -
-        (ABS(rs.attacker_alive - ${attackerAlive}) * 0.15) -
-        (ABS(rs.defender_alive - ${defenderAlive}) * 0.15) -
-        (CASE WHEN rs.spike_planted != ${spikePlanted} THEN 0.3 ELSE 0 END) -
-        (CASE WHEN ${hasMapFilter} AND rs.map_name != ${mapFilter} THEN 0.1 ELSE 0 END)
-      as similarity_score
-    FROM round_scenarios rs
-    WHERE rs.attacker_alive BETWEEN ${attackerAlive - 1} AND ${attackerAlive + 1}
-      AND rs.defender_alive BETWEEN ${defenderAlive - 1} AND ${defenderAlive + 1}
-      AND (NOT ${hasMapFilter} OR rs.map_name = ${mapFilter})
-    ORDER BY similarity_score DESC
-    LIMIT ${limit}
-  `
-
-  return roundsResult.map(row => ({
+  return (data || []).map((row: any) => ({
     round_id: row.round_id,
     game_id: row.game_id,
     map_name: row.map_name,
@@ -823,43 +555,21 @@ export async function detectAntiStratSignals(
   seriesId: string,
   teamId: string
 ): Promise<{ signal: string; severity: 'critical' | 'moderate' | 'minor'; detail: string; implication: string; occurrences: number }[]> {
-  const sql = getPostgresPool()
-  // Find repeated first deaths by same player at similar times
-  const repeatedDeaths = await sql`
-    WITH first_death_rounds AS (
-      SELECT
-        prs.player_id,
-        p.name as player_name,
-        prs.round_id,
-        g.map_name,
-        ke.game_time_ms,
-        r.winning_team_id,
-        prs.team_id
-      FROM public.player_round_stats prs
-      JOIN public.players p ON prs.player_id = p.id
-      JOIN public.rounds r ON prs.round_id = r.id
-      JOIN public.games g ON r.game_id = g.id
-      LEFT JOIN public.kill_events ke ON ke.round_id = r.id AND ke.victim_id = prs.player_id AND ke.is_first_kill = TRUE
-      WHERE g.series_id = ${seriesId}
-        AND prs.team_id = ${teamId}
-        AND prs.first_death = TRUE
-    )
-    SELECT
-      player_id,
-      player_name,
-      map_name,
-      COUNT(*) as death_count,
-      AVG(game_time_ms) as avg_death_time,
-      COUNT(*) FILTER (WHERE winning_team_id != team_id)::float / COUNT(*) as loss_rate
-    FROM first_death_rounds
-    GROUP BY player_id, player_name, map_name
-    HAVING COUNT(*) >= 3
-    ORDER BY death_count DESC, loss_rate DESC
-  `
+  const supabase = createServerClient()
+
+  const { data, error } = await supabase.rpc('detect_anti_strat_signals', {
+    p_series_id: seriesId,
+    p_team_id: teamId,
+  })
+
+  if (error) {
+    console.error('Error detecting anti-strat signals:', error)
+    return []
+  }
 
   const signals: { signal: string; severity: 'critical' | 'moderate' | 'minor'; detail: string; implication: string; occurrences: number }[] = []
 
-  for (const row of repeatedDeaths) {
+  for (const row of (data || [])) {
     const lossRate = Number(row.loss_rate)
     const deathCount = Number(row.death_count)
     const avgTime = Number(row.avg_death_time)
@@ -890,36 +600,21 @@ export async function detectForcedMistakes(
   seriesId: string,
   teamId: string
 ): Promise<{ mistake: string; severity: 'critical' | 'high' | 'medium' | 'low'; detail: string; fix: string; rounds_impacted: number }[]> {
-  const sql = getPostgresPool()
-  // Find rounds with multiple untraded deaths
-  const untradedPatterns = await sql`
-    WITH round_trades AS (
-      SELECT
-        r.id as round_id,
-        g.map_name,
-        r.round_number,
-        r.winning_team_id,
-        COUNT(*) FILTER (WHERE prs.deaths > 0 AND prs.traded = FALSE AND prs.team_id = ${teamId}) as untraded_deaths
-      FROM public.rounds r
-      JOIN public.games g ON r.game_id = g.id
-      JOIN public.player_round_stats prs ON prs.round_id = r.id
-      WHERE g.series_id = ${seriesId}
-      GROUP BY r.id, g.map_name, r.round_number, r.winning_team_id
-    )
-    SELECT
-      map_name,
-      SUM(CASE WHEN untraded_deaths >= 3 THEN 1 ELSE 0 END) as high_untraded_rounds,
-      SUM(CASE WHEN untraded_deaths >= 3 AND winning_team_id != ${teamId} THEN 1 ELSE 0 END) as high_untraded_losses,
-      AVG(untraded_deaths) as avg_untraded
-    FROM round_trades
-    GROUP BY map_name
-    HAVING SUM(CASE WHEN untraded_deaths >= 3 THEN 1 ELSE 0 END) > 0
-    ORDER BY high_untraded_losses DESC
-  `
+  const supabase = createServerClient()
+
+  const { data, error } = await supabase.rpc('detect_forced_mistakes', {
+    p_series_id: seriesId,
+    p_team_id: teamId,
+  })
+
+  if (error) {
+    console.error('Error detecting forced mistakes:', error)
+    return []
+  }
 
   const mistakes: { mistake: string; severity: 'critical' | 'high' | 'medium' | 'low'; detail: string; fix: string; rounds_impacted: number }[] = []
 
-  for (const row of untradedPatterns) {
+  for (const row of (data || [])) {
     const highUntradedRounds = Number(row.high_untraded_rounds)
     const highUntradedLosses = Number(row.high_untraded_losses)
 
