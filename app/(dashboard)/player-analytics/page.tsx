@@ -3,6 +3,24 @@ import { PlayerSelector } from '@/components/player/player-selector'
 import { InsightCard } from '@/components/player/insight-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { createClient } from '@/lib/supabase/server'
+import {
+  queryFirstDeathImpact,
+  queryTradingEfficiency,
+  queryOpeningDuels,
+  queryClutchPerformance,
+  queryAgentPerformance,
+  queryMultiKillRounds,
+  queryEcoRoundPerformance,
+} from '@/lib/analytics/queries'
+import { calculateConfidence } from '@/lib/analytics/confidence'
+import type {
+  FirstDeathData,
+  TradingData,
+  OpeningDuelsData,
+  ClutchData,
+  MultiKillData,
+  EcoRoundData,
+} from '@/lib/analytics/types'
 
 async function getPlayers() {
   try {
@@ -35,32 +53,151 @@ async function getPlayers() {
   }
 }
 
-async function fetchPlayerInsight(playerId: string, endpoint: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  try {
-    const res = await fetch(`${baseUrl}/api/player-insights/${endpoint}/${playerId}`, {
-      cache: 'no-store',
-    })
-    if (!res.ok) return null
-    return res.json()
-  } catch {
-    return null
-  }
-}
-
 async function PlayerInsights({ playerId }: { playerId: string }) {
-  // Fetch all insights in parallel
-  const [firstDeath, trading, openingDuels, clutch, agentPerf, multiKill, ecoRound] = await Promise.all([
-    fetchPlayerInsight(playerId, 'first-death'),
-    fetchPlayerInsight(playerId, 'trading'),
-    fetchPlayerInsight(playerId, 'opening-duels'),
-    fetchPlayerInsight(playerId, 'clutch'),
-    fetchPlayerInsight(playerId, 'agent-performance'),
-    fetchPlayerInsight(playerId, 'multi-kill'),
-    fetchPlayerInsight(playerId, 'eco-round'),
+  // Fetch all query data in parallel
+  const [
+    firstDeathRow,
+    tradingRow,
+    openingDuelsRow,
+    clutchRow,
+    agentRow,
+    multiKillRow,
+    ecoRoundRow,
+  ] = await Promise.all([
+    queryFirstDeathImpact(playerId),
+    queryTradingEfficiency(playerId),
+    queryOpeningDuels(playerId),
+    queryClutchPerformance(playerId),
+    queryAgentPerformance(playerId),
+    queryMultiKillRounds(playerId),
+    queryEcoRoundPerformance(playerId),
   ])
 
-  const hasAnyData = firstDeath || trading || openingDuels || clutch || multiKill || ecoRound
+  // Process first death
+  const firstDeathTotal = parseInt(firstDeathRow.total) || 0
+  const firstDeathLosses = parseInt(firstDeathRow.losses) || 0
+  const firstDeath = firstDeathTotal > 0 ? {
+    data: {
+      losses: firstDeathLosses,
+      total: firstDeathTotal,
+      loss_rate: firstDeathTotal > 0 ? firstDeathLosses / firstDeathTotal : 0,
+    },
+    insight: firstDeathLosses / firstDeathTotal > 0.7
+      ? "High round loss rate when dying first"
+      : "Reasonable first death impact",
+    recommendation: firstDeathLosses / firstDeathTotal > 0.7
+      ? "Focus on staying alive longer in crucial rounds"
+      : null,
+    confidence: calculateConfidence(firstDeathTotal, "first deaths"),
+  } : null
+
+  // Process trading
+  const totalDeaths = parseInt(tradingRow.total_deaths) || 0
+  const traded = parseInt(tradingRow.traded) || 0
+  const trading = totalDeaths > 0 ? {
+    data: {
+      traded: traded,
+      total_deaths: totalDeaths,
+      trade_rate: totalDeaths > 0 ? traded / totalDeaths : 0,
+    },
+    insight: traded / totalDeaths > 0.7
+      ? "Excellent trading efficiency"
+      : "Room to improve trading",
+    recommendation: traded / totalDeaths < 0.5
+      ? "Work on positioning near teammates for trade opportunities"
+      : null,
+    confidence: calculateConfidence(totalDeaths, "deaths"),
+  } : null
+
+  // Process opening duels
+  const totalRounds = parseInt(openingDuelsRow.total_rounds) || 0
+  const firstKills = parseInt(openingDuelsRow.first_kills) || 0
+  const firstDeaths = parseInt(openingDuelsRow.first_deaths) || 0
+  const openingDuels = firstKills + firstDeaths
+  const openingDuelsData = totalRounds > 0 ? {
+    data: {
+      first_kills: firstKills,
+      first_deaths: firstDeaths,
+      total_rounds: totalRounds,
+      opening_duel_rate: totalRounds > 0 ? openingDuels / totalRounds : 0,
+      success_rate: openingDuels > 0 ? firstKills / openingDuels : 0,
+    },
+    insight: openingDuels > 0 && firstKills / openingDuels > 0.6
+      ? "Dominant opening duelist"
+      : "Solid opening duel performance",
+    recommendation: openingDuels > 0 && firstKills / openingDuels < 0.4
+      ? "Practice crosshair placement and pre-aiming common angles"
+      : null,
+    confidence: calculateConfidence(openingDuels, "opening duels"),
+  } : null
+
+  // Process clutch
+  const clutchSituations = parseInt(clutchRow.clutch_situations) || 0
+  const clutchesWon = parseInt(clutchRow.clutches_won) || 0
+  const clutch = clutchSituations > 0 ? {
+    data: {
+      clutches_won: clutchesWon,
+      clutch_situations: clutchSituations,
+      clutch_rate: clutchSituations > 0 ? clutchesWon / clutchSituations : 0,
+    },
+    insight: clutchesWon / clutchSituations > 0.3
+      ? "Strong clutch performer"
+      : "Average clutch ability",
+    recommendation: clutchesWon / clutchSituations < 0.2
+      ? "Practice 1vX situations and crosshair placement"
+      : null,
+    confidence: calculateConfidence(clutchSituations, "clutch situations"),
+  } : null
+
+  // Process multi-kill
+  const twoPlusKills = parseInt(multiKillRow.two_plus_kills) || 0
+  const threePlusKills = parseInt(multiKillRow.three_plus_kills) || 0
+  const fourPlusKills = parseInt(multiKillRow.four_plus_kills) || 0
+  const aces = parseInt(multiKillRow.aces) || 0
+  const multiKillTotalRounds = parseInt(multiKillRow.total_rounds) || 0
+  const multiKill = threePlusKills > 0 ? {
+    data: {
+      two_plus_kills: twoPlusKills,
+      three_plus_kills: threePlusKills,
+      four_plus_kills: fourPlusKills,
+      aces: aces,
+      total_rounds: multiKillTotalRounds,
+      kills_per_round: multiKillTotalRounds > 0 ? (parseInt(multiKillRow.total_kills) || 0) / multiKillTotalRounds : 0,
+    },
+    insight: `${threePlusKills} rounds with 3+ kills`,
+    recommendation: null,
+    confidence: calculateConfidence(threePlusKills, "multi-kill rounds"),
+  } : null
+
+  // Process eco round (array of phases)
+  const phases: Record<string, { win_rate: number; rounds: number; wins: number }> = {}
+  let totalRoundsAllPhases = 0
+
+  for (const row of ecoRoundRow) {
+    const rounds = parseInt(row.rounds) || 0
+    const roundsWon = parseInt(row.rounds_won) || 0
+    phases[row.phase] = {
+      win_rate: rounds > 0 ? roundsWon / rounds : 0,
+      rounds,
+      wins: roundsWon,
+    }
+    totalRoundsAllPhases += rounds
+  }
+
+  const ecoPhase = phases['eco']
+  const ecoRound = ecoPhase ? {
+    data: {
+      phases,
+      total_rounds: totalRoundsAllPhases,
+    },
+    insight: ecoPhase.win_rate > 0.3
+      ? "Strong eco round performance"
+      : "Standard eco round stats",
+    recommendation: null,
+    confidence: calculateConfidence(ecoPhase.rounds, "eco rounds"),
+  } : null
+
+  const hasAnyData = firstDeath || trading || openingDuelsData || clutch || multiKill || ecoRound
 
   if (!hasAnyData) {
     return (
@@ -109,14 +246,14 @@ async function PlayerInsights({ playerId }: { playerId: string }) {
         />
       )}
 
-      {openingDuels && (
+      {openingDuelsData && (
         <InsightCard
           title="Opening Duels"
-          value={`${(openingDuels.data.success_rate * 100).toFixed(1)}%`}
-          description={`${openingDuels.data.first_kills} FK / ${openingDuels.data.first_deaths} FD`}
-          insight={openingDuels.insight}
-          recommendation={openingDuels.recommendation}
-          confidence={openingDuels.confidence}
+          value={`${(openingDuelsData.data.success_rate * 100).toFixed(1)}%`}
+          description={`${openingDuelsData.data.first_kills} FK / ${openingDuelsData.data.first_deaths} FD`}
+          insight={openingDuelsData.insight}
+          recommendation={openingDuelsData.recommendation}
+          confidence={openingDuelsData.confidence}
         />
       )}
 
