@@ -120,7 +120,7 @@ export function VODReviewPanel({ gameId, roundNumber }: VODReviewPanelProps) {
                 ref={videoRef}
                 className="w-full h-full"
                 controls
-                src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                src="https://fbloukfgdjvwzdgrcnzt.supabase.co/storage/v1/object/public/videos/Hackathon-2-detected.mp4"
               />
             </div>
 
