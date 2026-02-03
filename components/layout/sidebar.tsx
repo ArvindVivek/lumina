@@ -2,6 +2,7 @@
 
 import { LayoutDashboard, Trophy, Users, UserCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -52,8 +53,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <div className="flex items-center justify-between h-16 px-4 border-b border-border">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-valorant-red flex items-center justify-center">
-              <span className="text-sm font-bold text-white">L</span>
+            <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center overflow-hidden">
+              <Image src="/c9.png" alt="Cloud9" width={32} height={32} className="object-contain" />
             </div>
             <span className="font-semibold text-base text-text-primary uppercase tracking-wide">
               Lumina
