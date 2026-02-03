@@ -3,7 +3,7 @@
 import { use, useMemo, useState, Fragment } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, Crosshair, Shield, TrendingUp, TrendingDown, Minus, ChevronDown, MessageSquare } from "lucide-react"
+import { ArrowLeft, Crosshair, Shield, TrendingUp, TrendingDown, Minus, ChevronDown, MessageSquare, Film } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useGame } from "@/lib/hooks/use-games"
 import { useGameRounds } from "@/lib/hooks/use-rounds"
@@ -12,6 +12,7 @@ import { usePushScreenData } from "@/lib/hooks/use-screen-data"
 import { getMapImage, hasMapImage, getMapGradient, formatMapName } from "@/lib/valorant-assets"
 import { TeamLogo } from "@/components/valorant/team-logo"
 import { RoundAnalysisPanel } from "@/components/analytics/round-analysis-panel"
+import { VODAnalysisModal } from "@/components/vod/vod-analysis-modal"
 
 // Economy comparison bar component - compact inline display
 function EconomyBar({
@@ -97,6 +98,7 @@ export default function GameDetailPage({
   const { data: game, isLoading: gameLoading } = useGame(gameId)
   const { data: rounds, isLoading: roundsLoading } = useGameRounds(gameId)
   const [selectedRoundId, setSelectedRoundId] = useState<string | null>(null)
+  const [vodRoundNumber, setVodRoundNumber] = useState<number | null>(null)
 
   // Memoize screen data for chat context
   const screenData = useMemo(() => {
@@ -268,6 +270,7 @@ export default function GameDetailPage({
                   <th>End Condition</th>
                   <th className="text-center">Spike</th>
                   <th className="text-right">Economy</th>
+                  <th className="text-center">VOD</th>
                   <th className="w-8"></th>
                 </tr>
               </thead>
@@ -334,6 +337,18 @@ export default function GameDetailPage({
                             )}
                           </td>
                           <td className="text-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setVodRoundNumber(round.round_number);
+                              }}
+                              className="p-1 rounded hover:bg-surface-hover transition-fast text-valorant-accent hover:text-valorant-accent/80"
+                              title="VOD Review"
+                            >
+                              <Film className="h-4 w-4" />
+                            </button>
+                          </td>
+                          <td className="text-center">
                             {hasAnalysis && (
                               <ChevronDown className={cn(
                                 "h-4 w-4 text-text-tertiary transition-transform",
@@ -370,6 +385,15 @@ export default function GameDetailPage({
           </div>
         </div>
       </div>
+
+      {/* VOD Analysis Modal */}
+      {vodRoundNumber !== null && game && (
+        <VODAnalysisModal
+          roundNumber={vodRoundNumber}
+          mapName={game.map_name}
+          onClose={() => setVodRoundNumber(null)}
+        />
+      )}
     </div>
   )
 }
