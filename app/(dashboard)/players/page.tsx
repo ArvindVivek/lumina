@@ -8,7 +8,7 @@ import { usePushScreenData } from "@/lib/hooks/use-screen-data"
 
 export default function PlayersPage() {
   const router = useRouter()
-  const { data: players, isLoading } = usePlayers()
+  const { data: players, isLoading, error } = usePlayers()
   const [searchQuery, setSearchQuery] = useState("")
 
   // Push players list to screen context for chat
@@ -33,6 +33,17 @@ export default function PlayersPage() {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-text-tertiary">Loading players...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="panel max-w-md">
+          <div className="text-red-400 font-semibold mb-2">Error loading players</div>
+          <div className="text-text-tertiary text-sm">{error.message}</div>
+        </div>
       </div>
     )
   }

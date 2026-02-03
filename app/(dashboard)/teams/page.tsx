@@ -9,7 +9,7 @@ import { TeamLogo } from "@/components/valorant/team-logo"
 import { getTeamShortName } from "@/lib/valorant-assets"
 
 export default function TeamsPage() {
-  const { data: teams, isLoading } = useTeams()
+  const { data: teams, isLoading, error } = useTeams()
   const [searchQuery, setSearchQuery] = useState("")
 
   // Push teams list to screen context for chat
@@ -55,6 +55,11 @@ export default function TeamsPage() {
         {isLoading ? (
           <div className="panel text-center py-12">
             <div className="text-text-tertiary">Loading teams...</div>
+          </div>
+        ) : error ? (
+          <div className="panel text-center py-12">
+            <div className="text-red-400 mb-2">Error loading teams</div>
+            <div className="text-text-tertiary text-sm">{error.message}</div>
           </div>
         ) : filteredTeams && filteredTeams.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
