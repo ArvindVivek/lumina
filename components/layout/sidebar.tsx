@@ -53,8 +53,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <div className="flex items-center justify-between h-16 px-4 border-b border-border">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center overflow-hidden">
-              <Image src="/c9-logo.png" alt="Cloud9" width={32} height={32} className="object-contain" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-valorant-accent via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <span className="text-white font-black text-xl">L</span>
             </div>
             <span className="font-semibold text-base text-text-primary uppercase tracking-wide">
               Lumina
