@@ -253,7 +253,7 @@ export function PlayerBlock({ props }: { props: Record<string, string> }) {
           <div className="flex items-center gap-4 mt-1 text-sm">
             {acs && (
               <span className="text-muted-foreground">
-                ACS: <span className="text-foreground font-medium">{acs}</span>
+                LCS: <span className="text-foreground font-medium">{acs}</span>
               </span>
             )}
             {kd && (

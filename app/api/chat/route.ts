@@ -84,7 +84,7 @@ const DATABASE_SCHEMA = `
 - id (bigint, PK), round_id (FK), event_type (plant/defuse_start/defuse_complete), player_id, game_time_ms (int), site (text: A/B/C)
 
 ### Key Metrics & Analysis Queries Available:
-- Player performance: ACS, K/D ratio, headshot %, first blood rate
+- Player performance: LCS (Lumina Combat Score), K/D ratio, headshot %, first blood rate
 - Trading efficiency: How often deaths are traded within 5 seconds
 - Clutch performance: Win rate in 1vX situations
 - Economy management: Win rates on eco/force/full buy rounds

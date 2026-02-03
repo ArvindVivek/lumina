@@ -87,7 +87,7 @@ export function PlayerCard({
             {/* Stats */}
             <div className="grid grid-cols-3 gap-1.5">
               <div className="text-center p-1.5 rounded-lg bg-background/50">
-                <p className="text-xs text-muted-foreground uppercase">ACS</p>
+                <p className="text-xs text-muted-foreground uppercase">LCS</p>
                 <p className="text-responsive-lg font-bold text-foreground">{stats.acs}</p>
               </div>
               <div className="text-center p-1.5 rounded-lg bg-background/50">
