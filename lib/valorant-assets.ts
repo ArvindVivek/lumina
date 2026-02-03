@@ -81,7 +81,7 @@ export const VCT_TEAMS: Record<string, { shortName: string; logo?: string; color
   // VCT Americas
   'Sentinels': { shortName: 'SEN', logo: 'sen.svg', colors: { primary: '#FF4655', secondary: '#1A1A2E' } },
   '100 Thieves': { shortName: '100T', logo: '100t.png', colors: { primary: '#FF0000', secondary: '#000000' } },
-  'Cloud9': { shortName: 'C9', logo: 'c9.png', colors: { primary: '#00AEEF', secondary: '#FFFFFF' } },
+  'Cloud9': { shortName: 'C9', logo: 'c9.svg', colors: { primary: '#00AEEF', secondary: '#FFFFFF' } },
   'NRG Esports': { shortName: 'NRG', logo: 'nrg.png', colors: { primary: '#E31837', secondary: '#000000' } },
   'Evil Geniuses': { shortName: 'EG', logo: 'eg.svg', colors: { primary: '#0082C8', secondary: '#1A1A1A' } },
   'FURIA': { shortName: 'FUR', logo: 'furia.png', colors: { primary: '#000000', secondary: '#FF6600' } },
