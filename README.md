@@ -51,7 +51,7 @@ Lumina is a comprehensive VALORANT esports analytics platform that provides deep
 - **Query Layer**: Supabase RPC functions + direct client queries
 - **API Routes**: Next.js API routes with streaming
 - **AI**: OpenAI GPT-4o with function calling
-- **Data Source**: Rib.gg API (VALORANT esports data)
+- **Data Source**: Grid.gg API (VALORANT esports data)
 
 ### Infrastructure
 - **Hosting**: Vercel
@@ -373,7 +373,7 @@ npm start
 1. Create Supabase project
 2. Run SQL migrations from `/supabase/migrations/`
 3. Create RPC functions for analytics queries
-4. Import sample data or connect to Rib.gg API
+4. Import sample data or connect to Grid.gg API
 
 ## 📖 Usage
 
@@ -420,7 +420,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Rib.gg** for VALORANT esports data API
+- **Grid.gg** for VALORANT esports data API
 - **Riot Games** for VALORANT
 - **OpenAI** for GPT-4o and function calling
 - **Vercel** for hosting
