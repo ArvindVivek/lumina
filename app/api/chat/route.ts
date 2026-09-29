@@ -54,6 +54,6 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const e = err instanceof AIError ? err : toAIError(err)
     console.warn(`[ai] fallback label=chat code=${e.code}`, e.detail)
-    return NextResponse.json({ answer: chatFallbackAnswer(facts), follow_up: null, stats: facts.stats, source: "fallback" })
+    return NextResponse.json({ answer: chatFallbackAnswer(facts, question), follow_up: null, stats: facts.stats, source: "fallback" })
   }
 }

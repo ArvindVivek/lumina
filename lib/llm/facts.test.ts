@@ -58,6 +58,11 @@ describe("chat facts", () => {
     expect(f.lines.some((l) => l.startsWith("C9 Player 4 (Cloud9)"))).toBe(true)
   })
 
+  it("picks the lines that match the question's topic", () => {
+    const f = buildChatFacts(db, { page: "series", seriesId: "series1" }, "who won the opening duels?")
+    expect(chatFallbackAnswer(f, "who won the opening duels?")).toMatch(/Cloud9 opening duels: .*Sentinels opening duels:/)
+  })
+
   it("answers with numbers when the AI can't", () => {
     const f = buildChatFacts(db, { page: "team", teamId: C9 }, "how are they?")
     expect(chatFallbackAnswer(f)).toMatch(/^The AI coach can't answer right now, so here are the numbers for Cloud9\. Cloud9: series 1-0/)

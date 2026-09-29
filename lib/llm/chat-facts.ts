@@ -178,12 +178,33 @@ export function buildChatFacts(db: Db, page: ChatPage, question: string): ChatFa
   }
 }
 
-/** The answer when the AI can't give one: the numbers, said plainly. */
-export function chatFallbackAnswer(facts: ChatFacts): string {
-  return `The AI coach can't answer right now, so here are the numbers for ${facts.subject}. ${facts.lines[0]}`
+/** Topic words a question may use, and the words the fact lines use for the same thing. */
+const TOPICS: [RegExp, string][] = [
+  [/open|first (kill|blood|fight|duel)|entry/i, "opening duels"],
+  [/trade|traded/i, "traded"],
+  [/plant|spike|retake|post/i, "planted"],
+  [/pistol/i, "Pistols"],
+  [/clutch/i, "clutches"],
+  [/k\/?d|kill|frag/i, "kills"],
+]
+
+/**
+ * The answer when the AI can't give one: the numbers, said plainly. Picks the fact lines that
+ * match the question's topic or the names in it, so "who won the opening duels?" gets the duel
+ * lines rather than the series score.
+ */
+export function chatFallbackAnswer(facts: ChatFacts, question = ""): string {
+  const words = question.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 2)
+  const topics = TOPICS.filter(([re]) => re.test(question)).map(([, key]) => key.toLowerCase())
+  const score = (line: string) => {
+    const l = line.toLowerCase()
+    return topics.filter((t) => l.includes(t)).length * 3 + words.filter((w) => l.includes(w)).length
+  }
+  const ranked = facts.lines.map((line, i) => ({ line, i, s: score(line) })).sort((a, b) => b.s - a.s || a.i - b.i)
+  const picked = ranked[0]?.s ? ranked.filter((r) => r.s === ranked[0].s).slice(0, 2) : ranked.slice(0, 1)
+  return `The AI coach can't answer right now, so here are the numbers for ${facts.subject}. ${picked.map((r) => r.line).join(" ")}`
 }
 
-/** Strict schema: a short answer plus an optional follow-up question to offer as a button. */
 export const CHAT_SCHEMA = {
   name: "chat_answer",
   schema: {
