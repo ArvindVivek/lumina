@@ -5,7 +5,8 @@ import {
   matchSaveRetakeSituations,
   calculateSaveRetakeEV,
 } from '@/lib/analytics/scenario-queries'
-import { generateRoundDecisionAnalysis, isLLMAvailable } from '@/lib/llm/analyst'
+import { generateRoundDecisionAnalysis } from '@/lib/llm/analyst'
+import { checkAiLimit } from '@/lib/llm/limits'
 import type { SaveRetakeQuery } from '@/lib/analytics/scenario-types'
 
 /**
@@ -24,7 +25,6 @@ export async function GET(
   try {
     const { roundId } = await params
     const { searchParams } = new URL(request.url)
-    const teamFocus = searchParams.get('team_focus')
     const includeLLM = searchParams.get('include_llm') === 'true'
 
     // Get full round context
@@ -52,27 +52,19 @@ export async function GET(
       })
     }
 
-    // Determine which team was defending (retaking)
-    // In VALORANT: team_a attacks first half (rounds 1-12), team_b attacks second half
-    const isFirstHalf = roundContext.round_number <= 12
-    const attackerTeamId = isFirstHalf ? roundContext.team_a_id : roundContext.team_b_id
-    const defenderTeamId = isFirstHalf ? roundContext.team_b_id : roundContext.team_a_id
-
-    // Count players alive at end of round
-    const attackerPlayers = roundContext.player_states.filter(p => p.team_id === attackerTeamId)
+    // Sides come from the logged attack/defense; alive counts are taken when the spike went down.
+    // (The old code guessed sides from the round number, wrong in overtime and whenever team A
+    // defended first, and counted survivors at round end.)
+    const attackerTeamId = roundContext.attacker_team_id ?? roundContext.team_a_id
+    const defenderTeamId = attackerTeamId === roundContext.team_a_id ? roundContext.team_b_id : roundContext.team_a_id
     const defenderPlayers = roundContext.player_states.filter(p => p.team_id === defenderTeamId)
-
-    // Calculate alive counts (deaths === 0 means survived)
-    const attackerAlive = attackerPlayers.filter(p => p.deaths === 0).length || 1
-    const defenderAlive = defenderPlayers.filter(p => p.deaths === 0).length || 1
+    const attackerAlive = Math.max(1, roundContext.alive_at_plant?.attackers ?? 1)
+    const defenderAlive = Math.max(1, roundContext.alive_at_plant?.defenders ?? 1)
 
     // Calculate defender economy (loadout value)
     const defenderEconomy = defenderPlayers.reduce((sum, p) => sum + (p.loadout_value || 0), 0)
     const avgDefenderLoadout = defenderEconomy / (defenderPlayers.length || 1)
 
-    // Determine the focused team (for analysis perspective)
-    const focusedTeamId = teamFocus || defenderTeamId
-    const isAnalyzingDefender = focusedTeamId === defenderTeamId
 
     // Get spike site from spike events (may be null if no plant event data)
     const plantEvent = roundContext.spike_events.find(e => e.event_type === 'plant')
@@ -134,23 +126,20 @@ export async function GET(
       }
     }
 
-    // Generate LLM analysis if requested
+    // AI write-up only when asked for, rate-limited, with a written fallback.
     let llmAnalysis: string | undefined
-    if (includeLLM && isLLMAvailable()) {
-      try {
-        const llmResult = await generateRoundDecisionAnalysis(
-          roundContext,
-          evAnalysis,
-          matches.length,
-          defenderAlive,
-          attackerAlive,
-          spikeSite,
-          defenderWonRound
-        )
-        llmAnalysis = llmResult.analysis
-      } catch {
-        // LLM failed, continue without
-      }
+    if (includeLLM) {
+      const limited = checkAiLimit(request)
+      if (limited) return limited
+      const llmResult = await generateRoundDecisionAnalysis(
+        roundContext,
+        evAnalysis,
+        matches.length,
+        defenderAlive,
+        attackerAlive,
+        defenderWonRound
+      )
+      llmAnalysis = llmResult.analysis
     }
 
     return NextResponse.json({

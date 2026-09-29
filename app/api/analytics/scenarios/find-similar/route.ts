@@ -6,7 +6,7 @@ import type { ScenarioStats } from '@/lib/analytics/coaching-types'
 export async function POST(request: NextRequest) {
 
   try {
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
     const {
       attacker_alive,
       defender_alive,
@@ -28,15 +28,13 @@ export async function POST(request: NextRequest) {
     const defAlive = Math.max(0, Math.min(5, Number(defender_alive)))
     const spiked = Boolean(spike_planted)
 
-    console.log(`[Scenarios API] Searching for ${atkAlive}v${defAlive}, spike=${spiked}, map=${map_name || 'any'}`)
-
     // Find similar scenarios
     const similarScenarios = await findSimilarScenarios(
       atkAlive,
       defAlive,
       spiked,
       map_name || undefined,
-      limit
+      Math.min(Math.max(Number(limit) || 50, 1), 100)
     )
 
     console.log(`[Scenarios API] Found ${similarScenarios.length} matching scenarios`)

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { inRange } from '@/lib/analytics/validate'
 
 import { matchClutchSituations } from '@/lib/analytics/scenario-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
@@ -10,11 +11,11 @@ import type {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
 
     // Validate required fields
     const { clutch_player_count, opponent_count } = body
-    if (!clutch_player_count || !opponent_count) {
+    if (!inRange(clutch_player_count, 1, 5) || !inRange(opponent_count, 1, 5)) {
       return NextResponse.json(
         { error: 'Missing required fields: clutch_player_count, opponent_count' },
         { status: 400 }

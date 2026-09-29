@@ -1,5 +1,5 @@
-import { getPostgresPool } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { getDb } from '@/lib/data'
 
 import { queryRoundsForReview } from '@/lib/analytics/coaching-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
@@ -9,8 +9,6 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ seriesId: string }> }
 ) {
-
-  const sql = getPostgresPool()
 
   try {
     const { seriesId } = await params
@@ -34,22 +32,18 @@ export async function GET(
       )
     }
 
-    // Get game info
-    const games = await sql`
-      SELECT
-        g.id as game_id,
-        g.map_name,
-        g.sequence_number,
-        g.team_a_score,
-        g.team_b_score,
-        g.winner_id,
-        s.team_a_id,
-        s.team_b_id
-      FROM public.games g
-      JOIN public.series s ON g.series_id = s.id
-      WHERE g.series_id = ${seriesId}
-      ORDER BY g.sequence_number
-    `
+    const db = getDb()
+    const series = db.seriesById.get(seriesId)
+    const games = (db.gamesBySeries.get(seriesId) ?? []).map((g) => ({
+      game_id: g.id,
+      map_name: g.map_name,
+      sequence_number: g.sequence_number,
+      team_a_score: g.team_a_score,
+      team_b_score: g.team_b_score,
+      winner_id: g.winner_id,
+      team_a_id: series?.team_a_id,
+      team_b_id: series?.team_b_id,
+    }))
 
     // Group rounds by game
     const gameBreakdowns: GameBreakdown[] = games.map(game => {

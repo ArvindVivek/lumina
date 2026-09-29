@@ -4,7 +4,8 @@ import {
   queryRoundContext,
   findSimilarScenarios,
 } from '@/lib/analytics/coaching-queries'
-import { generateHypotheticalAnalysis, isLLMAvailable } from '@/lib/llm/analyst'
+import { generateHypotheticalAnalysis } from '@/lib/llm/analyst'
+import { checkAiLimit } from '@/lib/llm/limits'
 import type { HypotheticalAnalysis, ScenarioStats } from '@/lib/analytics/coaching-types'
 
 export async function GET(
@@ -28,31 +29,15 @@ export async function GET(
       )
     }
 
-    // Determine attacker/defender alive counts
-    // In VALORANT, rounds 1-12 are first half, 13-24+ are second half
-    // team_a attacks first half, team_b attacks second half
-    const isFirstHalf = roundContext.round_number <= 12
-    const teamAIsAttacker = isFirstHalf
-
-    // Count alive players by team (deaths === 0 means player survived the round)
-    const teamAPlayers = roundContext.player_states.filter(p => p.team_id === roundContext.team_a_id)
-    const teamBPlayers = roundContext.player_states.filter(p => p.team_id === roundContext.team_b_id)
-
-    // Count alive based on deaths field (0 = alive, 1 = dead in this round)
-    const teamAAlive = teamAPlayers.filter(p => p.deaths === 0).length
-    const teamBAlive = teamBPlayers.filter(p => p.deaths === 0).length
-
-    // Fallback: if we have 0 alive for both teams but there are players, use total player count
-    // This handles cases where death data might be missing
-    const finalTeamAAlive = teamAAlive === 0 && teamAPlayers.length > 0 ? teamAPlayers.length : teamAAlive
-    const finalTeamBAlive = teamBAlive === 0 && teamBPlayers.length > 0 ? teamBPlayers.length : teamBAlive
-
-    const attackerAlive = teamAIsAttacker ? finalTeamAAlive : finalTeamBAlive
-    const defenderAlive = teamAIsAttacker ? finalTeamBAlive : finalTeamAAlive
-
-    // Clamp values to valid VALORANT ranges (1-5 players per team)
-    const clampedAttackerAlive = Math.max(1, Math.min(5, attackerAlive))
-    const clampedDefenderAlive = Math.max(0, Math.min(5, defenderAlive))
+    // Sides come from the logged attack/defense. Planted rounds use the alive counts at the plant;
+    // others use the players still alive when the round ended.
+    const attackerTeamId = roundContext.attacker_team_id ?? roundContext.team_a_id
+    const aliveAtEnd = (team: string) =>
+      roundContext.player_states.filter(p => p.team_id === team && p.deaths === 0).length
+    const defenderTeamId = attackerTeamId === roundContext.team_a_id ? roundContext.team_b_id : roundContext.team_a_id
+    const clampedAttackerAlive = Math.max(1, Math.min(5, roundContext.alive_at_plant?.attackers ?? aliveAtEnd(attackerTeamId)))
+    const clampedDefenderAlive = Math.max(0, Math.min(5, roundContext.alive_at_plant?.defenders ?? aliveAtEnd(defenderTeamId)))
+    const teamAIsAttacker = attackerTeamId === roundContext.team_a_id
 
     // Find similar historical scenarios (use clamped values for better matching)
     const similarScenarios = await findSimilarScenarios(
@@ -157,22 +142,20 @@ export async function GET(
       }
     }
 
-    // Generate LLM analysis if requested
+    // AI write-up only when asked for, rate-limited, with a written fallback.
     let llmAnalysis: string | undefined
-    if (includeLLM && isLLMAvailable()) {
-      try {
-        const llmResult = await generateHypotheticalAnalysis(
-          displayAttacker,
-          displayDefender,
-          roundContext.spike_planted,
-          roundContext.map_name,
-          scenarioStats,
-          similarScenarios
-        )
-        llmAnalysis = llmResult.analysis
-      } catch {
-        // LLM failed, continue without
-      }
+    if (includeLLM) {
+      const limited = checkAiLimit(request)
+      if (limited) return limited
+      const llmResult = await generateHypotheticalAnalysis(
+        displayAttacker,
+        displayDefender,
+        roundContext.spike_planted,
+        roundContext.map_name,
+        scenarioStats,
+        similarScenarios
+      )
+      llmAnalysis = llmResult.analysis
     }
 
     const analysis: HypotheticalAnalysis = {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { inRange } from '@/lib/analytics/validate'
 
 import {
   matchSaveRetakeSituations,
@@ -14,11 +15,11 @@ import type {
 export async function POST(request: NextRequest) {
 
   try {
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
 
     // Validate required fields
     const { defender_economy, defender_alive, attacker_alive } = body
-    if (!defender_economy || !defender_alive || !attacker_alive) {
+    if (!inRange(defender_economy, 0, 60000) || !inRange(defender_alive, 1, 5) || !inRange(attacker_alive, 1, 5)) {
       return NextResponse.json(
         { error: 'Missing required fields: defender_economy, defender_alive, attacker_alive' },
         { status: 400 }

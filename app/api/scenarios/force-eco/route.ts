@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { inRange } from '@/lib/analytics/validate'
 
 import { matchForceEcoSituations } from '@/lib/analytics/scenario-queries'
 import { calculateConfidence } from '@/lib/analytics/confidence'
@@ -11,11 +12,11 @@ import type {
 export async function POST(request: NextRequest) {
 
   try {
-    const body = await request.json()
+    const body = await request.json().catch(() => ({}))
 
     // Validate required fields
     const { team_economy, opponent_economy } = body
-    if (!team_economy || !opponent_economy) {
+    if (!inRange(team_economy, 0, 60000) || !inRange(opponent_economy, 0, 60000)) {
       return NextResponse.json(
         { error: 'Missing required fields: team_economy, opponent_economy' },
         { status: 400 }
