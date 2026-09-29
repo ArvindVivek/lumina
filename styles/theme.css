@@ -1,0 +1,21 @@
+/* Lumina's accent: rose (#E11D48). Derived with the script in kitchenlabs-kit/docs/brand/palettes.md;
+   the palette.json block is in docs/DESIGN.md until the kit registers brand/lumina. Every text pair
+   is measured in lib/tokens.test.ts.
+
+   Field map: accent → --accent, accentStrong → --accent-strong, accentDeep → --accent-deep,
+   accentText → --accent-text, accentSoft → --accent-soft, onAccent → --on-accent,
+   accentTextDark / accentSoftDark → the dark block. */
+
+:root {
+  --accent: #e11d48;
+  --accent-strong: #be123c;
+  --accent-deep: #881337;
+  --accent-text: #c61a3f;
+  --accent-soft: #fbdfe5;
+  --on-accent: #ffffff;
+}
+
+[data-theme="dark"] {
+  --accent-text: #eb6280;
+  --accent-soft: #421b2f;
+}

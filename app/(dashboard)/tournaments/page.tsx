@@ -1,166 +1,61 @@
-"use client"
-
-import { useState, useMemo } from "react"
-import { Trophy, Calendar, MapPin, ArrowRight } from "lucide-react"
-import { useTournaments, Tournament } from "@/lib/hooks/use-tournaments"
+import type { Metadata } from "next"
 import Link from "next/link"
-import { usePushScreenData } from "@/lib/hooks/use-screen-data"
+import { ChevronRight, Trophy } from "lucide-react"
+import { Badge, Icon } from "@/components/kl"
+import { PageHeader } from "@/components/lumina/page-header"
+import { TeamBadge } from "@/components/lumina/team-badge"
+import { dateRange } from "@/components/lumina/format"
+import { getDb } from "@/lib/data"
+import { listTournaments } from "@/lib/data/queries"
+import { tournamentLabel } from "@/lib/data/names"
+
+export const metadata: Metadata = {
+  title: "Tournaments",
+  description: "VCT Americas playoff brackets from 2024 and 2025, match by match.",
+}
 
 export default function TournamentsPage() {
-  const { data: tournaments, isLoading } = useTournaments()
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("all")
-
-  // Push tournaments list to screen context for chat
-  const screenData = useMemo(() => {
-    if (!tournaments) return null
-    return {
-      page: 'tournaments',
-      totalTournaments: tournaments.length,
-      tournaments: tournaments.map(t => ({ id: t.id, name: t.name, region: t.region })),
-    }
-  }, [tournaments])
-  usePushScreenData('Tournaments List', screenData, !isLoading && !!tournaments)
-
-  const now = new Date()
-  const filteredTournaments = tournaments?.filter((t) => {
-    if (filter === "all") return true
-    if (filter === "active") {
-      // If no end date, assume completed (historical tournament)
-      if (!t.end_date) return false
-      return new Date(t.end_date) > now
-    }
-    if (filter === "completed") {
-      // If no end date, assume completed (historical tournament)
-      if (!t.end_date) return true
-      return new Date(t.end_date) <= now
-    }
-    return true
-  })
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "2024"  // Show year for historical tournaments
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    })
-  }
-
-  const isActive = (tournament: Tournament) => {
-    // If no end date, assume completed (VCT 2024 historical data)
-    if (!tournament.end_date) return false
-    return new Date(tournament.end_date) > now
-  }
-
+  const tournaments = listTournaments(getDb())
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold text-text-primary mb-3">Tournaments</h1>
-          <p className="text-lg text-text-secondary">
-            Browse VCT Americas tournaments and matches
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
-              filter === "all"
-                ? "bg-valorant-accent text-background"
-                : "bg-surface text-text-secondary hover:bg-surface-hover"
-            }`}
+    <div className="space-y-8">
+      <PageHeader title="Tournaments" description="Three VCT Americas playoff brackets. Open one to see every match." />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {tournaments.map((t) => (
+          <Link
+            key={t.id}
+            href={`/tournaments/${t.id}`}
+            className="group flex flex-col rounded-lg bg-surface p-5 shadow-[var(--shadow-card)] transition-colors duration-75 hover:bg-surface-2"
           >
-            All
-          </button>
-          <button
-            onClick={() => setFilter("active")}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
-              filter === "active"
-                ? "bg-valorant-accent text-background"
-                : "bg-surface text-text-secondary hover:bg-surface-hover"
-            }`}
-          >
-            Active
-          </button>
-          <button
-            onClick={() => setFilter("completed")}
-            className={`px-6 py-2 rounded-lg font-medium transition-all ${
-              filter === "completed"
-                ? "bg-valorant-accent text-background"
-                : "bg-surface text-text-secondary hover:bg-surface-hover"
-            }`}
-          >
-            Completed
-          </button>
-        </div>
-
-        {/* Tournaments Grid */}
-        {isLoading ? (
-          <div className="panel text-center py-12">
-            <div className="text-text-tertiary">Loading tournaments...</div>
-          </div>
-        ) : filteredTournaments && filteredTournaments.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTournaments.map((tournament) => {
-              const active = isActive(tournament)
-
-              return (
-                <Link key={tournament.id} href={`/tournaments/${tournament.id}`}>
-                  <div className="panel group cursor-pointer">
-                    {/* Status Badge */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <Trophy className="h-5 w-5 text-valorant-accent" />
-                        {active && (
-                          <span className="px-2 py-1 rounded bg-win/10 text-win text-xs font-semibold uppercase">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Tournament Name */}
-                    <h3 className="text-xl font-semibold text-text-primary mb-3">
-                      {tournament.name}
-                    </h3>
-
-                    {/* Details */}
-                    <div className="space-y-2 text-sm text-text-secondary">
-                      {tournament.region && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          <span>{tournament.region}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {formatDate(tournament.start_date)}
-                          {tournament.end_date && ` — ${formatDate(tournament.end_date)}`}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* View Link */}
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-tertiary">View Matches</span>
-                        <ArrowRight className="h-4 w-4 text-valorant-accent group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="panel text-center py-12">
-            <div className="text-text-tertiary">No tournaments found</div>
-          </div>
-        )}
+            <div className="flex items-center justify-between">
+              <span className="grid size-11 place-items-center rounded-md bg-accent-soft text-accent-text">
+                <Icon icon={Trophy} size={22} />
+              </span>
+              <Badge tone="neutral">{t.start_date?.slice(0, 4)}</Badge>
+            </div>
+            <h2 className="mt-4 text-title2 text-ink">{tournamentLabel(t.name)}</h2>
+            <p className="mt-1 text-[15px] text-ink-2">{dateRange(t.start_date, t.end_date)}</p>
+            <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
+              {[
+                ["Matches", t.series_count],
+                ["Maps", t.game_count],
+                ["Teams", t.team_count],
+              ].map(([label, value]) => (
+                <div key={label} className="flex flex-col-reverse rounded-sm bg-surface-2 py-2">
+                  <dt className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-ink-2">{label}</dt>
+                  <dd className="tabular font-display text-title3 text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
+            {t.champion_name && (
+              <p className="mt-4 flex items-center gap-2 border-t border-line pt-4 text-[15px] text-ink">
+                <TeamBadge name={t.champion_name} size="sm" tone="win" />
+                <span className="font-bold">{t.champion_name}</span>
+                <span className="text-ink-2">won the final</span>
+                <Icon icon={ChevronRight} size={18} className="ml-auto text-ink-2" />
+              </p>
+            )}
+          </Link>
+        ))}
       </div>
     </div>
   )

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Lumina: a scope ring with a lit centre (focus on the moment that decided the round). -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F43F5E"/>
+      <stop offset="1" stop-color="#881337"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#g)"/>
+  <circle cx="512" cy="512" r="250" fill="none" stroke="#FFFFFF" stroke-width="68"/>
+  <g stroke="#FFFFFF" stroke-width="68" stroke-linecap="round">
+    <line x1="512" y1="170" x2="512" y2="300"/>
+    <line x1="512" y1="724" x2="512" y2="854"/>
+    <line x1="170" y1="512" x2="300" y2="512"/>
+    <line x1="724" y1="512" x2="854" y2="512"/>
+  </g>
+  <circle cx="512" cy="512" r="72" fill="#FFFFFF"/>
+</svg>

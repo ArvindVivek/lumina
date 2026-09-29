@@ -1,352 +1,230 @@
-import { Suspense } from 'react'
-import { PlayerSelector } from '@/components/player/player-selector'
-import { InsightCard } from '@/components/player/insight-card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { createClient } from '@/lib/supabase/server'
+import type { Metadata } from "next"
+import Link from "next/link"
+import { Crosshair, Flame, HeartCrack, Repeat, Shield, Zap } from "lucide-react"
+import { Card, Chip, EmptyState, SectionHeader, StatTile } from "@/components/kl"
+import { PageHeader } from "@/components/lumina/page-header"
+import { InsightCard } from "@/components/lumina/insight-card"
+import { TeamBadge } from "@/components/lumina/team-badge"
+import { UrlPicker } from "@/components/lumina/url-picker"
+import { pct } from "@/components/lumina/format"
+import { getDb } from "@/lib/data"
+import { listPlayers } from "@/lib/data/queries"
+import { recentSeriesForPlayer } from "@/lib/llm/entity-resolver"
+import { agentLabel, PHASE_LABELS, tournamentLabel } from "@/lib/data/names"
 import {
-  queryFirstDeathImpact,
-  queryTradingEfficiency,
-  queryOpeningDuels,
-  queryClutchPerformance,
-  queryAgentPerformance,
-  queryMultiKillRounds,
-  queryEcoRoundPerformance,
-} from '@/lib/analytics/queries'
-import { calculateConfidence } from '@/lib/analytics/confidence'
-import type {
-  FirstDeathData,
-  TradingData,
-  OpeningDuelsData,
-  ClutchData,
-  MultiKillData,
-  EcoRoundData,
-} from '@/lib/analytics/types'
+  agentPerformanceInsight,
+  clutchInsight,
+  ecoRoundInsight,
+  firstDeathInsight,
+  multiKillInsight,
+  openingDuelsInsight,
+  tradingInsight,
+} from "@/lib/analytics/player-insights"
 
-async function getPlayers() {
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('players')
-      .select('id, name, teams(name)')
-      .limit(20)
-      .order('name')
-
-    if (error) {
-      console.error('Error fetching players:', error)
-      return []
-    }
-
-    return data?.map(player => ({
-      id: player.id,
-      name: player.name,
-      team: (player.teams as any)?.name || 'Unknown'
-    })) || []
-  } catch (error) {
-    console.error('Failed to fetch players:', error)
-    // Fallback to sample players if database is not available
-    return [
-      { id: '2241', name: 'aspas', team: 'LOUD' },
-      { id: '2173', name: 'yay', team: 'Cloud9' },
-      { id: '2097', name: 'TenZ', team: 'Sentinels' },
-      { id: '2105', name: 'Demon1', team: 'Evil Geniuses' },
-    ]
-  }
+export const metadata: Metadata = {
+  title: "Player insights",
+  description: "One player's opening duels, trades, clutches, agents and results on each buy.",
 }
 
-async function PlayerInsights({ playerId }: { playerId: string }) {
-  // Fetch all query data in parallel
-  const [
-    firstDeathRow,
-    tradingRow,
-    openingDuelsRow,
-    clutchRow,
-    agentRow,
-    multiKillRow,
-    ecoRoundRow,
-  ] = await Promise.all([
-    queryFirstDeathImpact(playerId),
-    queryTradingEfficiency(playerId),
-    queryOpeningDuels(playerId),
-    queryClutchPerformance(playerId),
-    queryAgentPerformance(playerId),
-    queryMultiKillRounds(playerId),
-    queryEcoRoundPerformance(playerId),
-  ])
+type Props = { searchParams: Promise<{ player?: string; t?: string }> }
 
-  // Process first death
-  const firstDeathTotal = parseInt(firstDeathRow.total) || 0
-  const firstDeathLosses = parseInt(firstDeathRow.losses) || 0
-  const firstDeath = firstDeathTotal > 0 ? {
-    data: {
-      losses: firstDeathLosses,
-      total: firstDeathTotal,
-      loss_rate: firstDeathTotal > 0 ? firstDeathLosses / firstDeathTotal : 0,
-    },
-    insight: firstDeathLosses / firstDeathTotal > 0.7
-      ? "High round loss rate when dying first"
-      : "Reasonable first death impact",
-    recommendation: firstDeathLosses / firstDeathTotal > 0.7
-      ? "Focus on staying alive longer in crucial rounds"
-      : null,
-    confidence: calculateConfidence(firstDeathTotal, "first deaths"),
-  } : null
+export default async function PlayerAnalyticsPage({ searchParams }: Props) {
+  const { player: playerId, t: tournamentId } = await searchParams
+  const db = getDb()
+  const players = listPlayers(db)
+  const player = playerId ? players.find((p) => p.id === playerId) : undefined
+  const picks = [...players].sort((a, b) => b.rounds - a.rounds).slice(0, 8)
 
-  // Process trading
-  const totalDeaths = parseInt(tradingRow.total_deaths) || 0
-  const traded = parseInt(tradingRow.traded) || 0
-  const trading = totalDeaths > 0 ? {
-    data: {
-      traded: traded,
-      total_deaths: totalDeaths,
-      trade_rate: totalDeaths > 0 ? traded / totalDeaths : 0,
-    },
-    insight: traded / totalDeaths > 0.7
-      ? "Excellent trading efficiency"
-      : "Room to improve trading",
-    recommendation: traded / totalDeaths < 0.5
-      ? "Work on positioning near teammates for trade opportunities"
-      : null,
-    confidence: calculateConfidence(totalDeaths, "deaths"),
-  } : null
+  const pickers = (
+    <>
+      <UrlPicker
+        label="Player"
+        param="player"
+        value={player?.id}
+        basePath="/player-analytics"
+        keep={{ t: tournamentId }}
+        placeholder="Choose a player"
+        options={players.map((p) => ({ value: p.id, label: p.team_name ? `${p.name} (${p.team_name})` : p.name }))}
+      />
+      {player && (
+        <UrlPicker
+          label="Tournament"
+          param="t"
+          value={tournamentId}
+          basePath="/player-analytics"
+          keep={{ player: player.id }}
+          placeholder="All tournaments"
+          options={db.tournaments.map((t) => ({ value: t.id, label: tournamentLabel(t.name) }))}
+        />
+      )}
+    </>
+  )
 
-  // Process opening duels
-  const totalRounds = parseInt(openingDuelsRow.total_rounds) || 0
-  const firstKills = parseInt(openingDuelsRow.first_kills) || 0
-  const firstDeaths = parseInt(openingDuelsRow.first_deaths) || 0
-  const openingDuels = firstKills + firstDeaths
-  const openingDuelsData = totalRounds > 0 ? {
-    data: {
-      first_kills: firstKills,
-      first_deaths: firstDeaths,
-      total_rounds: totalRounds,
-      opening_duel_rate: totalRounds > 0 ? openingDuels / totalRounds : 0,
-      success_rate: openingDuels > 0 ? firstKills / openingDuels : 0,
-    },
-    insight: openingDuels > 0 && firstKills / openingDuels > 0.6
-      ? "Dominant opening duelist"
-      : "Solid opening duel performance",
-    recommendation: openingDuels > 0 && firstKills / openingDuels < 0.4
-      ? "Practice crosshair placement and pre-aiming common angles"
-      : null,
-    confidence: calculateConfidence(openingDuels, "opening duels"),
-  } : null
-
-  // Process clutch
-  const clutchSituations = parseInt(clutchRow.clutch_situations) || 0
-  const clutchesWon = parseInt(clutchRow.clutches_won) || 0
-  const clutch = clutchSituations > 0 ? {
-    data: {
-      clutches_won: clutchesWon,
-      clutch_situations: clutchSituations,
-      clutch_rate: clutchSituations > 0 ? clutchesWon / clutchSituations : 0,
-    },
-    insight: clutchesWon / clutchSituations > 0.3
-      ? "Strong clutch performer"
-      : "Average clutch ability",
-    recommendation: clutchesWon / clutchSituations < 0.2
-      ? "Practice 1vX situations and crosshair placement"
-      : null,
-    confidence: calculateConfidence(clutchSituations, "clutch situations"),
-  } : null
-
-  // Process multi-kill
-  const twoPlusKills = parseInt(multiKillRow.two_plus_kills) || 0
-  const threePlusKills = parseInt(multiKillRow.three_plus_kills) || 0
-  const fourPlusKills = parseInt(multiKillRow.four_plus_kills) || 0
-  const aces = parseInt(multiKillRow.aces) || 0
-  const multiKillTotalRounds = parseInt(multiKillRow.total_rounds) || 0
-  const multiKill = threePlusKills > 0 ? {
-    data: {
-      two_plus_kills: twoPlusKills,
-      three_plus_kills: threePlusKills,
-      four_plus_kills: fourPlusKills,
-      aces: aces,
-      total_rounds: multiKillTotalRounds,
-      kills_per_round: multiKillTotalRounds > 0 ? (parseInt(multiKillRow.total_kills) || 0) / multiKillTotalRounds : 0,
-    },
-    insight: `${threePlusKills} rounds with 3+ kills`,
-    recommendation: null,
-    confidence: calculateConfidence(threePlusKills, "multi-kill rounds"),
-  } : null
-
-  // Process eco round (array of phases)
-  const phases: Record<string, { win_rate: number; rounds: number; wins: number }> = {}
-  let totalRoundsAllPhases = 0
-
-  for (const row of ecoRoundRow) {
-    const rounds = parseInt(row.rounds) || 0
-    const roundsWon = parseInt(row.rounds_won) || 0
-    phases[row.phase] = {
-      win_rate: rounds > 0 ? roundsWon / rounds : 0,
-      rounds,
-      wins: roundsWon,
-    }
-    totalRoundsAllPhases += rounds
-  }
-
-  const ecoPhase = phases['eco']
-  const ecoRound = ecoPhase ? {
-    data: {
-      phases,
-      total_rounds: totalRoundsAllPhases,
-    },
-    insight: ecoPhase.win_rate > 0.3
-      ? "Strong eco round performance"
-      : "Standard eco round stats",
-    recommendation: null,
-    confidence: calculateConfidence(ecoPhase.rounds, "eco rounds"),
-  } : null
-
-  const hasAnyData = firstDeath || trading || openingDuelsData || clutch || multiKill || ecoRound
-
-  if (!hasAnyData) {
+  if (!player) {
     return (
-      <div className="flex h-[400px] items-center justify-center rounded-xl border border-dashed border-border/50 bg-gradient-to-br from-muted/30 via-transparent to-muted/30 backdrop-blur-sm">
-        <div className="text-center space-y-2 p-8">
-          <div className="inline-flex p-4 rounded-full bg-muted mb-2">
-            <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <p className="text-lg font-semibold">No data available</p>
-          <p className="text-sm text-muted-foreground max-w-md">
-            This player doesn't have any analytics data yet. Make sure the ETL scripts have been run and the database contains player statistics.
-          </p>
-          <div className="mt-4 p-4 rounded-lg bg-muted/50 border border-border/50">
-            <p className="text-xs text-muted-foreground font-mono">
-              Player ID: {playerId}
-            </p>
-          </div>
-        </div>
+      <div className="space-y-8">
+        <PageHeader title="Player insights" description="How a player wins and loses rounds: opening duels, trades, clutches and buys." />
+        <div className="flex flex-col gap-3 sm:flex-row">{pickers}</div>
+        <Card>
+          <EmptyState
+            icon={Crosshair}
+            title={playerId ? "We couldn't find that player" : "Pick a player"}
+            message="Choose anyone from the list, or start with one of the most-played:"
+            action={
+              <div className="flex max-w-xl flex-wrap justify-center gap-2">
+                {picks.map((p) => (
+                  <Link key={p.id} href={`/player-analytics?player=${p.id}`} className="inline-flex min-h-11 items-center">
+                    <Chip>{p.name}</Chip>
+                  </Link>
+                ))}
+              </div>
+            }
+          />
+        </Card>
       </div>
     )
   }
 
-  return (
-    <div className="grid-responsive-cards">
-      {firstDeath && (
-        <InsightCard
-          title="First Death Impact"
-          value={`${(firstDeath.data.loss_rate * 100).toFixed(1)}%`}
-          description="Round loss rate when dying first"
-          insight={firstDeath.insight}
-          recommendation={firstDeath.recommendation}
-          confidence={firstDeath.confidence}
-        />
-      )}
-
-      {trading && (
-        <InsightCard
-          title="Trading Efficiency"
-          value={`${(trading.data.trade_rate * 100).toFixed(1)}%`}
-          description="Deaths that were traded by teammates"
-          insight={trading.insight}
-          recommendation={trading.recommendation}
-          confidence={trading.confidence}
-        />
-      )}
-
-      {openingDuelsData && (
-        <InsightCard
-          title="Opening Duels"
-          value={`${(openingDuelsData.data.success_rate * 100).toFixed(1)}%`}
-          description={`${openingDuelsData.data.first_kills} FK / ${openingDuelsData.data.first_deaths} FD`}
-          insight={openingDuelsData.insight}
-          recommendation={openingDuelsData.recommendation}
-          confidence={openingDuelsData.confidence}
-        />
-      )}
-
-      {clutch && (
-        <InsightCard
-          title="Clutch Performance"
-          value={`${(clutch.data.clutch_rate * 100).toFixed(1)}%`}
-          description={`${clutch.data.clutches_won}/${clutch.data.clutch_situations} clutches won`}
-          insight={clutch.insight}
-          recommendation={clutch.recommendation}
-          confidence={clutch.confidence}
-        />
-      )}
-
-      {multiKill && (
-        <InsightCard
-          title="Multi-Kill Rounds"
-          value={multiKill.data.three_plus_kills}
-          description={`3+ kill rounds (${multiKill.data.aces} aces)`}
-          insight={multiKill.insight}
-          recommendation={multiKill.recommendation}
-          confidence={multiKill.confidence}
-        />
-      )}
-
-      {ecoRound && ecoRound.data.phases && (
-        <InsightCard
-          title="Eco Round Performance"
-          value={`${((ecoRound.data.phases.eco?.win_rate || 0) * 100).toFixed(1)}%`}
-          description="Win rate on eco rounds"
-          insight={ecoRound.insight}
-          recommendation={ecoRound.recommendation}
-          confidence={ecoRound.confidence}
-        />
-      )}
-    </div>
-  )
-}
-
-export default async function PlayerAnalyticsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ player?: string }>
-}) {
-  const { player: playerId } = await searchParams
-  const players = await getPlayers()
+  const t = tournamentId ?? null
+  const [firstDeath, trading, opening, clutch, multi, eco, agents] = await Promise.all([
+    firstDeathInsight(player.id, t),
+    tradingInsight(player.id, t),
+    openingDuelsInsight(player.id, t),
+    clutchInsight(player.id, t),
+    multiKillInsight(player.id, t),
+    ecoRoundInsight(player.id, t),
+    agentPerformanceInsight(player.id, t),
+  ])
+  const recent = recentSeriesForPlayer(db, player.id, 4)
+  const noData = !opening
 
   return (
-    <div className="p-responsive space-y-responsive">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-responsive-3xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-            Player Analytics
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Individual player performance insights
-          </p>
-        </div>
-        <PlayerSelector
-          players={players}
-          selectedPlayerId={playerId}
-        />
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow={player.team_name ?? "No team"}
+        title={
+          <span className="flex items-center gap-3">
+            {player.team_name && <TeamBadge name={player.team_name} size="lg" />}
+            {player.name}
+          </span>
+        }
+        description={`Main agents: ${player.top_agents.map(agentLabel).join(", ")}.`}
+      />
+      <div className="flex flex-col gap-3 sm:flex-row">{pickers}</div>
 
-      {playerId ? (
-        <Suspense fallback={<InsightsSkeleton />}>
-          <PlayerInsights playerId={playerId} />
-        </Suspense>
+      {noData ? (
+        <Card>
+          <EmptyState icon={Crosshair} title="No rounds in this tournament" message={`${player.name} didn't play in the tournament you picked. Choose All tournaments to see everything.`} tone="neutral" />
+        </Card>
       ) : (
-        <div className="flex h-[400px] items-center justify-center rounded-xl border border-dashed border-border/50 bg-gradient-to-br from-muted/30 via-transparent to-muted/30 backdrop-blur-sm">
-          <div className="text-center space-y-2">
-            <div className="inline-flex p-4 rounded-full bg-primary/10 text-primary mb-2">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
-            <p className="text-lg font-semibold">Select a player</p>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Choose a player from the dropdown above to view their performance analytics and insights
-            </p>
+        <>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatTile icon={Crosshair} value={player.kd.toFixed(2)} label="K/D" detail={`${player.kills} kills, ${player.deaths} deaths overall`} />
+            <StatTile icon={Zap} value={multi ? multi.data.kills_per_round.toFixed(2) : "–"} label="Kills per round" detail={`${opening!.data.total_rounds} rounds`} />
+            <StatTile icon={Flame} value={`${opening!.data.first_kills}–${opening!.data.first_deaths}`} label="Opening duels" detail={`Won ${pct(opening!.data.success_rate)}`} />
+            <StatTile icon={Shield} value={clutch ? `${clutch.data.clutches_won}/${clutch.data.clutch_situations}` : "0"} label="Clutches won" detail="As the last one alive" />
           </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
-function InsightsSkeleton() {
-  return (
-    <div className="grid-responsive-cards">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} className="h-[220px] rounded-xl" />
-      ))}
+          <section aria-labelledby="insights" className="space-y-4">
+            <SectionHeader id="insights" title="What the numbers say" />
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {opening && (
+                <InsightCard icon={Flame} title="Opening duels" value={pct(opening.data.success_rate)} description={`Won ${opening.data.first_kills} of ${opening.data.first_kills + opening.data.first_deaths} first fights`} insight={opening.insight} recommendation={opening.recommendation} confidence={opening.confidence} />
+              )}
+              {trading && (
+                <InsightCard icon={Repeat} title="Deaths traded" value={pct(trading.data.trade_rate)} description={`${trading.data.traded} of ${trading.data.total_deaths} deaths avenged within 5 seconds`} insight={trading.insight} recommendation={trading.recommendation} confidence={trading.confidence} />
+              )}
+              {firstDeath && (
+                <InsightCard icon={HeartCrack} title="Dying first" value={pct(firstDeath.data.loss_rate)} description={`Rounds lost after dying first with no kill or assist (${firstDeath.data.losses} of ${firstDeath.data.total})`} insight={firstDeath.insight} recommendation={firstDeath.recommendation} confidence={firstDeath.confidence} />
+              )}
+              {clutch && (
+                <InsightCard icon={Shield} title="Clutches" value={pct(clutch.data.clutch_rate)} description={`${clutch.data.clutches_won} of ${clutch.data.clutch_situations} won as the last player alive`} insight={clutch.insight} recommendation={clutch.recommendation} confidence={clutch.confidence} />
+              )}
+              {multi && (
+                <InsightCard icon={Zap} title="Multi-kill rounds" value={multi.data.three_plus_kills} description={`Rounds with 3+ kills (${multi.data.two_plus_kills} with 2+, ${multi.data.aces} aces)`} insight={multi.insight} recommendation={multi.recommendation} confidence={multi.confidence} />
+              )}
+            </div>
+          </section>
+
+          <div className="grid gap-8 lg:grid-cols-2">
+            {agents && agents.data.agents.length > 0 && (
+              <section aria-labelledby="agents" className="space-y-4">
+                <SectionHeader id="agents" title="Agents" description={agents.insight} />
+                <Card padding="none" className="overflow-hidden">
+                  <table className="w-full text-left text-[15px]">
+                    <thead>
+                      <tr className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-ink-2">
+                        <th scope="col" className="px-4 py-3 font-extrabold">Agent</th>
+                        <th scope="col" className="px-2 py-3 text-right font-extrabold">Rounds</th>
+                        <th scope="col" className="px-2 py-3 text-right font-extrabold">K/D</th>
+                        <th scope="col" className="px-4 py-3 text-right font-extrabold">Rounds won</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {agents.data.agents.map((a) => (
+                        <tr key={a.agent} className="border-t border-line">
+                          <td className="px-4 py-2.5 font-bold text-ink">{agentLabel(a.agent)}</td>
+                          <td className="tabular px-2 py-2.5 text-right text-ink">{a.rounds_played}</td>
+                          <td className="tabular px-2 py-2.5 text-right text-ink">{a.kd_ratio.toFixed(2)}</td>
+                          <td className="tabular px-4 py-2.5 text-right text-ink">{pct(a.win_rate)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </Card>
+              </section>
+            )}
+
+            {eco && (
+              <section aria-labelledby="buys" className="space-y-4">
+                <SectionHeader id="buys" title="By buy" description="How the team did, and this player's K/D, on each kind of round." />
+                <Card padding="none" className="overflow-hidden">
+                  <table className="w-full text-left text-[15px]">
+                    <thead>
+                      <tr className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-ink-2">
+                        <th scope="col" className="px-4 py-3 font-extrabold">Round type</th>
+                        <th scope="col" className="px-2 py-3 text-right font-extrabold">Rounds</th>
+                        <th scope="col" className="px-2 py-3 text-right font-extrabold">K/D</th>
+                        <th scope="col" className="px-4 py-3 text-right font-extrabold">Won</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {["pistol", "eco", "force", "full"]
+                        .filter((p) => eco.data.phases[p])
+                        .map((p) => (
+                          <tr key={p} className="border-t border-line">
+                            <td className="px-4 py-2.5 font-bold text-ink">{PHASE_LABELS[p]}</td>
+                            <td className="tabular px-2 py-2.5 text-right text-ink">{eco.data.phases[p].rounds}</td>
+                            <td className="tabular px-2 py-2.5 text-right text-ink">{eco.data.phases[p].kd_ratio.toFixed(2)}</td>
+                            <td className="tabular px-4 py-2.5 text-right text-ink">{pct(eco.data.phases[p].win_rate)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </Card>
+                <p className="text-[13px] text-ink-2">Eco: team spent under 10k. Force buy: under 20k. Full buy: 20k or more. Pistol: rounds 1 and 13.</p>
+              </section>
+            )}
+          </div>
+
+          {recent.length > 0 && (
+            <section aria-labelledby="recent" className="space-y-4">
+              <SectionHeader id="recent" title="Recent series" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                {recent.map((r) => (
+                  <Link key={r.series_id} href={`/analytics?series=${r.series_id}&team=${r.team_id}`} className="flex items-center gap-3 rounded-lg bg-surface p-4 shadow-[var(--shadow-card)] hover:bg-surface-2">
+                    <TeamBadge name={r.team_name} size="sm" />
+                    <span className="text-[15px] text-ink">
+                      {r.team_name} vs <span className="font-bold">{r.opponent_name}</span>
+                    </span>
+                    <span className="ml-auto text-sm font-bold text-accent-text">Match report</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
     </div>
   )
 }

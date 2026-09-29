@@ -1,88 +1,82 @@
-"use client"
+import type { Metadata } from "next"
+import { Database } from "lucide-react"
+import { Card, SectionHeader } from "@/components/kl"
+import { PageHeader } from "@/components/lumina/page-header"
+import { dateRange } from "@/components/lumina/format"
+import { getDb } from "@/lib/data"
+import { datasetStats, listTournaments } from "@/lib/data/queries"
+import { tournamentLabel } from "@/lib/data/names"
 
-import { useTeams } from "@/lib/hooks/use-teams"
-import { usePlayers } from "@/lib/hooks/use-players"
+export const metadata: Metadata = {
+  title: "About the data",
+  description: "Where Lumina's match data comes from and what it covers.",
+}
 
-export default function DebugPage() {
-  const { data: teams, isLoading: teamsLoading, error: teamsError } = useTeams()
-  const { data: players, isLoading: playersLoading, error: playersError } = usePlayers()
+const TABLE_LABELS: [keyof ReturnType<typeof datasetStats>, string][] = [
+  ["tournaments", "Tournaments"],
+  ["series", "Series"],
+  ["games", "Maps"],
+  ["rounds", "Rounds"],
+  ["teams", "Teams"],
+  ["players", "Players"],
+  ["killEvents", "Kills"],
+  ["clutchSituations", "Clutch situations"],
+]
 
+/** What's bundled and how it was built. (This route was the hackathon's database check page.) */
+export default function DataPage() {
+  const db = getDb()
+  const stats = datasetStats(db)
   return (
-    <div className="p-8 space-y-8">
-      <h1 className="text-3xl font-bold">Debug Page - Data Connectivity</h1>
-
-      {/* Environment Check */}
-      <div className="panel">
-        <h2 className="text-xl font-semibold mb-4">Environment Variables</h2>
-        <div className="space-y-2 font-mono text-sm">
-          <div>
-            <span className="text-text-tertiary">NEXT_PUBLIC_SUPABASE_URL: </span>
-            <span className={process.env.NEXT_PUBLIC_SUPABASE_URL ? 'text-green-500' : 'text-red-500'}>
-              {process.env.NEXT_PUBLIC_SUPABASE_URL || 'NOT SET'}
-            </span>
-          </div>
-          <div>
-            <span className="text-text-tertiary">NEXT_PUBLIC_SUPABASE_ANON_KEY: </span>
-            <span className={process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'text-green-500' : 'text-red-500'}>
-              {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET (' + process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.substring(0, 20) + '...)' : 'NOT SET'}
-            </span>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Data check"
+        title="About the data"
+        description="Everything in Lumina is computed from one bundled file of real pro matches. Nothing is live and nothing you do here is stored."
+      />
+      <Card>
+        <div className="flex gap-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-md bg-accent-soft text-accent-text">
+            <Database size={22} aria-hidden="true" />
+          </span>
+          <div className="space-y-2 text-[15px] text-ink">
+            <p>
+              The matches come from GRID&apos;s official VALORANT esports feed, which logs every kill, plant and buy. Lumina&apos;s build
+              script replays those logs and keeps what the analysis needs: who was alive, who spent what, who died first and who
+              traded. Damage and spike sites aren&apos;t in the feed, so Lumina doesn&apos;t show them.
+            </p>
+            <p className="text-ink-2">Built from {db.series.length} series. The file is about 2 MB and ships with the app.</p>
           </div>
         </div>
-      </div>
-
-      {/* Teams Check */}
-      <div className="panel">
-        <h2 className="text-xl font-semibold mb-4">Teams Data</h2>
-        {teamsLoading && <p className="text-text-tertiary">Loading teams...</p>}
-        {teamsError && (
-          <div className="text-red-500">
-            <p className="font-semibold">Error loading teams:</p>
-            <pre className="text-xs mt-2 p-2 bg-black/20 rounded">
-              {JSON.stringify(teamsError, null, 2)}
-            </pre>
-          </div>
-        )}
-        {teams && (
-          <div>
-            <p className="text-green-500 font-semibold mb-2">✅ {teams.length} teams loaded</p>
-            <div className="text-sm space-y-1">
-              {teams.slice(0, 5).map(team => (
-                <div key={team.id} className="text-text-secondary">
-                  • {team.name} (ID: {team.id})
-                </div>
-              ))}
-              {teams.length > 5 && <div className="text-text-tertiary">... and {teams.length - 5} more</div>}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Players Check */}
-      <div className="panel">
-        <h2 className="text-xl font-semibold mb-4">Players Data</h2>
-        {playersLoading && <p className="text-text-tertiary">Loading players...</p>}
-        {playersError && (
-          <div className="text-red-500">
-            <p className="font-semibold">Error loading players:</p>
-            <pre className="text-xs mt-2 p-2 bg-black/20 rounded">
-              {JSON.stringify(playersError, null, 2)}
-            </pre>
-          </div>
-        )}
-        {players && (
-          <div>
-            <p className="text-green-500 font-semibold mb-2">✅ {players.length} players loaded</p>
-            <div className="text-sm space-y-1">
-              {players.slice(0, 10).map(player => (
-                <div key={player.id} className="text-text-secondary">
-                  • {player.name} {player.team ? `(${player.team.name})` : '(No team)'}
-                </div>
-              ))}
-              {players.length > 10 && <div className="text-text-tertiary">... and {players.length - 10} more</div>}
-            </div>
-          </div>
-        )}
-      </div>
+      </Card>
+      <section aria-labelledby="counts" className="space-y-4">
+        <SectionHeader id="counts" title="What's included" />
+        <Card padding="none" className="overflow-hidden">
+          <dl className="grid grid-cols-2 sm:grid-cols-4">
+            {TABLE_LABELS.map(([key, label]) => (
+              <div key={key} className="flex flex-col-reverse border-b border-r border-line px-4 py-3">
+                <dt className="text-[13px] text-ink-2">{label}</dt>
+                <dd className="tabular font-display text-title2 text-ink">{stats[key].toLocaleString("en-US")}</dd>
+              </div>
+            ))}
+          </dl>
+        </Card>
+      </section>
+      <section aria-labelledby="brackets" className="space-y-4">
+        <SectionHeader id="brackets" title="Brackets" />
+        <ul className="space-y-2">
+          {listTournaments(db).map((t) => (
+            <li key={t.id}>
+              <Card padding="sm" className="flex flex-wrap items-baseline justify-between gap-2 px-4">
+                <span className="font-bold text-ink">{tournamentLabel(t.name)}</span>
+                <span className="text-[15px] text-ink-2">
+                  {dateRange(t.start_date, t.end_date)} · {t.series_count} series
+                </span>
+              </Card>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   )
 }

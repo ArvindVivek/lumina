@@ -1,0 +1,209 @@
+/* KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/styles/tokens.css. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh. */
+/* KL Web tokens: the studio neutrals, role colours, type, radii and motion rules shared by
+   every Kitchen Labs web app. Light values = KLColor.swift light; dark = KLColor.swift dark.
+   Import right after `@import "tailwindcss";`, then the app's own theme.css (the accent).
+   Spec: kitchenlabs-kit/docs/web/design-system.md. */
+
+/* `dark:` utilities follow next-themes' data-theme attribute, not the OS setting: next-themes
+   resolves "system" itself and writes data-theme on <html> before first paint. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+  --bg: #f2f4f9;
+  --surface: #ffffff;
+  --surface-2: #edf0f6;
+  --ink: #121829;
+  --ink-2: #5a6479;
+  --line: #e1e6ef;
+
+  /* Roles. `*-text` passes 4.5:1 on bg, surface and its own soft tint (measured in
+     web/starter/lib/tokens.test.ts). Fills are for icons, dots and large shapes only. */
+  --success: #14b874;
+  --success-text: #0b7a4b;
+  --success-soft: #ddf6ea;
+  --warning: #ffc53d;
+  --warning-text: #8a6200;
+  --warning-soft: #fff7e4;
+  --danger: #ff5c5c;
+  --danger-text: #c23434;
+  --danger-soft: #ffe8e8;
+  /* Danger button face: white on the #FF5C5C fill is only 3.0:1, so the button uses the
+     darker red (5.5:1) and presses into a deeper edge. */
+  --danger-strong: #c23434;
+  --danger-deep: #8a2020;
+
+  /* Per-app accent. Override the six light values (and the two dark ones below) in the app's
+     theme.css, from brand/<key>/palette.json. These defaults are the studio mint; the button
+     face is the darker mint because white on #14B874 is only 2.6:1. */
+  --accent: #14b874;
+  --accent-strong: #0a7a4c;
+  --accent-deep: #075c39;
+  --accent-text: #0a7a4c;
+  --accent-soft: #ddf6ea;
+  --on-accent: #ffffff;
+
+  /* Loading placeholders: visible on both surface and surface-2. */
+  --skeleton: #dde2eb;
+
+  /* Secondary button: a white face on a grey edge. */
+  --button-secondary: #ffffff;
+  --button-secondary-edge: #d3d9e4;
+
+  /* The only shadow in the system (cards and floating surfaces). A faint ring keeps white
+     cards visible on white-ish grounds, like the 0.5pt hairline on iOS. */
+  --shadow-card: 0 0 0 1px rgb(18 24 41 / 0.04), 0 1px 0 rgb(18 24 41 / 0.04), 0 10px 30px rgb(18 24 41 / 0.06);
+  --shadow-lift: 0 12px 24px rgb(18 24 41 / 0.1);
+  --scrim: rgb(11 15 26 / 0.5);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0f1a;
+  --surface: #151a28;
+  --surface-2: #1e2436;
+  --ink: #eef1f7;
+  --ink-2: #a0a9bc;
+  --line: rgb(255 255 255 / 0.09);
+
+  --success-text: #5be0a6;
+  --success-soft: #153d39;
+  --warning-text: #ffd36b;
+  --warning-soft: #48402d;
+  --danger-text: #ff8a80;
+  --danger-soft: #482933;
+
+  --accent-text: #5be0a6;
+  --accent-soft: #153d39;
+
+  --skeleton: #2a3148;
+
+  --button-secondary: #1e2436;
+  --button-secondary-edge: #070a12;
+
+  /* Shadows don't read on dark grounds; cards get a hairline instead (same as KLCard). */
+  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-lift: 0 12px 24px rgb(0 0 0 / 0.45);
+  --scrim: rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-strong: var(--danger-strong);
+
+  --font-display: var(--font-fredoka), ui-rounded, system-ui, sans-serif;
+  --font-body: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+
+  /* KLFont sizes. Utilities: text-hero, text-large, text-title, text-title2, text-title3,
+     text-number (cn() knows these, see lib/cn.ts). */
+  --text-hero: 2.5rem;
+  --text-hero--line-height: 1.1;
+  --text-large: 2rem;
+  --text-large--line-height: 1.15;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.25;
+  --text-title2: 1.25rem;
+  --text-title2--line-height: 1.3;
+  --text-title3: 1.125rem;
+  --text-title3--line-height: 1.35;
+  --text-number: 1.75rem;
+  --text-number--line-height: 1.1;
+
+  /* KLRadius: 8 chips, 12 inputs, 16 buttons, 20 cards, 28 sheets and hero tiles. */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-wrap: balance;
+}
+
+/* Money, clocks and scores: digits that change must not jitter. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* One focus ring everywhere. It uses accent-text, not the raw accent: a light accent (mint
+   #14B874 is 2.3:1 on bg) would miss the 3:1 needed for a non-text indicator. */
+/* In the base layer so a Tailwind utility (focus-visible:outline-none on a wrapper that draws
+   its own ring) can override it; unlayered CSS always beat utilities and gave double rings. */
+@layer base {
+  :focus-visible {
+    outline: 3px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+/* Native <dialog> (components/kl/Dialog.tsx): dim the page and pop the sheet in. */
+dialog.kl-dialog::backdrop {
+  background: var(--scrim);
+}
+dialog.kl-dialog[open] {
+  animation: kl-pop 180ms cubic-bezier(0.22, 0.8, 0.32, 1);
+}
+@keyframes kl-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+/* From overdraft/app/globals.css. Motion's own animations follow <MotionConfig
+   reducedMotion="user"> (lib/kl/motion.ts); this catches CSS transitions and keyframes. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

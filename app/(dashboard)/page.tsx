@@ -1,371 +1,111 @@
-"use client"
+import Link from "next/link"
+import { ArrowRight, Crosshair, FlaskConical, Map as MapIcon, Sparkles, Swords, Target, Trophy, type LucideIcon } from "lucide-react"
+import { Card, Icon, SectionHeader, StatTile } from "@/components/kl"
+import { PageHeader } from "@/components/lumina/page-header"
+import { SeriesCard } from "@/components/lumina/series-card"
+import { TeamBadge } from "@/components/lumina/team-badge"
+import { getDb } from "@/lib/data"
+import { datasetStats, listPlayers, listSeries } from "@/lib/data/queries"
+import { agentLabel } from "@/lib/data/names"
 
-import { useEffect, useState, useMemo } from 'react'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Trophy, Users, TrendingUp, Target, BarChart3, Crosshair, Swords, Zap, Database, UserCircle } from 'lucide-react'
-import { useStats } from '@/lib/hooks/use-stats'
-import { usePushScreenData } from '@/lib/hooks/use-screen-data'
+const TOOLS: { href: string; title: string; text: string; icon: LucideIcon }[] = [
+  { href: "/analytics", title: "Match report", text: "Pick a series and a team: opening duels, trades, post-plants and the rounds worth rewatching.", icon: Sparkles },
+  { href: "/player-analytics", title: "Player insights", text: "One player's first kills, trades, clutches, agents and how they play on each buy.", icon: Crosshair },
+  { href: "/macro-review", title: "Team review", text: "A team's pistol rounds, economy, trading discipline and the moments that swung games.", icon: Target },
+  { href: "/scenario-analysis", title: "Scenario lab", text: "Save or retake? Force or eco? See how pros fared in the same spot.", icon: FlaskConical },
+]
 
-// Animated counter component
-function AnimatedCounter({
-  value,
-  duration = 2000,
-  suffix = '',
-  delay = 0
-}: {
-  value: number
-  duration?: number
-  suffix?: string
-  delay?: number
-}) {
-  const [count, setCount] = useState(0)
-  const [hasStarted, setHasStarted] = useState(false)
+/** Players need this many rounds to rank, so a one-map substitute can't top the table. */
+const MIN_ROUNDS = 150
 
-  useEffect(() => {
-    if (value === 0) return
+export default function HomePage() {
+  const db = getDb()
+  const stats = datasetStats(db)
+  const latest = listSeries(db, { limit: 4 })
+  const leaders = listPlayers(db)
+    .filter((p) => p.rounds >= MIN_ROUNDS)
+    .sort((a, b) => b.kd - a.kd)
+    .slice(0, 6)
 
-    // Wait for delay before starting animation
-    const delayTimeout = setTimeout(() => {
-      setHasStarted(true)
-      const startTime = Date.now()
-      const endValue = value
-
-      const animate = () => {
-        const now = Date.now()
-        const progress = Math.min((now - startTime) / duration, 1)
-        // Easing function for smooth deceleration
-        const eased = 1 - Math.pow(1 - progress, 3)
-        setCount(Math.floor(eased * endValue))
-
-        if (progress < 1) {
-          requestAnimationFrame(animate)
-        }
-      }
-
-      requestAnimationFrame(animate)
-    }, delay)
-
-    return () => clearTimeout(delayTimeout)
-  }, [value, duration, delay])
-
-  return <span>{count.toLocaleString()}{suffix}</span>
-}
-
-// Stat card with animation
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  color,
-  delay = 0
-}: {
-  icon: React.ElementType
-  label: string
-  value: number
-  color: string
-  delay?: number
-}) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      className="panel-responsive relative overflow-hidden group hover:border-valorant-accent/30 transition-colors"
-    >
-      {/* Background glow effect */}
-      <div
-        className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity ${color}`}
-        style={{ filter: 'blur(40px)' }}
+    <div className="space-y-12">
+      <PageHeader
+        eyebrow="VALORANT match analytics"
+        title="Every round, explained"
+        description="Lumina turns pro match logs into scouting notes: who wins the opening duels, how teams spend, which rounds to rewatch, and an AI coach that answers from the numbers."
       />
 
-      <div className="relative flex items-start gap-3">
-        <div className={`icon-container-responsive ${color}`}>
-          <Icon className="text-white" />
+      <section aria-labelledby="inside" className="space-y-4">
+        <SectionHeader id="inside" title="What's inside" description="VCT Americas playoffs from 2024 and 2025, rebuilt round by round from the official match feed." />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile icon={Trophy} value={stats.series} label="Series" detail={`${stats.tournaments} playoff brackets`} />
+          <StatTile icon={MapIcon} value={stats.games} label="Maps" detail={`${stats.teams} teams`} />
+          <StatTile icon={Swords} value={stats.rounds.toLocaleString("en-US")} label="Rounds" detail={`${stats.players} players`} />
+          <StatTile icon={Crosshair} value={stats.killEvents.toLocaleString("en-US")} label="Kills" detail={`${stats.clutchSituations.toLocaleString("en-US")} clutch rounds`} />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs uppercase tracking-wide text-text-secondary mb-1 truncate">{label}</p>
-          <p className="metric-value-responsive text-text-primary tabular-nums">
-            <AnimatedCounter value={value} delay={delay * 1000} />
-          </p>
+      </section>
+
+      <section aria-labelledby="tools" className="space-y-4">
+        <SectionHeader id="tools" title="Start here" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {TOOLS.map((t) => (
+            <Link key={t.href} href={t.href} className="group flex gap-4 rounded-lg bg-surface p-5 shadow-[var(--shadow-card)] transition-colors duration-75 hover:bg-surface-2">
+              <span className="grid size-12 shrink-0 place-items-center rounded-md bg-accent-soft text-accent-text">
+                <Icon icon={t.icon} size={24} />
+              </span>
+              <span className="min-w-0">
+                <span className="flex items-center gap-1.5 font-display text-title3 text-ink">
+                  {t.title}
+                  <Icon icon={ArrowRight} size={18} className="text-ink-2 transition-transform duration-75 group-hover:translate-x-0.5" />
+                </span>
+                <span className="mt-1 block text-[15px] text-ink-2">{t.text}</span>
+              </span>
+            </Link>
+          ))}
         </div>
-      </div>
-    </motion.div>
-  )
-}
+      </section>
 
-export default function DashboardPage() {
-  const { data: stats, isLoading } = useStats()
+      <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+        <section aria-labelledby="latest" className="space-y-4">
+          <SectionHeader
+            id="latest"
+            title="Latest results"
+            action={
+              <Link href="/tournaments" className="inline-flex min-h-11 items-center px-2 text-[15px] font-bold text-accent-text">
+                All tournaments
+              </Link>
+            }
+          />
+          <div className="space-y-3">
+            {latest.map((s) => (
+              <SeriesCard key={s.id} s={s} />
+            ))}
+          </div>
+        </section>
 
-  // Memoize the data object to avoid re-renders
-  const screenData = useMemo(() => {
-    if (!stats) return null
-    return {
-      tournaments: stats.tournaments,
-      teams: stats.teams,
-      players: stats.players,
-      matches: stats.series,
-      games: stats.games,
-      rounds: stats.rounds,
-      killEvents: stats.killEvents,
-      clutchSituations: stats.clutchSituations,
-    }
-  }, [stats])
-
-  // Push dashboard stats to screen context for chat
-  usePushScreenData('Dashboard Statistics', screenData, !isLoading && !!stats)
-
-  return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-responsive p-responsive space-y-responsive">
-        {/* Hero Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="space-y-2"
-        >
-          <h1 className="text-responsive-4xl font-bold text-text-primary">
-            VALORANT <span className="text-valorant-accent">Analytics</span>
-          </h1>
-          <p className="text-responsive-lg text-text-secondary">
-            AI-powered coaching insights for competitive VALORANT
-          </p>
-        </motion.div>
-
-        {/* Data Statistics with Animations */}
-        <div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-sm uppercase tracking-wider text-text-tertiary mb-4 flex items-center gap-2"
-          >
-            <Database className="w-4 h-4" />
-            Available Data
-          </motion.h2>
-
-          {isLoading ? (
-            <div className="grid-responsive-stats">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="panel-responsive animate-pulse">
-                  <div className="flex items-start gap-3">
-                    <div className="icon-container-responsive bg-surface-hover" />
-                    <div className="flex-1">
-                      <div className="h-3 w-16 bg-surface-hover rounded mb-2" />
-                      <div className="h-8 w-24 bg-surface-hover rounded" />
-                    </div>
-                  </div>
-                </div>
+        <section aria-labelledby="leaders" className="space-y-4">
+          <SectionHeader id="leaders" title="Top fraggers" description={`Kills per death, ${MIN_ROUNDS}+ rounds played`} />
+          <Card padding="none" className="overflow-hidden">
+            <ol>
+              {leaders.map((p, i) => (
+                <li key={p.id} className="border-b border-line last:border-b-0">
+                  <Link href={`/player-analytics?player=${p.id}`} className="flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-surface-2">
+                    <span className="tabular w-5 text-right font-display text-title3 text-ink-2">{i + 1}</span>
+                    {p.team_name && <TeamBadge name={p.team_name} size="sm" />}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-bold text-ink">{p.name}</span>
+                      <span className="block truncate text-[13px] text-ink-2">{p.top_agents.map(agentLabel).join(", ")}</span>
+                    </span>
+                    <span className="text-right">
+                      <span className="tabular block font-display text-title3 text-ink">{p.kd.toFixed(2)}</span>
+                      <span className="block text-[13px] text-ink-2">{p.rounds} rounds</span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          ) : (
-            <div className="grid-responsive-stats">
-              <StatCard
-                icon={Trophy}
-                label="Tournaments"
-                value={stats?.tournaments || 0}
-                color="bg-valorant-accent"
-                delay={0}
-              />
-              <StatCard
-                icon={Users}
-                label="Teams"
-                value={stats?.teams || 0}
-                color="bg-chart-defense"
-                delay={0.1}
-              />
-              <StatCard
-                icon={UserCircle}
-                label="Players"
-                value={stats?.players || 0}
-                color="bg-chart-attack"
-                delay={0.2}
-              />
-              <StatCard
-                icon={Swords}
-                label="Matches"
-                value={stats?.series || 0}
-                color="bg-valorant-red"
-                delay={0.3}
-              />
-              <StatCard
-                icon={Target}
-                label="Games Played"
-                value={stats?.games || 0}
-                color="bg-purple-600"
-                delay={0.4}
-              />
-              <StatCard
-                icon={BarChart3}
-                label="Rounds"
-                value={stats?.rounds || 0}
-                color="bg-blue-600"
-                delay={0.5}
-              />
-              <StatCard
-                icon={Crosshair}
-                label="Kill Events"
-                value={stats?.killEvents || 0}
-                color="bg-orange-600"
-                delay={0.6}
-              />
-              <StatCard
-                icon={Zap}
-                label="Clutch Situations"
-                value={stats?.clutchSituations || 0}
-                color="bg-yellow-600"
-                delay={0.7}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Quick Access */}
-        <div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="text-responsive-2xl font-semibold text-text-primary mb-4"
-          >
-            Quick Access
-          </motion.h2>
-          <div className="grid-responsive-cards">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-            >
-              <Link href="/player-analytics">
-                <div className="panel-responsive group cursor-pointer h-full">
-                  <div className="flex items-start gap-3">
-                    <div className="icon-container-responsive bg-valorant-accent/10 group-hover:bg-valorant-accent/20 transition-colors">
-                      <Users className="text-valorant-accent" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-text-primary mb-1 text-responsive-lg">Player Analytics</h3>
-                      <p className="text-sm text-text-secondary leading-relaxed">
-                        Deep dive into individual performance, trading efficiency, and clutch stats
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.0 }}
-            >
-              <Link href="/macro-review">
-                <div className="panel-responsive group cursor-pointer h-full">
-                  <div className="flex items-start gap-3">
-                    <div className="icon-container-responsive bg-chart-defense/10 group-hover:bg-chart-defense/20 transition-colors">
-                      <Target className="text-chart-defense" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-text-primary mb-1 text-responsive-lg">Macro Review</h3>
-                      <p className="text-sm text-text-secondary leading-relaxed">
-                        Team tactics, economy management, and critical moment analysis
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.1 }}
-            >
-              <Link href="/scenario-analysis">
-                <div className="panel-responsive group cursor-pointer h-full">
-                  <div className="flex items-start gap-3">
-                    <div className="icon-container-responsive bg-chart-attack/10 group-hover:bg-chart-attack/20 transition-colors">
-                      <BarChart3 className="text-chart-attack" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-text-primary mb-1 text-responsive-lg">Scenario Analysis</h3>
-                      <p className="text-sm text-text-secondary leading-relaxed">
-                        Save vs retake, force buy decisions, and clutch scenario insights
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Browse Data Section */}
-        <div>
-          <motion.h2
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-            className="text-responsive-2xl font-semibold text-text-primary mb-4"
-          >
-            Browse Data
-          </motion.h2>
-          <div className="grid-responsive-cards">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.3 }}
-            >
-              <Link href="/tournaments">
-                <div className="panel-responsive group cursor-pointer text-center">
-                  <div className="icon-container-responsive bg-valorant-accent/10 mx-auto mb-3">
-                    <Trophy className="text-valorant-accent" />
-                  </div>
-                  <h3 className="font-semibold text-text-primary mb-1">Tournaments</h3>
-                  <p className="text-sm text-text-secondary">
-                    <AnimatedCounter value={stats?.tournaments || 0} /> tournaments
-                  </p>
-                </div>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4 }}
-            >
-              <Link href="/teams">
-                <div className="panel-responsive group cursor-pointer text-center">
-                  <div className="icon-container-responsive bg-chart-defense/10 mx-auto mb-3">
-                    <Users className="text-chart-defense" />
-                  </div>
-                  <h3 className="font-semibold text-text-primary mb-1">Teams</h3>
-                  <p className="text-sm text-text-secondary">
-                    <AnimatedCounter value={stats?.teams || 0} /> teams
-                  </p>
-                </div>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.5 }}
-            >
-              <Link href="/players">
-                <div className="panel-responsive group cursor-pointer text-center">
-                  <div className="icon-container-responsive bg-chart-attack/10 mx-auto mb-3">
-                    <TrendingUp className="text-chart-attack" />
-                  </div>
-                  <h3 className="font-semibold text-text-primary mb-1">Players</h3>
-                  <p className="text-sm text-text-secondary">
-                    <AnimatedCounter value={stats?.players || 0} /> players
-                  </p>
-                </div>
-              </Link>
-            </motion.div>
-          </div>
-        </div>
+            </ol>
+          </Card>
+        </section>
       </div>
     </div>
   )

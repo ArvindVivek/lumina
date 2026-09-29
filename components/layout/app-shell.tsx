@@ -1,209 +1,175 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { Bot } from "lucide-react"
-import { Sidebar } from "./sidebar"
+import { useState, type ReactNode } from "react"
+import {
+  Crosshair,
+  FlaskConical,
+  LayoutDashboard,
+  Menu,
+  MessageCircle,
+  Sparkles,
+  Target,
+  Trophy,
+  UserRound,
+  Users,
+  X,
+  type LucideIcon,
+} from "lucide-react"
+import { Icon, ThemeToggle } from "@/components/kl"
+import { cn } from "@/lib/kl/cn"
+import { SiteFooter } from "./site-footer"
 import { ChatPanel } from "./chat-panel"
-import { cn } from "@/lib/utils"
-import { useScreenData } from "@/lib/context/screen-data-context"
 
-interface AppShellProps {
-  children: React.ReactNode
+const NAV: { title: string; items: { label: string; href: string; icon: LucideIcon }[] }[] = [
+  {
+    title: "Browse",
+    items: [
+      { label: "Home", href: "/", icon: LayoutDashboard },
+      { label: "Tournaments", href: "/tournaments", icon: Trophy },
+      { label: "Teams", href: "/teams", icon: Users },
+      { label: "Players", href: "/players", icon: UserRound },
+    ],
+  },
+  {
+    title: "Analyze",
+    items: [
+      { label: "Match report", href: "/analytics", icon: Sparkles },
+      { label: "Player insights", href: "/player-analytics", icon: Crosshair },
+      { label: "Team review", href: "/macro-review", icon: Target },
+      { label: "Scenario lab", href: "/scenario-analysis", icon: FlaskConical },
+    ],
+  },
+]
+
+function isActive(pathname: string, href: string) {
+  if (href === "/") return pathname === "/"
+  const detail: Record<string, string[]> = { "/tournaments": ["/tournaments", "/series", "/game"] }
+  return (detail[href] ?? [href]).some((p) => pathname === p || pathname.startsWith(`${p}/`))
 }
 
-export interface PageContextData {
-  page: string
-  title: string
-  description?: string
-  data?: Record<string, string | undefined>
-  richContext?: Record<string, unknown>
+function Brand() {
+  return (
+    <Link href="/" className="-ml-1 flex min-h-11 items-center gap-2.5 rounded-sm px-1">
+      {/* eslint-disable-next-line @next/next/no-img-element -- a 32px SVG needs no optimizer */}
+      <img src="/icon.svg" alt="" width={32} height={32} className="rounded-[9px]" />
+      <span className="font-display text-title3 font-semibold text-ink">Lumina</span>
+    </Link>
+  )
 }
 
-// Derive page context from pathname
-function getBasePageContext(pathname: string): PageContextData {
-  if (pathname === '/') {
-    return { page: 'dashboard', title: 'Dashboard', description: 'Overview of VALORANT analytics data' }
-  }
-  if (pathname === '/analytics') {
-    return { page: 'analytics', title: 'Analytics Hub', description: 'AI-powered coaching insights and analysis' }
-  }
-  if (pathname.startsWith('/player-analytics')) {
-    return { page: 'player-analytics', title: 'Player Analytics', description: 'Individual player performance analysis' }
-  }
-  if (pathname.startsWith('/macro-review')) {
-    return { page: 'macro', title: 'Macro Review', description: 'Team-level tactical analysis' }
-  }
-  if (pathname.startsWith('/scenario-analysis')) {
-    return { page: 'scenarios', title: 'Scenario Analysis', description: 'Historical scenario matching' }
-  }
-  if (pathname.startsWith('/tournaments')) {
-    const match = pathname.match(/\/tournaments\/([^/]+)/)
-    if (match) {
-      return { page: 'tournament', title: 'Tournament', data: { tournamentId: match[1] } }
-    }
-    return { page: 'tournaments', title: 'Tournaments', description: 'Browse all tournaments' }
-  }
-  if (pathname.startsWith('/teams')) {
-    const match = pathname.match(/\/teams\/([^/]+)/)
-    if (match) {
-      return { page: 'team', title: 'Team', data: { teamId: match[1] } }
-    }
-    return { page: 'teams', title: 'Teams', description: 'Browse all teams' }
-  }
-  if (pathname.startsWith('/players')) {
-    const match = pathname.match(/\/players\/([^/]+)/)
-    if (match) {
-      return { page: 'player', title: 'Player', data: { playerId: match[1] } }
-    }
-    return { page: 'players', title: 'Players', description: 'Browse all players' }
-  }
-  if (pathname.startsWith('/series')) {
-    const match = pathname.match(/\/series\/([^/]+)/)
-    if (match) {
-      return { page: 'series', title: 'Match', data: { seriesId: match[1] } }
-    }
-    return { page: 'series', title: 'Series', description: 'Match history' }
-  }
-  if (pathname.startsWith('/game')) {
-    const match = pathname.match(/\/game\/([^/]+)/)
-    if (match) {
-      return { page: 'game', title: 'Game', data: { gameId: match[1] } }
-    }
-    return { page: 'game', title: 'Game' }
-  }
-  return { page: 'unknown', title: 'Lumina' }
+function NavList({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  return (
+    <nav aria-label="Main" className="space-y-6">
+      {NAV.map((group) => (
+        <div key={group.title}>
+          <p className="px-3 text-xs font-extrabold uppercase tracking-[0.08em] text-ink-2">{group.title}</p>
+          <ul className="mt-2 space-y-1">
+            {group.items.map((item) => {
+              const active = isActive(pathname, item.href)
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex min-h-11 items-center gap-3 rounded-sm px-3 text-[15px] font-bold transition-colors duration-75",
+                      active ? "bg-accent-soft text-accent-text" : "text-ink hover:bg-surface-2",
+                    )}
+                  >
+                    <Icon icon={item.icon} size={20} />
+                    {item.label}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  )
 }
 
-export function AppShell({ children }: AppShellProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
-  const [pageContext, setPageContext] = useState<PageContextData>({ page: 'dashboard', title: 'Dashboard' })
+/**
+ * The app frame: a sidebar on wide screens and a top bar with a menu on phones, the page, the
+ * studio footer, and the "Ask the coach" chat that opens from any page.
+ */
+export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
-  const { setPageInfo, getFormattedContext } = useScreenData()
-
-  // Fetch rich context when pathname changes
-  const fetchRichContext = useCallback(async (baseContext: PageContextData) => {
-    // Always sync page info to screen data context
-    setPageInfo({
-      page: baseContext.page,
-      pageTitle: baseContext.title,
-      seriesId: baseContext.data?.seriesId,
-      teamId: baseContext.data?.teamId,
-      playerId: baseContext.data?.playerId,
-      tournamentId: baseContext.data?.tournamentId,
-      gameId: baseContext.data?.gameId,
-    })
-
-    if (!baseContext.data) {
-      setPageContext(baseContext)
-      return
-    }
-
-    try {
-      const params = new URLSearchParams({ page: baseContext.page })
-      if (baseContext.data.tournamentId) params.set('tournamentId', baseContext.data.tournamentId)
-      if (baseContext.data.seriesId) params.set('seriesId', baseContext.data.seriesId)
-      if (baseContext.data.teamId) params.set('teamId', baseContext.data.teamId)
-      if (baseContext.data.playerId) params.set('playerId', baseContext.data.playerId)
-
-      const response = await fetch(`/api/context?${params.toString()}`)
-      if (response.ok) {
-        const richContext = await response.json()
-
-        // Update context with rich data
-        let updatedTitle = baseContext.title
-        let updatedDescription = baseContext.description
-
-        if (richContext.type === 'tournament' && richContext.tournamentName) {
-          updatedTitle = richContext.tournamentName
-          updatedDescription = `${richContext.matchCount || 0} matches`
-        } else if (richContext.type === 'series' && richContext.teamA && richContext.teamB) {
-          updatedTitle = `${richContext.teamA} vs ${richContext.teamB}`
-          updatedDescription = richContext.tournamentName || 'Match Details'
-        } else if (richContext.type === 'team' && richContext.teamName) {
-          updatedTitle = richContext.teamName
-          updatedDescription = `${richContext.players?.length || 0} players`
-        } else if (richContext.type === 'player' && richContext.playerName) {
-          updatedTitle = richContext.playerName
-          updatedDescription = richContext.teamName || 'Player Stats'
-        }
-
-        setPageContext({
-          ...baseContext,
-          title: updatedTitle,
-          description: updatedDescription,
-          richContext
-        })
-      } else {
-        setPageContext(baseContext)
-      }
-    } catch (error) {
-      console.error('Failed to fetch rich context:', error)
-      setPageContext(baseContext)
-    }
-  }, [setPageInfo])
-
-  // Update context when pathname changes
-  useEffect(() => {
-    const baseContext = getBasePageContext(pathname)
-    fetchRichContext(baseContext)
-  }, [pathname, fetchRichContext])
+  // The phone menu remembers which page it was opened on, so following a link closes it.
+  const [menuOpenOn, setMenuOpenOn] = useState<string | null>(null)
+  const menuOpen = menuOpenOn === pathname
+  const setMenuOpen = (open: boolean) => setMenuOpenOn(open ? pathname : null)
+  const [chatOpen, setChatOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      {/* Collapsible Sidebar */}
-      <Sidebar
-        isCollapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+    <div className="min-h-dvh lg:pl-64">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-surface focus:px-4 focus:py-3 focus:font-bold focus:text-ink focus:shadow-[var(--shadow-lift)]"
+      >
+        Skip to content
+      </a>
 
-      {/* Main Content Area - Shrinks when chat is open */}
-      <main className={cn(
-        "flex-1 overflow-auto min-w-0 relative transition-all duration-300",
-        chatOpen && "pr-[420px]"
-      )}>
-        {/* Content container enables CSS container queries for responsive components */}
-        <div className="content-container max-w-[1800px] mx-auto h-full transition-all duration-300">
-          {children}
+      {/* Wide screens: fixed sidebar. */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface px-4 py-5 lg:flex">
+        <div className="flex items-center justify-between">
+          <Brand />
+          <ThemeToggle />
         </div>
+        <div className="mt-8 min-h-0 flex-1 overflow-y-auto">
+          <NavList pathname={pathname} />
+        </div>
+        <p className="mt-4 rounded-sm bg-surface-2 px-3 py-2.5 text-[13px] leading-snug text-ink-2">
+          Sample data: 32 VCT Americas playoff series, 2024–2025.
+        </p>
+      </aside>
 
-        {/* Floating Chat Button - Right Side */}
-        <AnimatePresence>
-          {!chatOpen && (
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              onClick={() => setChatOpen(true)}
-              className={cn(
-                "fixed bottom-6 right-6 z-40",
-                "w-14 h-14 rounded-full",
-                "bg-valorant-accent hover:bg-valorant-accent/90",
-                "shadow-lg shadow-valorant-accent/25 hover:shadow-xl hover:shadow-valorant-accent/30",
-                "flex items-center justify-center",
-                "transition-shadow duration-200",
-                "group"
-              )}
-              title="Open AI Assistant"
+      {/* Phones and tablets: top bar with a menu. */}
+      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 pt-[env(safe-area-inset-top)] backdrop-blur lg:hidden">
+        <div className="flex h-16 items-center justify-between gap-2 px-4">
+          <Brand />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-expanded={menuOpen}
+              aria-controls="phone-menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className="grid size-11 place-items-center rounded-full bg-surface text-ink shadow-[var(--shadow-card)]"
             >
-              <Bot className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+              <Icon icon={menuOpen ? X : Menu} size={20} />
+            </button>
+          </div>
+        </div>
+        {menuOpen && (
+          <div id="phone-menu" className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-line px-4 pb-6 pt-4">
+            <NavList pathname={pathname} onNavigate={() => setMenuOpen(false)} />
+          </div>
+        )}
+      </header>
 
-              {/* Pulse animation indicator */}
-              <span className="absolute inset-0 rounded-full bg-valorant-accent animate-ping opacity-20" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </main>
+      <div className="flex min-h-dvh flex-col lg:min-h-dvh">
+        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-5 pb-28 pt-6 sm:px-8 lg:pt-10">
+          {children}
+        </main>
+        <SiteFooter />
+      </div>
 
-      {/* Persistent Chat Panel - Fixed to right side */}
-      <ChatPanel
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        pageContext={pageContext}
-      />
+      {!chatOpen && (
+        <button
+          type="button"
+          onClick={() => setChatOpen(true)}
+          className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-5 z-40 inline-flex h-14 items-center gap-2 rounded-full bg-accent-strong px-5 font-display text-lg font-semibold text-on-accent shadow-[0_4px_0_var(--accent-deep),var(--shadow-lift)] transition-transform duration-75 active:translate-y-[2px] active:shadow-[0_2px_0_var(--accent-deep)]"
+        >
+          <Icon icon={MessageCircle} size={22} />
+          Ask the coach
+        </button>
+      )}
+      <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   )
 }

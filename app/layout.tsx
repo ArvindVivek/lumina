@@ -1,39 +1,31 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { QueryProvider } from "@/components/providers/query-provider";
-import { Toaster } from "sonner";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import type { Metadata, Viewport } from "next"
+import "./globals.css"
+import { KLProviders } from "@/components/kl"
+import { fontVariables } from "@/lib/kl/fonts"
+import { site } from "@/lib/site"
 
 export const metadata: Metadata = {
-  title: "Lumina | VALORANT Assistant Coach",
-  description: "Data-driven coaching insights for VALORANT. Analyze player performance, team tactics, and scenario decisions.",
-};
+  metadataBase: new URL(site.url),
+  title: { default: `${site.name} · VALORANT match analytics`, template: `%s · ${site.name}` },
+  description: site.description,
+  applicationName: site.name,
+  openGraph: { type: "website", siteName: site.name, locale: "en_US", url: site.url },
+  twitter: { card: "summary_large_image" },
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: site.themeColor.light },
+    { media: "(prefers-color-scheme: dark)", color: site.themeColor.dark },
+  ],
+}
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <QueryProvider>
-          {children}
-          <Toaster position="top-right" theme="dark" />
-        </QueryProvider>
+    <html lang="en" suppressHydrationWarning className={fontVariables}>
+      <body className="min-h-dvh">
+        <KLProviders>{children}</KLProviders>
       </body>
     </html>
-  );
+  )
 }
