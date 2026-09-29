@@ -2,39 +2,102 @@
   "app": "lumina",
   "baseUrl": "https://lumina-ten-amber.vercel.app",
   "out": "web",
-  "themes": ["light", "dark"],
+  "themes": [
+    "light",
+    "dark"
+  ],
   "themeStrategy": "media",
-  "viewports": ["desktop", "phone"],
+  "viewports": [
+    "desktop",
+    "phone"
+  ],
   "shots": [
-    { "name": "01-home", "path": "/", "waitFor": "text=Every round, explained", "settle": 600 },
-    { "name": "02-match-report", "path": "/analytics?series=2843060&team=79", "waitFor": "text=Map by map", "settle": 600 },
+    {
+      "name": "01-home",
+      "path": "/",
+      "waitFor": "text=Every round, explained",
+      "settle": 600
+    },
+    {
+      "name": "02-match-report",
+      "path": "/analytics?series=2843060&team=79",
+      "waitFor": "text=Map by map",
+      "settle": 600
+    },
     {
       "name": "03-round",
       "path": "/game/1bd3eda3-5917-4daf-978c-84c16b81bfc2",
       "steps": [
-        { "click": "[id=\"round-1bd3eda3-5917-4daf-978c-84c16b81bfc2_2\"] button" },
-        { "waitFor": "text=When the spike went down it was" },
-        { "wait": 800 }
+        {
+          "click": "[id=\"round-1bd3eda3-5917-4daf-978c-84c16b81bfc2_2\"] button"
+        },
+        {
+          "waitFor": "text=When the spike went down it was"
+        },
+        {
+          "eval": "document.getElementById('round-1bd3eda3-5917-4daf-978c-84c16b81bfc2_2').scrollIntoView({block:'start'})"
+        },
+        {
+          "wait": 800
+        }
       ]
     },
-    { "name": "04-player", "path": "/player-analytics?player=14", "waitFor": "text=What the numbers say", "settle": 600 },
-    { "name": "05-team", "path": "/macro-review?team=79", "waitFor": "text=What the numbers say", "settle": 600 },
+    {
+      "name": "04-player",
+      "path": "/player-analytics?player=14",
+      "waitFor": "text=What the numbers say",
+      "settle": 600
+    },
+    {
+      "name": "05-team",
+      "path": "/macro-review?team=79",
+      "waitFor": "text=What the numbers say",
+      "settle": 600
+    },
     {
       "name": "06-scenario",
       "path": "/scenario-analysis",
-      "steps": [{ "click": "text=Check the history" }, { "waitFor": "text=What pros did" }, { "wait": 400 }]
+      "steps": [
+        {
+          "click": "text=Check the history"
+        },
+        {
+          "waitFor": "text=What pros did"
+        },
+        {
+          "wait": 400
+        }
+      ]
     },
     {
       "name": "07-coach",
       "path": "/series/2843060",
       "steps": [
-        { "click": "text=Ask the coach" },
-        { "fill": ["#coach-question", "Who won the opening duels?"] },
-        { "click": "[aria-label=\"Send question\"]" },
-        { "waitFor": "text=Leviatán Esports vs Cloud9." },
-        { "wait": 500 }
+        {
+          "click": "text=Ask the coach"
+        },
+        {
+          "fill": [
+            "#coach-question",
+            "Who won the opening duels?"
+          ]
+        },
+        {
+          "click": "[aria-label=\"Send question\"]"
+        },
+        {
+          "waitFor": "text=Leviatán Esports vs Cloud9."
+        },
+        {
+          "wait": 500
+        }
       ]
     },
-    { "name": "08-tournament", "path": "/tournaments/826992", "waitFor": "text=Matches", "settle": 600 }
+    {
+      "name": "08-tournament",
+      "path": "/tournaments/826992",
+      "waitFor": "text=Matches",
+      "settle": 600
+    }
   ]
 }
