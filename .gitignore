@@ -44,3 +44,8 @@ next-env.d.ts
 
 # planning docs (local only)
 .planning/
+
+# local tooling
+.idea/
+/test-results/
+/playwright-report/

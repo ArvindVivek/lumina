@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "hono": "https://deno.land/x/hono@v4.6.14/mod.ts",
-    "postgres": "https://deno.land/x/postgres@v0.19.3/mod.ts"
-  }
-}
