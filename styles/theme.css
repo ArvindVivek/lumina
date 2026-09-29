@@ -1,5 +1,5 @@
 /* Lumina's accent: rose (#E11D48). Derived with the script in kitchenlabs-kit/docs/brand/palettes.md;
-   the palette.json block is in docs/DESIGN.md until the kit registers brand/lumina. Every text pair
+   docs/brand/palette.json holds the full palette until the kit registers brand/lumina. Every text pair
    is measured in lib/tokens.test.ts.
 
    Field map: accent → --accent, accentStrong → --accent-strong, accentDeep → --accent-deep,

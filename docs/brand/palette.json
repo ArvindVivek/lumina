@@ -1,0 +1,19 @@
+{
+  "app": "lumina",
+  "displayName": "Lumina",
+  "appearance": "adaptive",
+  "accent": "#E11D48",
+  "accentStrong": "#BE123C",
+  "accentDeep": "#881337",
+  "accentSoft": "#FBDFE5",
+  "accentSoftDark": "#421B2F",
+  "onAccent": "#FFFFFF",
+  "accentText": "#C61A3F",
+  "accentTextDark": "#EB6280",
+  "secondary": null,
+  "gradient": [
+    "#F43F5E",
+    "#881337"
+  ],
+  "night": null
+}
