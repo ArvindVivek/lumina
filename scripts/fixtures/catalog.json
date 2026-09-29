@@ -1,0 +1,3726 @@
+[
+ {
+  "file": "2629390_events.jsonl",
+  "size": 57569901,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629390",
+  "fmt": "best-of-3",
+  "start": "2024-02-16T21:51:12.276Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2629391_events.jsonl",
+  "size": 120913293,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629391",
+  "fmt": "best-of-3",
+  "start": "2024-02-17T00:56:43.941Z",
+  "teams": [
+   [
+    "81",
+    "MIBR"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2629392_events.jsonl",
+  "size": 65254492,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629392",
+  "fmt": "best-of-3",
+  "start": "2024-02-17T21:53:57.156Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "3412",
+    "LOUD"
+   ]
+  ]
+ },
+ {
+  "file": "2629393_events.jsonl",
+  "size": 100946137,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629393",
+  "fmt": "best-of-3",
+  "start": "2024-02-18T00:42:11.266Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2629394_events.jsonl",
+  "size": 122981506,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629394",
+  "fmt": "best-of-3",
+  "start": "2024-02-18T21:51:00.525Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2629395_events.jsonl",
+  "size": 62117782,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629395",
+  "fmt": "best-of-3",
+  "start": "2024-02-19T21:53:27.172Z",
+  "teams": [
+   [
+    "81",
+    "MIBR"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2629396_events.jsonl",
+  "size": 92875315,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629396",
+  "fmt": "best-of-3",
+  "start": "2024-02-20T00:44:13.136Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2629398_events.jsonl",
+  "size": 64099147,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629398",
+  "fmt": "best-of-3",
+  "start": "2024-02-23T21:51:04.326Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2629399_events.jsonl",
+  "size": 123357299,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629399",
+  "fmt": "best-of-3",
+  "start": "2024-02-24T00:28:52.406Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "3412",
+    "LOUD"
+   ]
+  ]
+ },
+ {
+  "file": "2629400_events.jsonl",
+  "size": 78137687,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629400",
+  "fmt": "best-of-3",
+  "start": "2024-02-24T21:51:37.786Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2629401_events.jsonl",
+  "size": 70814146,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629401",
+  "fmt": "best-of-3",
+  "start": "2024-02-25T19:52:05.365Z",
+  "teams": [
+   [
+    "81",
+    "MIBR"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2629402_events.jsonl",
+  "size": 94120363,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629402",
+  "fmt": "best-of-3",
+  "start": "2024-02-25T22:37:05.934Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2629403_events.jsonl",
+  "size": 54011087,
+  "tid": "757073",
+  "tname": "VCT Americas - Kickoff 2024 (Groups)",
+  "sid": "2629403",
+  "fmt": "best-of-3",
+  "start": "2024-02-26T01:47:03.609Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2629405_events.jsonl",
+  "size": 92131025,
+  "tid": "757074",
+  "tname": "VCT Americas - Kickoff 2024 (Playoffs)",
+  "sid": "2629405",
+  "fmt": "best-of-3",
+  "start": "2024-03-02T21:52:31.640Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "3412",
+    "LOUD"
+   ]
+  ]
+ },
+ {
+  "file": "2629406_events.jsonl",
+  "size": 119024915,
+  "tid": "757074",
+  "tname": "VCT Americas - Kickoff 2024 (Playoffs)",
+  "sid": "2629406",
+  "fmt": "best-of-3",
+  "start": "2024-03-03T00:56:22.103Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2629407_events.jsonl",
+  "size": 253355515,
+  "tid": "757074",
+  "tname": "VCT Americas - Kickoff 2024 (Playoffs)",
+  "sid": "2629407",
+  "fmt": "best-of-5",
+  "start": "2024-03-03T21:51:05.240Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "3412",
+    "LOUD"
+   ]
+  ]
+ },
+ {
+  "file": "2637961_events.jsonl",
+  "size": 48930199,
+  "tid": "757101",
+  "tname": "VCT Americas - Kickoff 2024 (Play-Ins)",
+  "sid": "2637961",
+  "fmt": "best-of-3",
+  "start": "2024-02-26T19:51:08.580Z",
+  "teams": [
+   [
+    "81",
+    "MIBR"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2637962_events.jsonl",
+  "size": 142672605,
+  "tid": "757101",
+  "tname": "VCT Americas - Kickoff 2024 (Play-Ins)",
+  "sid": "2637962",
+  "fmt": "best-of-3",
+  "start": "2024-02-26T22:05:32.077Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "81",
+    "MIBR"
+   ]
+  ]
+ },
+ {
+  "file": "2637963_events.jsonl",
+  "size": 116489286,
+  "tid": "757101",
+  "tname": "VCT Americas - Kickoff 2024 (Play-Ins)",
+  "sid": "2637963",
+  "fmt": "best-of-3",
+  "start": "2024-02-27T01:53:25.950Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2653969_events.jsonl",
+  "size": 142614784,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653969",
+  "fmt": "best-of-3",
+  "start": "2024-04-06T20:50:09.404Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2653970_events.jsonl",
+  "size": 45223187,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653970",
+  "fmt": "best-of-3",
+  "start": "2024-04-07T00:56:50.287Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653972_events.jsonl",
+  "size": 45337518,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653972",
+  "fmt": "best-of-3",
+  "start": "2024-04-07T20:50:23.848Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2653973_events.jsonl",
+  "size": 52449157,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653973",
+  "fmt": "best-of-3",
+  "start": "2024-04-07T23:02:57.530Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2653974_events.jsonl",
+  "size": 106050374,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653974",
+  "fmt": "best-of-3",
+  "start": "2024-04-08T20:50:29.320Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2653975_events.jsonl",
+  "size": 55312396,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653975",
+  "fmt": "best-of-3",
+  "start": "2024-04-13T20:50:31.296Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2653976_events.jsonl",
+  "size": 99019908,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653976",
+  "fmt": "best-of-3",
+  "start": "2024-04-13T23:26:39.486Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2653977_events.jsonl",
+  "size": 47662187,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653977",
+  "fmt": "best-of-3",
+  "start": "2024-04-14T20:52:35.465Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653978_events.jsonl",
+  "size": 43324170,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653978",
+  "fmt": "best-of-3",
+  "start": "2024-04-14T23:13:50.089Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2653979_events.jsonl",
+  "size": 98568502,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653979",
+  "fmt": "best-of-3",
+  "start": "2024-04-15T20:50:11.399Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2653980_events.jsonl",
+  "size": 42098520,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653980",
+  "fmt": "best-of-3",
+  "start": "2024-04-20T20:50:10.084Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653981_events.jsonl",
+  "size": 103733107,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653981",
+  "fmt": "best-of-3",
+  "start": "2024-04-20T23:22:43.341Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653982_events.jsonl",
+  "size": 49136260,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653982",
+  "fmt": "best-of-3",
+  "start": "2024-04-21T20:50:15.497Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2653983_events.jsonl",
+  "size": 35574375,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653983",
+  "fmt": "best-of-3",
+  "start": "2024-04-21T23:06:59.237Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2653984_events.jsonl",
+  "size": 33431042,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653984",
+  "fmt": "best-of-3",
+  "start": "2024-04-22T20:49:54.725Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2653985_events.jsonl",
+  "size": 45337068,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653985",
+  "fmt": "best-of-3",
+  "start": "2024-04-22T22:55:07.155Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2653986_events.jsonl",
+  "size": 127152563,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653986",
+  "fmt": "best-of-3",
+  "start": "2024-04-23T20:50:23.231Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2653987_events.jsonl",
+  "size": 45776449,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653987",
+  "fmt": "best-of-3",
+  "start": "2024-04-24T00:30:42.761Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653988_events.jsonl",
+  "size": 104043445,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653988",
+  "fmt": "best-of-3",
+  "start": "2024-04-24T20:50:50.362Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2653989_events.jsonl",
+  "size": 55991718,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653989",
+  "fmt": "best-of-3",
+  "start": "2024-04-25T00:06:56.528Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653990_events.jsonl",
+  "size": 45993305,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653990",
+  "fmt": "best-of-3",
+  "start": "2024-04-27T20:51:28.036Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653991_events.jsonl",
+  "size": 50656641,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653991",
+  "fmt": "best-of-3",
+  "start": "2024-04-27T23:03:07.148Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653992_events.jsonl",
+  "size": 78501768,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653992",
+  "fmt": "best-of-3",
+  "start": "2024-04-28T20:51:27.162Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2653993_events.jsonl",
+  "size": 137144679,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653993",
+  "fmt": "best-of-3",
+  "start": "2024-04-28T23:48:06.586Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2653994_events.jsonl",
+  "size": 104465119,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653994",
+  "fmt": "best-of-3",
+  "start": "2024-04-29T20:50:45.552Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2653995_events.jsonl",
+  "size": 46580824,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653995",
+  "fmt": "best-of-3",
+  "start": "2024-05-03T23:53:19.340Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2653996_events.jsonl",
+  "size": 50953351,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653996",
+  "fmt": "best-of-3",
+  "start": "2024-05-04T20:51:07.658Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2653997_events.jsonl",
+  "size": 117192725,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653997",
+  "fmt": "best-of-3",
+  "start": "2024-05-04T23:18:28.909Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2653998_events.jsonl",
+  "size": 68033855,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653998",
+  "fmt": "best-of-3",
+  "start": "2024-05-05T20:49:58.787Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2653999_events.jsonl",
+  "size": 50649707,
+  "tid": "758114",
+  "tname": "VCT Americas - Stage 1 2024 (Regular Season: Alpha Group)",
+  "sid": "2653999",
+  "fmt": "best-of-3",
+  "start": "2024-05-05T23:22:38.538Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2654000_events.jsonl",
+  "size": 67408381,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654000",
+  "fmt": "best-of-3",
+  "start": "2024-05-08T20:49:52.759Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2654001_events.jsonl",
+  "size": 40259988,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654001",
+  "fmt": "best-of-3",
+  "start": "2024-05-08T23:18:17.906Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2654002_events.jsonl",
+  "size": 47512123,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654002",
+  "fmt": "best-of-3",
+  "start": "2024-05-09T20:50:35.479Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2654003_events.jsonl",
+  "size": 107451547,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654003",
+  "fmt": "best-of-3",
+  "start": "2024-05-09T22:56:48.048Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2654004_events.jsonl",
+  "size": 100411742,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654004",
+  "fmt": "best-of-3",
+  "start": "2024-05-10T20:49:52.394Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2654005_events.jsonl",
+  "size": 108493866,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654005",
+  "fmt": "best-of-3",
+  "start": "2024-05-11T00:00:19.092Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2654012_events.jsonl",
+  "size": 329742426,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654012",
+  "fmt": "best-of-5",
+  "start": "2024-05-11T20:50:35.977Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2654052_events.jsonl",
+  "size": 103676192,
+  "tid": "757321",
+  "tname": "VCT Americas - Stage 1 2024 (Playoffs: Playoffs)",
+  "sid": "2654052",
+  "fmt": "best-of-5",
+  "start": "2024-05-12T20:49:39.286Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681809_events.jsonl",
+  "size": 52823678,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681809",
+  "fmt": "best-of-3",
+  "start": "2024-06-22T20:49:25.148Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681810_events.jsonl",
+  "size": 66695018,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681810",
+  "fmt": "best-of-3",
+  "start": "2024-06-22T23:06:32.517Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2681811_events.jsonl",
+  "size": 85434475,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681811",
+  "fmt": "best-of-3",
+  "start": "2024-06-23T20:52:07.095Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681812_events.jsonl",
+  "size": 104315995,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681812",
+  "fmt": "best-of-3",
+  "start": "2024-06-23T23:40:03.271Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2681814_events.jsonl",
+  "size": 103967104,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681814",
+  "fmt": "best-of-3",
+  "start": "2024-06-24T20:52:18.827Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2681817_events.jsonl",
+  "size": 42841628,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681817",
+  "fmt": "best-of-3",
+  "start": "2024-06-29T20:53:39.825Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2681818_events.jsonl",
+  "size": 70060595,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681818",
+  "fmt": "best-of-3",
+  "start": "2024-06-29T22:55:53.051Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681819_events.jsonl",
+  "size": 116608187,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681819",
+  "fmt": "best-of-3",
+  "start": "2024-06-30T20:53:11.949Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2681820_events.jsonl",
+  "size": 50360050,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681820",
+  "fmt": "best-of-3",
+  "start": "2024-07-01T00:15:39.641Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681821_events.jsonl",
+  "size": 55020768,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681821",
+  "fmt": "best-of-3",
+  "start": "2024-07-01T20:52:07.760Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681822_events.jsonl",
+  "size": 49749896,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681822",
+  "fmt": "best-of-3",
+  "start": "2024-07-01T23:14:30.179Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2681823_events.jsonl",
+  "size": 58490858,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681823",
+  "fmt": "best-of-3",
+  "start": "2024-07-02T20:52:08.048Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681824_events.jsonl",
+  "size": 129722818,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681824",
+  "fmt": "best-of-3",
+  "start": "2024-07-02T23:11:18.824Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2681826_events.jsonl",
+  "size": 44648114,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681826",
+  "fmt": "best-of-3",
+  "start": "2024-07-03T20:53:45.600Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681827_events.jsonl",
+  "size": 110843292,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681827",
+  "fmt": "best-of-3",
+  "start": "2024-07-03T22:58:39.763Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681829_events.jsonl",
+  "size": 124257800,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681829",
+  "fmt": "best-of-3",
+  "start": "2024-07-06T20:52:03.048Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681830_events.jsonl",
+  "size": 61992231,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681830",
+  "fmt": "best-of-3",
+  "start": "2024-07-07T00:23:54.287Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681831_events.jsonl",
+  "size": 58546729,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681831",
+  "fmt": "best-of-3",
+  "start": "2024-07-07T20:51:54.828Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2681832_events.jsonl",
+  "size": 121994912,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681832",
+  "fmt": "best-of-3",
+  "start": "2024-07-07T23:03:49.941Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2681834_events.jsonl",
+  "size": 121862117,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681834",
+  "fmt": "best-of-3",
+  "start": "2024-07-08T20:51:49.575Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681835_events.jsonl",
+  "size": 59617417,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681835",
+  "fmt": "best-of-3",
+  "start": "2024-07-12T23:53:11.100Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681836_events.jsonl",
+  "size": 47619449,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681836",
+  "fmt": "best-of-3",
+  "start": "2024-07-13T20:53:18.368Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2681837_events.jsonl",
+  "size": 48707075,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681837",
+  "fmt": "best-of-3",
+  "start": "2024-07-13T23:02:59.701Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2681838_events.jsonl",
+  "size": 93454106,
+  "tid": "774784",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group A)",
+  "sid": "2681838",
+  "fmt": "best-of-3",
+  "start": "2024-07-14T20:53:15.707Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681839_events.jsonl",
+  "size": 54921551,
+  "tid": "774785",
+  "tname": "VCT Americas - Stage 2 2024 (Regular Season: Group B)",
+  "sid": "2681839",
+  "fmt": "best-of-3",
+  "start": "2024-07-14T23:45:24.549Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681840_events.jsonl",
+  "size": 130461493,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681840",
+  "fmt": "best-of-3",
+  "start": "2024-07-17T20:53:59.361Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2681841_events.jsonl",
+  "size": 62271663,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681841",
+  "fmt": "best-of-3",
+  "start": "2024-07-18T00:18:20.762Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2681842_events.jsonl",
+  "size": 37427407,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681842",
+  "fmt": "best-of-3",
+  "start": "2024-07-18T20:53:49.186Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681843_events.jsonl",
+  "size": 57849606,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681843",
+  "fmt": "best-of-3",
+  "start": "2024-07-18T22:41:48.315Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681844_events.jsonl",
+  "size": 52777556,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681844",
+  "fmt": "best-of-3",
+  "start": "2024-07-19T20:51:50.758Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681845_events.jsonl",
+  "size": 135022616,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681845",
+  "fmt": "best-of-3",
+  "start": "2024-07-19T23:04:08.561Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681846_events.jsonl",
+  "size": 296667050,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681846",
+  "fmt": "best-of-5",
+  "start": "2024-07-20T20:53:15.950Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2681847_events.jsonl",
+  "size": 247473324,
+  "tid": "774787",
+  "tname": "VCT Americas - Stage 2 2024 (Playoffs: Playoffs)",
+  "sid": "2681847",
+  "fmt": "best-of-5",
+  "start": "2024-07-21T20:52:01.698Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2748743_events.jsonl",
+  "size": 156981912,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748743",
+  "fmt": "best-of-3",
+  "start": "2025-01-16T21:56:54.537Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2748744_events.jsonl",
+  "size": 116197785,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748744",
+  "fmt": "best-of-3",
+  "start": "2025-01-17T00:37:51.888Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2748745_events.jsonl",
+  "size": 102639401,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748745",
+  "fmt": "best-of-3",
+  "start": "2025-01-17T21:55:36.134Z",
+  "teams": [
+   [
+    "53367",
+    "2GAME eSports"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2748746_events.jsonl",
+  "size": 177069770,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748746",
+  "fmt": "best-of-3",
+  "start": "2025-01-18T00:01:25.095Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2748747_events.jsonl",
+  "size": 116763338,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748747",
+  "fmt": "best-of-3",
+  "start": "2025-01-18T21:53:00.817Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2748748_events.jsonl",
+  "size": 241779730,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748748",
+  "fmt": "best-of-3",
+  "start": "2025-01-19T00:13:53.877Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2748749_events.jsonl",
+  "size": 112671594,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748749",
+  "fmt": "best-of-3",
+  "start": "2025-01-19T21:58:06.316Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2748750_events.jsonl",
+  "size": 120238137,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748750",
+  "fmt": "best-of-3",
+  "start": "2025-01-20T00:25:55.535Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2748753_events.jsonl",
+  "size": 112746198,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748753",
+  "fmt": "best-of-3",
+  "start": "2025-01-23T21:53:08.846Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2748754_events.jsonl",
+  "size": 260323456,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748754",
+  "fmt": "best-of-3",
+  "start": "2025-01-24T00:14:43.415Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2748755_events.jsonl",
+  "size": 288050516,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748755",
+  "fmt": "best-of-3",
+  "start": "2025-01-25T00:06:53.750Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2748756_events.jsonl",
+  "size": 75980064,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748756",
+  "fmt": "best-of-3",
+  "start": "2025-01-24T21:53:20.794Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "53367",
+    "2GAME eSports"
+   ]
+  ]
+ },
+ {
+  "file": "2748757_events.jsonl",
+  "size": 301463443,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748757",
+  "fmt": "best-of-3",
+  "start": "2025-01-31T21:53:01.135Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2748758_events.jsonl",
+  "size": 124994756,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748758",
+  "fmt": "best-of-3",
+  "start": "2025-02-01T02:00:51.262Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2748759_events.jsonl",
+  "size": 111752369,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748759",
+  "fmt": "best-of-3",
+  "start": "2025-02-01T22:02:58.781Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2748760_events.jsonl",
+  "size": 260182415,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748760",
+  "fmt": "best-of-3",
+  "start": "2025-02-02T00:22:07.979Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2748761_events.jsonl",
+  "size": 300742919,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748761",
+  "fmt": "best-of-3",
+  "start": "2025-02-02T21:53:29.604Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2748762_events.jsonl",
+  "size": 130412654,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748762",
+  "fmt": "best-of-3",
+  "start": "2025-02-03T01:28:33.107Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2748763_events.jsonl",
+  "size": 119090438,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748763",
+  "fmt": "best-of-3",
+  "start": "2025-02-06T21:53:02.111Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2748764_events.jsonl",
+  "size": 278425354,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748764",
+  "fmt": "best-of-3",
+  "start": "2025-02-07T00:21:31.485Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2748765_events.jsonl",
+  "size": 558222345,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748765",
+  "fmt": "best-of-5",
+  "start": "2025-02-07T21:53:48.885Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2748766_events.jsonl",
+  "size": 595535140,
+  "tid": "775518",
+  "tname": "VCT Americas - Kickoff 2025 (Knockouts: Knockouts)",
+  "sid": "2748766",
+  "fmt": "best-of-5",
+  "start": "2025-02-08T21:52:57.415Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775953_events.jsonl",
+  "size": 238839001,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775953",
+  "fmt": "best-of-3",
+  "start": "2025-03-21T21:00:13.201Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2775954_events.jsonl",
+  "size": 194768415,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775954",
+  "fmt": "best-of-3",
+  "start": "2025-03-22T00:25:21.614Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775955_events.jsonl",
+  "size": 125761831,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775955",
+  "fmt": "best-of-3",
+  "start": "2025-03-22T20:54:25.111Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2775956_events.jsonl",
+  "size": 120584234,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775956",
+  "fmt": "best-of-3",
+  "start": "2025-03-22T23:27:31.353Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775957_events.jsonl",
+  "size": 145070457,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775957",
+  "fmt": "best-of-3",
+  "start": "2025-03-23T20:56:18.968Z",
+  "teams": [
+   [
+    "53367",
+    "2GAME eSports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2775958_events.jsonl",
+  "size": 182501698,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775958",
+  "fmt": "best-of-3",
+  "start": "2025-03-23T23:21:32.308Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2775959_events.jsonl",
+  "size": 191745486,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775959",
+  "fmt": "best-of-3",
+  "start": "2025-03-28T20:52:58.755Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2775960_events.jsonl",
+  "size": 129655264,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775960",
+  "fmt": "best-of-3",
+  "start": "2025-03-28T23:56:06.334Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775961_events.jsonl",
+  "size": 132571742,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775961",
+  "fmt": "best-of-3",
+  "start": "2025-03-29T20:58:16.289Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2775962_events.jsonl",
+  "size": 310938785,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775962",
+  "fmt": "best-of-3",
+  "start": "2025-03-29T23:08:47.905Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775963_events.jsonl",
+  "size": 166561015,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775963",
+  "fmt": "best-of-3",
+  "start": "2025-03-30T20:54:13.819Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "53367",
+    "2GAME eSports"
+   ]
+  ]
+ },
+ {
+  "file": "2775964_events.jsonl",
+  "size": 94390362,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775964",
+  "fmt": "best-of-3",
+  "start": "2025-03-30T23:41:21.564Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775966_events.jsonl",
+  "size": 251869736,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775966",
+  "fmt": "best-of-3",
+  "start": "2025-04-04T23:04:48.726Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775967_events.jsonl",
+  "size": 209078036,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775967",
+  "fmt": "best-of-3",
+  "start": "2025-04-05T20:53:21.242Z",
+  "teams": [
+   [
+    "53367",
+    "2GAME eSports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775968_events.jsonl",
+  "size": 91657944,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775968",
+  "fmt": "best-of-3",
+  "start": "2025-04-06T00:05:36.499Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2775969_events.jsonl",
+  "size": 90377628,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775969",
+  "fmt": "best-of-3",
+  "start": "2025-04-06T20:56:45.361Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775970_events.jsonl",
+  "size": 333378621,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775970",
+  "fmt": "best-of-3",
+  "start": "2025-04-06T23:12:01.431Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775971_events.jsonl",
+  "size": 153257442,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775971",
+  "fmt": "best-of-3",
+  "start": "2025-04-11T20:53:37.905Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "53367",
+    "2GAME eSports"
+   ]
+  ]
+ },
+ {
+  "file": "2775972_events.jsonl",
+  "size": 278418766,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775972",
+  "fmt": "best-of-3",
+  "start": "2025-04-11T23:18:21.343Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775973_events.jsonl",
+  "size": 135919006,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775973",
+  "fmt": "best-of-3",
+  "start": "2025-04-12T20:54:40.624Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2775974_events.jsonl",
+  "size": 261689534,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775974",
+  "fmt": "best-of-3",
+  "start": "2025-04-12T23:17:24.191Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775975_events.jsonl",
+  "size": 107461951,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775975",
+  "fmt": "best-of-3",
+  "start": "2025-04-13T20:53:05.634Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2775976_events.jsonl",
+  "size": 105522470,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775976",
+  "fmt": "best-of-3",
+  "start": "2025-04-13T23:03:17.830Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775977_events.jsonl",
+  "size": 235834793,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775977",
+  "fmt": "best-of-3",
+  "start": "2025-04-18T20:57:40.114Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2775978_events.jsonl",
+  "size": 218440035,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775978",
+  "fmt": "best-of-3",
+  "start": "2025-04-18T23:54:29.105Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2775979_events.jsonl",
+  "size": 94029215,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775979",
+  "fmt": "best-of-3",
+  "start": "2025-04-19T20:59:14.619Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "53367",
+    "2GAME eSports"
+   ]
+  ]
+ },
+ {
+  "file": "2775980_events.jsonl",
+  "size": 146058780,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775980",
+  "fmt": "best-of-3",
+  "start": "2025-04-19T23:23:34.617Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2775981_events.jsonl",
+  "size": 328132353,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2775981",
+  "fmt": "best-of-3",
+  "start": "2025-04-20T20:58:25.701Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775982_events.jsonl",
+  "size": 162320477,
+  "tid": "800677",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group B)",
+  "sid": "2775982",
+  "fmt": "best-of-3",
+  "start": "2025-04-21T01:23:40.475Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775983_events.jsonl",
+  "size": 110736667,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775983",
+  "fmt": "best-of-3",
+  "start": "2025-04-24T20:54:03.892Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2775984_events.jsonl",
+  "size": 141691051,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775984",
+  "fmt": "best-of-3",
+  "start": "2025-04-24T23:05:25.633Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2775985_events.jsonl",
+  "size": 127339623,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775985",
+  "fmt": "best-of-3",
+  "start": "2025-04-25T20:52:58.964Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2775986_events.jsonl",
+  "size": 181345034,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775986",
+  "fmt": "best-of-3",
+  "start": "2025-04-25T23:06:29.608Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2775987_events.jsonl",
+  "size": 111111391,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775987",
+  "fmt": "best-of-3",
+  "start": "2025-04-26T20:53:38.687Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775988_events.jsonl",
+  "size": 275088972,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775988",
+  "fmt": "best-of-3",
+  "start": "2025-04-26T22:58:46.460Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775989_events.jsonl",
+  "size": 178616774,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775989",
+  "fmt": "best-of-3",
+  "start": "2025-04-27T20:54:02.203Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2775990_events.jsonl",
+  "size": 331734898,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775990",
+  "fmt": "best-of-3",
+  "start": "2025-04-27T23:35:43.338Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2775991_events.jsonl",
+  "size": 130178421,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775991",
+  "fmt": "best-of-3",
+  "start": "2025-05-02T20:53:14.939Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775992_events.jsonl",
+  "size": 287632483,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775992",
+  "fmt": "best-of-3",
+  "start": "2025-05-02T23:43:03.091Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2775993_events.jsonl",
+  "size": 515353130,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775993",
+  "fmt": "best-of-5",
+  "start": "2025-05-03T20:54:49.718Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "81",
+    "MIBR (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2775994_events.jsonl",
+  "size": 460944357,
+  "tid": "800680",
+  "tname": "VCT Americas - Stage 1 2025 (Playoffs: Playoffs)",
+  "sid": "2775994",
+  "fmt": "best-of-5",
+  "start": "2025-05-04T20:53:05.611Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2789396_events.jsonl",
+  "size": 98710677,
+  "tid": "800678",
+  "tname": "VCT Americas - Stage 1 2025 (Regular Season: Group A)",
+  "sid": "2789396",
+  "fmt": "best-of-3",
+  "start": "2025-04-04T20:54:07.148Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2819676_events.jsonl",
+  "size": 96770831,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819676",
+  "fmt": "best-of-3",
+  "start": "2025-07-18T21:09:23.543Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2819677_events.jsonl",
+  "size": 275048967,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819677",
+  "fmt": "best-of-3",
+  "start": "2025-07-18T23:16:56.750Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2819678_events.jsonl",
+  "size": 259656361,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819678",
+  "fmt": "best-of-3",
+  "start": "2025-07-19T20:54:15.822Z",
+  "teams": [
+   [
+    "281",
+    "Evil Geniuses"
+   ],
+   [
+    "53367",
+    "2GAME eSports"
+   ]
+  ]
+ },
+ {
+  "file": "2819679_events.jsonl",
+  "size": 209726560,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819679",
+  "fmt": "best-of-3",
+  "start": "2025-07-20T00:18:28.854Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819680_events.jsonl",
+  "size": 116808954,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819680",
+  "fmt": "best-of-3",
+  "start": "2025-07-20T20:52:55.229Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2819681_events.jsonl",
+  "size": 277285845,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819681",
+  "fmt": "best-of-3",
+  "start": "2025-07-20T22:56:20.615Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819682_events.jsonl",
+  "size": 113045610,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819682",
+  "fmt": "best-of-3",
+  "start": "2025-07-25T20:53:09.012Z",
+  "teams": [
+   [
+    "53367",
+    "2GAME eSports"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819683_events.jsonl",
+  "size": 74346807,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819683",
+  "fmt": "best-of-3",
+  "start": "2025-07-25T23:03:26.613Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2819684_events.jsonl",
+  "size": 91604286,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819684",
+  "fmt": "best-of-3",
+  "start": "2025-07-26T20:57:02.032Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819685_events.jsonl",
+  "size": 108921317,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819685",
+  "fmt": "best-of-3",
+  "start": "2025-07-26T23:07:21.582Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2819686_events.jsonl",
+  "size": 140691835,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819686",
+  "fmt": "best-of-3",
+  "start": "2025-07-27T21:03:51.925Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2819687_events.jsonl",
+  "size": 107943678,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819687",
+  "fmt": "best-of-3",
+  "start": "2025-07-27T23:15:45.681Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819688_events.jsonl",
+  "size": 220517271,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819688",
+  "fmt": "best-of-3",
+  "start": "2025-08-01T20:53:25.769Z",
+  "teams": [
+   [
+    "53367",
+    "2GAME eSports"
+   ],
+   [
+    "99",
+    "FURIA"
+   ]
+  ]
+ },
+ {
+  "file": "2819689_events.jsonl",
+  "size": 315221890,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819689",
+  "fmt": "best-of-3",
+  "start": "2025-08-02T00:15:08.332Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2819690_events.jsonl",
+  "size": 127370713,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819690",
+  "fmt": "best-of-3",
+  "start": "2025-08-02T20:53:50.814Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2819691_events.jsonl",
+  "size": 170247126,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819691",
+  "fmt": "best-of-3",
+  "start": "2025-08-02T23:08:14.564Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2819692_events.jsonl",
+  "size": 216530276,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819692",
+  "fmt": "best-of-3",
+  "start": "2025-08-03T20:53:34.746Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2819693_events.jsonl",
+  "size": 213765306,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819693",
+  "fmt": "best-of-3",
+  "start": "2025-08-04T00:03:57.237Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819694_events.jsonl",
+  "size": 93397680,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819694",
+  "fmt": "best-of-3",
+  "start": "2025-08-08T20:52:56.019Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "53367",
+    "2GAME eSports"
+   ]
+  ]
+ },
+ {
+  "file": "2819695_events.jsonl",
+  "size": 186224635,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819695",
+  "fmt": "best-of-3",
+  "start": "2025-08-08T22:49:59.859Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2819696_events.jsonl",
+  "size": 108956658,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819696",
+  "fmt": "best-of-3",
+  "start": "2025-08-09T20:53:18.687Z",
+  "teams": [
+   [
+    "1079",
+    "Sentinels"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2819697_events.jsonl",
+  "size": 233277855,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819697",
+  "fmt": "best-of-3",
+  "start": "2025-08-09T23:04:51.990Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819698_events.jsonl",
+  "size": 83985189,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819698",
+  "fmt": "best-of-3",
+  "start": "2025-08-10T20:53:46.866Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819699_events.jsonl",
+  "size": 234514684,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819699",
+  "fmt": "best-of-3",
+  "start": "2025-08-10T22:57:06.591Z",
+  "teams": [
+   [
+    "3412",
+    "LOUD (1)"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2819700_events.jsonl",
+  "size": 203844722,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819700",
+  "fmt": "best-of-3",
+  "start": "2025-08-15T20:55:46.042Z",
+  "teams": [
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2819701_events.jsonl",
+  "size": 228875614,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819701",
+  "fmt": "best-of-3",
+  "start": "2025-08-15T23:58:54.617Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2819702_events.jsonl",
+  "size": 118260904,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819702",
+  "fmt": "best-of-3",
+  "start": "2025-08-16T20:56:57.590Z",
+  "teams": [
+   [
+    "99",
+    "FURIA"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2819703_events.jsonl",
+  "size": 201571768,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819703",
+  "fmt": "best-of-3",
+  "start": "2025-08-16T23:14:22.359Z",
+  "teams": [
+   [
+    "53367",
+    "2GAME eSports"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2819704_events.jsonl",
+  "size": 131409991,
+  "tid": "826662",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group A)",
+  "sid": "2819704",
+  "fmt": "best-of-3",
+  "start": "2025-08-17T21:00:39.473Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2819705_events.jsonl",
+  "size": 159526859,
+  "tid": "826663",
+  "tname": "VCT Americas - Stage 2 2025 (Regular Season: Group B)",
+  "sid": "2819705",
+  "fmt": "best-of-3",
+  "start": "2025-08-17T23:26:01.221Z",
+  "teams": [
+   [
+    "81",
+    "MIBR (1)"
+   ],
+   [
+    "3412",
+    "LOUD (1)"
+   ]
+  ]
+ },
+ {
+  "file": "2843060_events.jsonl",
+  "size": 314438634,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843060",
+  "fmt": "best-of-3",
+  "start": "2025-08-21T20:53:32.364Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "79",
+    "Cloud9"
+   ]
+  ]
+ },
+ {
+  "file": "2843061_events.jsonl",
+  "size": 95125188,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843061",
+  "fmt": "best-of-3",
+  "start": "2025-08-22T00:36:31.904Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2843062_events.jsonl",
+  "size": 299307895,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843062",
+  "fmt": "best-of-3",
+  "start": "2025-08-22T20:54:38.012Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2843063_events.jsonl",
+  "size": 274321180,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843063",
+  "fmt": "best-of-3",
+  "start": "2025-08-23T00:26:54.433Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2843064_events.jsonl",
+  "size": 269156326,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843064",
+  "fmt": "best-of-3",
+  "start": "2025-08-23T20:59:20.756Z",
+  "teams": [
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ],
+   [
+    "48457",
+    "KR\u00dc Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2843065_events.jsonl",
+  "size": 136486459,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843065",
+  "fmt": "best-of-3",
+  "start": "2025-08-24T00:14:04.967Z",
+  "teams": [
+   [
+    "337",
+    "100 Thieves"
+   ],
+   [
+    "281",
+    "Evil Geniuses"
+   ]
+  ]
+ },
+ {
+  "file": "2843066_events.jsonl",
+  "size": 165969973,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843066",
+  "fmt": "best-of-3",
+  "start": "2025-08-24T22:40:08.090Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "337",
+    "100 Thieves"
+   ]
+  ]
+ },
+ {
+  "file": "2843067_events.jsonl",
+  "size": 71092767,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843067",
+  "fmt": "best-of-3",
+  "start": "2025-08-24T20:53:28.494Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "1611",
+    "Leviat\u00e1n Esports"
+   ]
+  ]
+ },
+ {
+  "file": "2843068_events.jsonl",
+  "size": 143290642,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843068",
+  "fmt": "best-of-3",
+  "start": "2025-08-29T20:52:59.975Z",
+  "teams": [
+   [
+    "96",
+    "G2 Esports"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2843069_events.jsonl",
+  "size": 254656696,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843069",
+  "fmt": "best-of-3",
+  "start": "2025-08-29T23:21:10.842Z",
+  "teams": [
+   [
+    "79",
+    "Cloud9"
+   ],
+   [
+    "97",
+    "NRG"
+   ]
+  ]
+ },
+ {
+  "file": "2843070_events.jsonl",
+  "size": 457778706,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843070",
+  "fmt": "best-of-5",
+  "start": "2025-08-30T22:01:17.399Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "1079",
+    "Sentinels"
+   ]
+  ]
+ },
+ {
+  "file": "2843071_events.jsonl",
+  "size": 289921932,
+  "tid": "826992",
+  "tname": "VCT Americas - Stage 2 2025 (Playoffs: Playoffs)",
+  "sid": "2843071",
+  "fmt": "best-of-5",
+  "start": "2025-08-31T20:53:43.202Z",
+  "teams": [
+   [
+    "97",
+    "NRG"
+   ],
+   [
+    "96",
+    "G2 Esports"
+   ]
+  ]
+ }
+]

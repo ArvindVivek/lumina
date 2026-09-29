@@ -1,4 +1,5 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { getDb } from '@/lib/data'
+import { playerRounds, type Db } from '@/lib/data/db'
 import {
   FirstDeathRow,
   TradingRow,
@@ -9,177 +10,125 @@ import {
   EcoRoundRow,
 } from './types'
 
-/**
- * Query first death impact: rounds lost when player dies first without contributing
- * PLAY-01: First Death Impact Analysis
+/*
+ * Player insight queries (PLAY-01 to PLAY-07), computed from the bundled fixture. They return the
+ * same string-valued rows the old Postgres functions did, so the routes that format them are
+ * unchanged. The `*From` versions take the db so tests can pass synthetic data.
  */
-export async function queryFirstDeathImpact(
-  playerId: string,
-  tournamentId?: string,
-): Promise<FirstDeathRow> {
-  const supabase = createServerClient()
 
-  const { data, error } = await supabase.rpc('query_first_death_impact', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
+const count = <T>(rows: T[], pred: (r: T) => boolean) => rows.filter(pred).length
+const sum = <T>(rows: T[], val: (r: T) => number) => rows.reduce((n, r) => n + val(r), 0)
 
-  if (error) {
-    console.error('Error querying first death impact:', error)
-    return { losses: "0", total: "0" }
-  }
-
-  return data?.[0] || { losses: "0", total: "0" }
-}
-
-/**
- * Query trading efficiency: how often player deaths are traded
- * PLAY-02: Trading Efficiency Metrics
- */
-export async function queryTradingEfficiency(
-  playerId: string,
-  tournamentId?: string,
-): Promise<TradingRow> {
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.rpc('query_trading_efficiency', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
-
-  if (error) {
-    console.error('Error querying trading efficiency:', error)
-    return { traded: "0", total_deaths: "0" }
-  }
-
-  return data?.[0] || { traded: "0", total_deaths: "0" }
-}
-
-/**
- * Query opening duel performance: first kill and first death statistics
- * PLAY-03: Opening Duel Performance
- */
-export async function queryOpeningDuels(
-  playerId: string,
-  tournamentId?: string,
-): Promise<OpeningDuelsRow> {
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.rpc('query_opening_duels', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
-
-  if (error) {
-    console.error('Error querying opening duels:', error)
-    return { first_kills: "0", first_deaths: "0", total_rounds: "0" }
-  }
-
-  return data?.[0] || { first_kills: "0", first_deaths: "0", total_rounds: "0" }
-}
-
-/**
- * Query clutch performance: success rate in clutch situations
- * PLAY-04: Clutch Situation Analysis
- */
-export async function queryClutchPerformance(
-  playerId: string,
-  tournamentId?: string,
-): Promise<ClutchRow> {
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.rpc('query_clutch_performance', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
-
-  if (error) {
-    console.error('Error querying clutch performance:', error)
-    return { clutches_won: "0", clutch_situations: "0" }
-  }
-
-  return data?.[0] || { clutches_won: "0", clutch_situations: "0" }
-}
-
-/**
- * Query agent performance: statistics grouped by agent
- * PLAY-05: Agent Performance Comparison
- */
-export async function queryAgentPerformance(
-  playerId: string,
-  tournamentId?: string,
-): Promise<AgentRow[]> {
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.rpc('query_agent_performance', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
-
-  if (error) {
-    console.error('Error querying agent performance:', error)
-    return []
-  }
-
-  return data || []
-}
-
-/**
- * Query multi-kill rounds: 2K, 3K, 4K, and ace frequency
- * PLAY-06: Multi-Kill Round Tracking
- */
-export async function queryMultiKillRounds(
-  playerId: string,
-  tournamentId?: string,
-): Promise<MultiKillRow> {
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.rpc('query_multi_kill_rounds', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
-
-  if (error) {
-    console.error('Error querying multi-kill rounds:', error)
-    return {
-      two_plus_kills: "0",
-      three_plus_kills: "0",
-      four_plus_kills: "0",
-      aces: "0",
-      total_rounds: "0",
-      total_kills: "0"
-    }
-  }
-
-  return data?.[0] || {
-    two_plus_kills: "0",
-    three_plus_kills: "0",
-    four_plus_kills: "0",
-    aces: "0",
-    total_rounds: "0",
-    total_kills: "0"
+/** PLAY-01: rounds lost after dying first with no kill or assist. */
+export function firstDeathImpactFrom(db: Db, playerId: string, tournamentId?: string): FirstDeathRow {
+  const rows = playerRounds(db, playerId, { tournamentId }).filter(
+    ({ stats }) => stats.first_death && stats.kills === 0 && stats.assists === 0,
+  )
+  return {
+    losses: String(count(rows, ({ stats, round }) => round.winning_team_id !== stats.team_id)),
+    total: String(rows.length),
   }
 }
 
-/**
- * Query eco round performance by phase: stats grouped by round phase
- * PLAY-07: Eco Round Performance by Phase
- */
-export async function queryEcoRoundPerformance(
-  playerId: string,
-  tournamentId?: string,
-): Promise<EcoRoundRow[]> {
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.rpc('query_eco_round_performance', {
-    p_player_id: playerId,
-    p_tournament_id: tournamentId || null,
-  })
-
-  if (error) {
-    console.error('Error querying eco round performance:', error)
-    return []
+/** PLAY-02: how often the player's deaths were traded. */
+export function tradingEfficiencyFrom(db: Db, playerId: string, tournamentId?: string): TradingRow {
+  const rows = playerRounds(db, playerId, { tournamentId })
+  return {
+    traded: String(count(rows, ({ stats }) => stats.traded)),
+    total_deaths: String(count(rows, ({ stats }) => stats.deaths > 0)),
   }
+}
 
-  return data || []
+/** PLAY-03: first kills and first deaths. */
+export function openingDuelsFrom(db: Db, playerId: string, tournamentId?: string): OpeningDuelsRow {
+  const rows = playerRounds(db, playerId, { tournamentId })
+  return {
+    first_kills: String(count(rows, ({ stats }) => stats.first_kill)),
+    first_deaths: String(count(rows, ({ stats }) => stats.first_death)),
+    total_rounds: String(rows.length),
+  }
+}
+
+/** PLAY-04: clutches (last one alive with enemies left) and how many were won. */
+export function clutchPerformanceFrom(db: Db, playerId: string, tournamentId?: string): ClutchRow {
+  const rows = playerRounds(db, playerId, { tournamentId }).filter(({ stats }) => stats.clutch_situation)
+  return {
+    clutches_won: String(count(rows, ({ stats }) => stats.clutch_won)),
+    clutch_situations: String(rows.length),
+  }
+}
+
+/** PLAY-05: per-agent results, most-played first. */
+export function agentPerformanceFrom(db: Db, playerId: string, tournamentId?: string): AgentRow[] {
+  const byAgent = new Map<string, ReturnType<typeof playerRounds>>()
+  for (const row of playerRounds(db, playerId, { tournamentId })) {
+    const list = byAgent.get(row.stats.agent) ?? []
+    list.push(row)
+    byAgent.set(row.stats.agent, list)
+  }
+  return [...byAgent.entries()]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([agent, rows]) => ({
+      agent,
+      rounds_played: String(rows.length),
+      total_kills: String(sum(rows, ({ stats }) => stats.kills)),
+      total_deaths: String(sum(rows, ({ stats }) => stats.deaths)),
+      first_kills: String(count(rows, ({ stats }) => stats.first_kill)),
+      first_deaths: String(count(rows, ({ stats }) => stats.first_death)),
+      rounds_won: String(count(rows, ({ stats, round }) => round.winning_team_id === stats.team_id)),
+    }))
+}
+
+/** PLAY-06: 2K, 3K, 4K and ace rounds. */
+export function multiKillRoundsFrom(db: Db, playerId: string, tournamentId?: string): MultiKillRow {
+  const rows = playerRounds(db, playerId, { tournamentId })
+  return {
+    two_plus_kills: String(count(rows, ({ stats }) => stats.kills >= 2)),
+    three_plus_kills: String(count(rows, ({ stats }) => stats.kills >= 3)),
+    four_plus_kills: String(count(rows, ({ stats }) => stats.kills >= 4)),
+    aces: String(count(rows, ({ stats }) => stats.kills >= 5)),
+    total_rounds: String(rows.length),
+    total_kills: String(sum(rows, ({ stats }) => stats.kills)),
+  }
+}
+
+/** PLAY-07: results by round type (pistol, eco, force, full buy), alphabetical like the SQL. */
+export function ecoRoundPerformanceFrom(db: Db, playerId: string, tournamentId?: string): EcoRoundRow[] {
+  const byPhase = new Map<string, ReturnType<typeof playerRounds>>()
+  for (const row of playerRounds(db, playerId, { tournamentId })) {
+    const list = byPhase.get(row.round.phase) ?? []
+    list.push(row)
+    byPhase.set(row.round.phase, list)
+  }
+  return [...byPhase.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([phase, rows]) => ({
+      phase,
+      rounds: String(rows.length),
+      total_kills: String(sum(rows, ({ stats }) => stats.kills)),
+      total_deaths: String(sum(rows, ({ stats }) => stats.deaths)),
+      rounds_won: String(count(rows, ({ stats, round }) => round.winning_team_id === stats.team_id)),
+    }))
+}
+
+export async function queryFirstDeathImpact(playerId: string, tournamentId?: string) {
+  return firstDeathImpactFrom(getDb(), playerId, tournamentId)
+}
+export async function queryTradingEfficiency(playerId: string, tournamentId?: string) {
+  return tradingEfficiencyFrom(getDb(), playerId, tournamentId)
+}
+export async function queryOpeningDuels(playerId: string, tournamentId?: string) {
+  return openingDuelsFrom(getDb(), playerId, tournamentId)
+}
+export async function queryClutchPerformance(playerId: string, tournamentId?: string) {
+  return clutchPerformanceFrom(getDb(), playerId, tournamentId)
+}
+export async function queryAgentPerformance(playerId: string, tournamentId?: string) {
+  return agentPerformanceFrom(getDb(), playerId, tournamentId)
+}
+export async function queryMultiKillRounds(playerId: string, tournamentId?: string) {
+  return multiKillRoundsFrom(getDb(), playerId, tournamentId)
+}
+export async function queryEcoRoundPerformance(playerId: string, tournamentId?: string) {
+  return ecoRoundPerformanceFrom(getDb(), playerId, tournamentId)
 }

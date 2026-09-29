@@ -11,7 +11,7 @@ export type ScenarioType = 'save_retake' | 'force_eco' | 'clutch'
  */
 export interface ScenarioResponse<T> {
   scenario_type: ScenarioType
-  query: any // Will be refined to specific query types at call site
+  query: unknown
   matches: number
   data: T
   recommendation: {

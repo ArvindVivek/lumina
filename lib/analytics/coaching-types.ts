@@ -136,6 +136,10 @@ export interface RoundContext {
   spike_defused: boolean
   duration_ms: number
   phase: string
+  /** The attacking team this round (from the logged sides), or null when unknown. */
+  attacker_team_id: string | null
+  /** Players alive on each side when the spike went down; null when it wasn't planted. */
+  alive_at_plant: { attackers: number; defenders: number } | null
   kill_timeline: KillEvent[]
   player_states: PlayerState[]
   spike_events: SpikeEvent[]
@@ -144,14 +148,13 @@ export interface RoundContext {
 
 export interface KillEvent {
   game_time_ms: number
-  killer_id: string
+  killer_id: string | null
   killer_name: string
   killer_agent: string
   victim_id: string
   victim_name: string
   victim_agent: string
   weapon: string
-  headshot: boolean
   is_trade: boolean
   is_first_kill: boolean
 }
@@ -174,10 +177,11 @@ export interface PlayerState {
 
 export interface SpikeEvent {
   game_time_ms: number
-  event_type: 'plant' | 'defuse_start' | 'defuse' | 'explode'
-  player_id: string
+  event_type: 'plant' | 'defuse' | 'explode'
+  player_id: string | null
   player_name: string
-  site: string
+  /** GRID's feed doesn't say which site; always null. */
+  site: string | null
 }
 
 export interface FirstBlood {

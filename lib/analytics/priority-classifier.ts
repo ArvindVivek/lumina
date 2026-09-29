@@ -42,33 +42,36 @@ export function classifyCriticalMoment(
     economic_consequence: 0
   }
 
-  // Round impact: Based on alive count difference
+  // Round impact: how close the finish was (players left standing on each side). Pros usually
+  // finish rounds with a 1-3 player gap, so only a one-player finish scores the top mark.
   const aliveCountDiff = Math.abs(round.team_a_alive - round.team_b_alive)
-  if (aliveCountDiff <= 1) factors.round_impact = 4
-  else if (aliveCountDiff === 2) factors.round_impact = 3
-  else if (aliveCountDiff === 3) factors.round_impact = 2
+  if (aliveCountDiff <= 1) factors.round_impact = 3
+  else if (aliveCountDiff === 2) factors.round_impact = 2
+  else if (aliveCountDiff === 3) factors.round_impact = 1
 
-  // Pattern deviation
+  // Pattern deviation. An untraded first death happens in about three rounds out of four, so it
+  // only nudges the score.
   if (round.is_pistol_round && round.winning_team_id !== teamId) {
     factors.pattern_deviation = 3  // Lost pistol
   } else if (round.is_eco_round && round.winning_team_id === teamId) {
-    factors.pattern_deviation = 3  // Won eco (unexpected)
+    factors.pattern_deviation = 3  // Won on an eco
   } else if (!round.first_death_traded) {
-    factors.pattern_deviation = 2  // Failed trade
+    factors.pattern_deviation = 1  // First death not traded
   }
 
-  // Economic consequence
+  // Economic consequence: pistols decide the next rounds' buys; the last round of a half is the
+  // last chance before the switch.
   if ([1, 13].includes(round.round_number)) {
-    factors.economic_consequence = 3  // Pistol
+    factors.economic_consequence = 2
   } else if ([12, 24].includes(round.round_number)) {
-    factors.economic_consequence = 2  // Last round of half
+    factors.economic_consequence = 2
   }
 
   const score = factors.round_impact + factors.pattern_deviation + factors.economic_consequence
 
   if (score < 2) return null
 
-  const priority = score >= 8 ? 'HIGH' : score >= 5 ? 'MEDIUM' : 'LOW'
+  const priority = score >= 8 ? 'HIGH' : score >= 6 ? 'MEDIUM' : 'LOW'
 
   return {
     round_id: round.round_id,
@@ -103,19 +106,19 @@ function generateDescription(
   const parts: string[] = []
 
   if (round.is_pistol_round && round.winning_team_id !== teamId) {
-    parts.push('Lost pistol round')
+    parts.push('Lost the pistol round')
   }
   if (round.is_eco_round && round.winning_team_id === teamId) {
-    parts.push('Won eco round')
+    parts.push('Won on an eco buy')
   }
   if (!round.first_death_traded) {
-    parts.push('First death not traded')
+    parts.push("First death wasn't traded")
   }
-  if (factors.round_impact >= 3) {
-    parts.push(`Close fight (${round.team_a_alive}v${round.team_b_alive})`)
+  if (factors.round_impact >= 3 && round.team_a_alive + round.team_b_alive > 0) {
+    parts.push('Finished with at most one player between the teams')
   }
 
-  return parts.join('; ') || `Round ${round.round_number}`
+  return parts.length ? `${parts.join('. ')}.` : `Round ${round.round_number}.`
 }
 
 /**
