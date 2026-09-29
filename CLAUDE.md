@@ -21,6 +21,7 @@ https://lumina-ten-amber.vercel.app (Vercel project `lumina`, repo ArvindVivek/l
   `kitchenlabs-kit/scripts/kl-slot.sh`.
 - `npm run screenshots`: marketing capture (`docs/marketing/capture.json`, against production).
 - Heavy commands go through `kl-slot.sh`.
+- Live AI check (opt-in, spends tokens): `E2E_LIVE_AI=1 npx playwright test e2e/live-ai.spec.ts --project=desktop`. Nothing else may call OpenAI (owner rule 2026-09-29).
 
 ## Map
 

@@ -26,10 +26,14 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    // No OpenAI key in e2e: the suite checks the written fallbacks and never spends tokens.
-    command: `TZ=UTC OPENAI_API_KEY= npm run start -- --port ${PORT}`,
+    // No OpenAI key unless E2E_LIVE_AI=1 (owner rule 2026-09-29: the default suite never calls the
+    // model; it checks the written fallbacks). e2e/live-ai.spec.ts is the opt-in real check.
+    command: process.env.E2E_LIVE_AI === "1"
+      ? `TZ=UTC npm run start -- --port ${PORT}`
+      : `TZ=UTC OPENAI_API_KEY= npm run start -- --port ${PORT}`,
     url: `http://127.0.0.1:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    // Never reuse a running server: a dev server started with the key would make the suite spend.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

@@ -70,34 +70,11 @@
       ]
     },
     {
-      "name": "07-coach",
-      "path": "/series/2843060",
-      "steps": [
-        {
-          "click": "text=Ask the coach"
-        },
-        {
-          "fill": [
-            "#coach-question",
-            "Who won the opening duels?"
-          ]
-        },
-        {
-          "click": "[aria-label=\"Send question\"]"
-        },
-        {
-          "waitFor": "text=Leviatán Esports vs Cloud9."
-        },
-        {
-          "wait": 500
-        }
-      ]
-    },
-    {
       "name": "08-tournament",
       "path": "/tournaments/826992",
       "waitFor": "text=Matches",
       "settle": 600
     }
-  ]
+  ],
+  "_ai": "The chat shot is not in the default capture: it would call the live AI route (owner rule 2026-09-29: no real AI calls). The committed web/*/07-coach.png shows the no-AI fallback; re-add the shot after the key has credits."
 }
