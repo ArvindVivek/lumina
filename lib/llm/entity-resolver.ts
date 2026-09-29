@@ -1,5 +1,6 @@
-import type { Sql } from 'postgres'
-import { getPostgresPool } from '@/lib/supabase/server'
+import { getDb } from '@/lib/data'
+import { teamName, type Db } from '@/lib/data/db'
+import { teamCode } from '@/lib/data/names'
 
 export interface ResolvedEntities {
   players: { id: string; name: string; team_id: string | null }[]
@@ -9,249 +10,101 @@ export interface ResolvedEntities {
   confidence: number
 }
 
-/**
- * Resolve entities from natural language query
- * Identifies players, teams, and series mentioned in the query
- */
-export async function resolveEntities(
-  query: string
-): Promise<ResolvedEntities> {
-  const sql = getPostgresPool()
-  const lowerQuery = query.toLowerCase()
-  const result: ResolvedEntities = {
-    players: [],
-    teams: [],
-    series: [],
-    queryType: 'general',
-    confidence: 0.5,
+const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+
+/** Whole-word, accent-insensitive match ("kru" finds "KRÜ Esports", "bang" doesn't find "bangbang"). */
+function mentions(query: string, term: string): boolean {
+  const q = ` ${normalize(query).replace(/[^a-z0-9/ ]+/g, ' ')} `
+  const t = normalize(term).replace(/[^a-z0-9/ ]+/g, ' ').trim()
+  return t.length >= 2 && q.includes(` ${t} `)
+}
+
+/** Players named in the text, longest names first so "Zellsis" wins over shorter overlaps. */
+export function findPlayers(db: Db, text: string) {
+  return db.players
+    .filter((p) => mentions(text, p.name))
+    .sort((a, b) => b.name.length - a.name.length)
+    .slice(0, 5)
+    .map((p) => ({ id: p.id, name: p.name, team_id: p.team_id }))
+}
+
+/** Teams named in the text by full name, name without "Esports", or short code (C9, SEN, 100T). */
+export function findTeams(db: Db, text: string) {
+  return db.teams
+    .filter((t) => {
+      const short = t.name.replace(/\s+esports$/i, '')
+      return mentions(text, t.name) || mentions(text, short) || mentions(text, teamCode(t.name))
+    })
+    .slice(0, 5)
+    .map((t) => ({ id: t.id, name: t.name }))
+}
+
+export function seriesBetween(db: Db, a: string, b: string) {
+  return db.series
+    .filter((s) => (s.team_a_id === a && s.team_b_id === b) || (s.team_a_id === b && s.team_b_id === a))
+    .sort((x, y) => y.start_time.localeCompare(x.start_time))
+    .slice(0, 5)
+    .map((s) => ({
+      id: s.id,
+      team_a_name: teamName(db, s.team_a_id),
+      team_b_name: teamName(db, s.team_b_id),
+      tournament_name: db.tournament.get(s.tournament_id)?.name ?? '',
+    }))
+}
+
+/** Finds the players, teams and matches a question is about. */
+export function resolveEntitiesFrom(db: Db, query: string): ResolvedEntities {
+  const players = findPlayers(db, query)
+  const teams = findTeams(db, query)
+  if (teams.length >= 2) {
+    const series = seriesBetween(db, teams[0].id, teams[1].id)
+    return { players, teams, series, queryType: 'match', confidence: series.length ? 0.9 : 0.6 }
   }
+  if (players.length) return { players, teams, series: [], queryType: 'player', confidence: 0.8 }
+  if (teams.length) return { players, teams, series: [], queryType: 'team', confidence: 0.8 }
+  return { players, teams, series: [], queryType: 'general', confidence: 0.5 }
+}
 
-  // Extract potential entity names (words that might be names)
-  // Look for patterns like "player X", "team Y", "X vs Y", etc.
+export async function resolveEntities(query: string) {
+  return resolveEntitiesFrom(getDb(), query)
+}
 
-  // Check for "vs" pattern indicating a match query
-  const vsMatch = lowerQuery.match(/(\w+)\s+vs\.?\s+(\w+)/i)
-  if (vsMatch) {
-    result.queryType = 'match'
+export function recentSeriesForTeam(db: Db, teamId: string, limit = 5) {
+  return db.series
+    .filter((s) => s.team_a_id === teamId || s.team_b_id === teamId)
+    .sort((a, b) => b.start_time.localeCompare(a.start_time))
+    .slice(0, limit)
+    .map((s) => ({
+      id: s.id,
+      opponent_name: teamName(db, s.team_a_id === teamId ? s.team_b_id : s.team_a_id),
+      result: s.winner_id === teamId ? 'win' : 'loss',
+      tournament_name: db.tournament.get(s.tournament_id)?.name ?? '',
+    }))
+}
 
-    // Try to find both teams
-    const [, team1Pattern, team2Pattern] = vsMatch
-    const teams = await findTeams(sql, [team1Pattern, team2Pattern])
-    result.teams = teams
-
-    // Find series between these teams
-    if (teams.length >= 2) {
-      const series = await findSeriesBetweenTeams(sql, teams[0].id, teams[1].id)
-      result.series = series
-      result.confidence = series.length > 0 ? 0.9 : 0.6
-    }
-    return result
+export function recentSeriesForPlayer(db: Db, playerId: string, limit = 5) {
+  const seen = new Map<string, string>()
+  for (const p of db.prsByPlayer.get(playerId) ?? []) {
+    const r = db.round.get(p.round_id)
+    const g = r && db.game.get(r.game_id)
+    if (g && !seen.has(g.series_id)) seen.set(g.series_id, p.team_id)
   }
-
-  // Check for "analyze/review/stats for [name]" pattern
-  const analyzeMatch = lowerQuery.match(/(?:analyze|review|stats|performance|insights)\s+(?:for\s+)?(\w+)/i)
-  if (analyzeMatch) {
-    const [, name] = analyzeMatch
-
-    // Try to find as player first
-    const players = await findPlayers(sql, [name])
-    if (players.length > 0) {
-      result.players = players
-      result.queryType = 'player'
-      result.confidence = 0.8
-      return result
-    }
-
-    // Try as team
-    const teams = await findTeams(sql, [name])
-    if (teams.length > 0) {
-      result.teams = teams
-      result.queryType = 'team'
-      result.confidence = 0.8
-      return result
-    }
-  }
-
-  // Extract all potential entity names from query
-  const words = query.match(/\b[A-Z][a-z]+\b|\b[A-Z]+\b/g) || []
-  const potentialNames = [...new Set(words.filter(w => w.length > 2))]
-
-  if (potentialNames.length > 0) {
-    // Try to find players
-    const players = await findPlayers(sql, potentialNames)
-    result.players = players
-
-    // Try to find teams
-    const teams = await findTeams(sql, potentialNames)
-    result.teams = teams
-
-    // Determine query type
-    if (players.length > 0 && teams.length === 0) {
-      result.queryType = 'player'
-      result.confidence = 0.7
-    } else if (teams.length > 0 && players.length === 0) {
-      result.queryType = 'team'
-      result.confidence = 0.7
-    } else if (players.length > 0 && teams.length > 0) {
-      // Both found - prefer teams if query mentions team-related words
-      if (lowerQuery.includes('team') || lowerQuery.includes('macro') || lowerQuery.includes('strategy')) {
-        result.queryType = 'team'
-      } else {
-        result.queryType = 'player'
-      }
-      result.confidence = 0.6
-    }
-  }
-
-  return result
+  return [...seen.entries()]
+    .map(([id, team]) => ({ s: db.seriesById.get(id)!, team }))
+    .sort((a, b) => b.s.start_time.localeCompare(a.s.start_time))
+    .slice(0, limit)
+    .map(({ s, team }) => ({
+      series_id: s.id,
+      team_id: team,
+      team_name: teamName(db, team),
+      opponent_name: teamName(db, s.team_a_id === team ? s.team_b_id : s.team_a_id),
+    }))
 }
 
-/**
- * Find players matching patterns
- */
-async function findPlayers(
-  sql: Sql,
-  patterns: string[]
-): Promise<{ id: string; name: string; team_id: string | null }[]> {
-  if (patterns.length === 0) return []
-
-  // Build OR conditions for name matching
-  const result = await sql`
-    SELECT id, name, team_id
-    FROM public.players
-    WHERE ${sql.unsafe(patterns.map(p => `LOWER(name) LIKE LOWER('%${p}%')`).join(' OR '))}
-    LIMIT 5
-  `
-
-  return result.map(row => ({
-    id: row.id,
-    name: row.name,
-    team_id: row.team_id,
-  }))
+export async function getRecentSeriesForTeam(teamId: string, limit = 5) {
+  return recentSeriesForTeam(getDb(), teamId, limit)
 }
 
-/**
- * Find teams matching patterns
- */
-async function findTeams(
-  sql: Sql,
-  patterns: string[]
-): Promise<{ id: string; name: string }[]> {
-  if (patterns.length === 0) return []
-
-  // Build OR conditions for name matching
-  const result = await sql`
-    SELECT id, name
-    FROM public.teams
-    WHERE ${sql.unsafe(patterns.map(p => `LOWER(name) LIKE LOWER('%${p}%')`).join(' OR '))}
-    LIMIT 5
-  `
-
-  return result.map(row => ({
-    id: row.id,
-    name: row.name,
-  }))
-}
-
-/**
- * Find series between two teams
- */
-async function findSeriesBetweenTeams(
-  sql: Sql,
-  teamAId: string,
-  teamBId: string
-): Promise<{ id: string; team_a_name: string; team_b_name: string; tournament_name: string }[]> {
-  const result = await sql`
-    SELECT
-      s.id,
-      ta.name as team_a_name,
-      tb.name as team_b_name,
-      t.name as tournament_name
-    FROM public.series s
-    JOIN public.teams ta ON s.team_a_id = ta.id
-    JOIN public.teams tb ON s.team_b_id = tb.id
-    JOIN public.tournaments t ON s.tournament_id = t.id
-    WHERE (s.team_a_id = ${teamAId} AND s.team_b_id = ${teamBId})
-       OR (s.team_a_id = ${teamBId} AND s.team_b_id = ${teamAId})
-    ORDER BY s.start_time DESC
-    LIMIT 5
-  `
-
-  return result.map(row => ({
-    id: row.id,
-    team_a_name: row.team_a_name,
-    team_b_name: row.team_b_name,
-    tournament_name: row.tournament_name,
-  }))
-}
-
-/**
- * Get recent series for a team
- */
-export async function getRecentSeriesForTeam(
-  teamId: string,
-  limit: number = 5
-): Promise<{ id: string; opponent_name: string; result: string; tournament_name: string }[]> {
-  const sql = getPostgresPool()
-  const result = await sql`
-    SELECT
-      s.id,
-      s.winner_id,
-      CASE
-        WHEN s.team_a_id = ${teamId} THEN tb.name
-        ELSE ta.name
-      END as opponent_name,
-      t.name as tournament_name
-    FROM public.series s
-    JOIN public.teams ta ON s.team_a_id = ta.id
-    JOIN public.teams tb ON s.team_b_id = tb.id
-    JOIN public.tournaments t ON s.tournament_id = t.id
-    WHERE s.team_a_id = ${teamId} OR s.team_b_id = ${teamId}
-    ORDER BY s.start_time DESC
-    LIMIT ${limit}
-  `
-
-  return result.map(row => ({
-    id: row.id,
-    opponent_name: row.opponent_name,
-    result: row.winner_id === teamId ? 'win' : 'loss',
-    tournament_name: row.tournament_name,
-  }))
-}
-
-/**
- * Get player's recent series
- */
-export async function getRecentSeriesForPlayer(
-  playerId: string,
-  limit: number = 5
-): Promise<{ series_id: string; team_name: string; opponent_name: string }[]> {
-  const sql = getPostgresPool()
-  const result = await sql`
-    SELECT DISTINCT
-      s.id as series_id,
-      CASE
-        WHEN prs.team_id = s.team_a_id THEN ta.name
-        ELSE tb.name
-      END as team_name,
-      CASE
-        WHEN prs.team_id = s.team_a_id THEN tb.name
-        ELSE ta.name
-      END as opponent_name
-    FROM public.player_round_stats prs
-    JOIN public.rounds r ON prs.round_id = r.id
-    JOIN public.games g ON r.game_id = g.id
-    JOIN public.series s ON g.series_id = s.id
-    JOIN public.teams ta ON s.team_a_id = ta.id
-    JOIN public.teams tb ON s.team_b_id = tb.id
-    WHERE prs.player_id = ${playerId}
-    ORDER BY s.id DESC
-    LIMIT ${limit}
-  `
-
-  return result.map(row => ({
-    series_id: row.series_id,
-    team_name: row.team_name,
-    opponent_name: row.opponent_name,
-  }))
+export async function getRecentSeriesForPlayer(playerId: string, limit = 5) {
+  return recentSeriesForPlayer(getDb(), playerId, limit)
 }

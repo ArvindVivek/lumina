@@ -1,219 +1,89 @@
-import { getPostgresPool } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { getDb } from '@/lib/data'
+import { playerRounds } from '@/lib/data/db'
+import { recentSeriesForPlayer, recentSeriesForTeam, resolveEntitiesFrom } from '@/lib/llm/entity-resolver'
+import { mapMetricsFrom, playerOpeningDuelsFrom, seriesSummaryFrom } from '@/lib/analytics/coaching-queries'
+import { answerQuestion } from '@/lib/llm/analyst'
+import { checkAiLimit } from '@/lib/llm/limits'
 
-import {
-  resolveEntities,
-  getRecentSeriesForTeam,
-  getRecentSeriesForPlayer,
-} from '@/lib/llm/entity-resolver'
-import {
-  querySeriesSummary,
-  queryMapMetrics,
-  queryPlayerOpeningDuels,
-} from '@/lib/analytics/coaching-queries'
-import { answerQuestion, isLLMAvailable } from '@/lib/llm/analyst'
-import type { SeriesSummary, MapMetrics, PlayerOpeningDuels } from '@/lib/analytics/coaching-types'
+export const maxDuration = 30
 
+const Body = z.object({ query: z.string().min(1).max(500) })
+
+/** Natural-language lookup: finds the player, team or match a question names, then answers it. */
 export async function POST(request: NextRequest) {
-
-  const sql = getPostgresPool()
+  const parsed = Body.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'query is required' }, { status: 400 })
+  const { query } = parsed.data
 
   try {
-    const body = await request.json()
-    const { query } = body
-
-    if (!query || typeof query !== 'string') {
-      return NextResponse.json(
-        { error: 'query is required' },
-        { status: 400 }
-      )
-    }
-
-    // Resolve entities from the query
-    const entities = await resolveEntities(query)
-
-    // Build response based on query type
-    let response: {
-      query: string
-      resolved_entities: typeof entities
-      data: Record<string, unknown>
-      llm_analysis?: string
-    } = {
+    const db = getDb()
+    const entities = resolveEntitiesFrom(db, query)
+    const response: { query: string; resolved_entities: typeof entities; data: Record<string, unknown>; llm_analysis?: string; source?: string } = {
       query,
       resolved_entities: entities,
       data: {},
     }
+    let context: Parameters<typeof answerQuestion>[1] = {}
 
-    switch (entities.queryType) {
-      case 'player': {
-        if (entities.players.length > 0) {
-          const player = entities.players[0]
-
-          // Get recent series for this player
-          const recentSeries = await getRecentSeriesForPlayer(player.id)
-
-          // Get player stats from most recent series
-          let playerStats = null
-          if (recentSeries.length > 0) {
-            const seriesId = recentSeries[0].series_id
-            const teamId = player.team_id || ''
-
-            if (teamId) {
-              const openingDuels = await queryPlayerOpeningDuels(seriesId, teamId)
-              playerStats = openingDuels.find(p => p.player_id === player.id)
-            }
-          }
-
-          // Get overall player stats
-          const overallStats = await sql`
-            SELECT
-              SUM(prs.kills)::int as total_kills,
-              SUM(prs.deaths)::int as total_deaths,
-              SUM(CASE WHEN prs.first_kill = TRUE THEN 1 ELSE 0 END)::int as total_first_kills,
-              SUM(CASE WHEN prs.first_death = TRUE THEN 1 ELSE 0 END)::int as total_first_deaths,
-              SUM(CASE WHEN prs.clutch_situation = TRUE THEN 1 ELSE 0 END)::int as clutch_situations,
-              SUM(CASE WHEN prs.clutch_won = TRUE THEN 1 ELSE 0 END)::int as clutch_wins,
-              COUNT(*)::int as total_rounds,
-              ARRAY_AGG(DISTINCT prs.agent) as agents_played
-            FROM public.player_round_stats prs
-            WHERE prs.player_id = ${player.id}
-          `
-
-          response.data = {
-            player: {
-              id: player.id,
-              name: player.name,
-              team_id: player.team_id,
-            },
-            recent_series: recentSeries,
-            stats: overallStats[0] || null,
-            recent_match_stats: playerStats,
-          }
-        }
-        break
+    if (entities.queryType === 'player' && entities.players.length) {
+      const player = entities.players[0]
+      const rows = playerRounds(db, player.id)
+      const recent = recentSeriesForPlayer(db, player.id)
+      response.data = {
+        player,
+        recent_series: recent,
+        stats: {
+          total_kills: rows.reduce((n, r) => n + r.stats.kills, 0),
+          total_deaths: rows.reduce((n, r) => n + r.stats.deaths, 0),
+          total_first_kills: rows.filter(r => r.stats.first_kill).length,
+          total_first_deaths: rows.filter(r => r.stats.first_death).length,
+          clutch_situations: rows.filter(r => r.stats.clutch_situation).length,
+          clutch_wins: rows.filter(r => r.stats.clutch_won).length,
+          total_rounds: rows.length,
+          agents_played: [...new Set(rows.map(r => r.stats.agent))],
+        },
+        recent_match_stats: recent[0]
+          ? playerOpeningDuelsFrom(db, recent[0].series_id, recent[0].team_id).find(p => p.player_id === player.id) ?? null
+          : null,
       }
-
-      case 'team': {
-        if (entities.teams.length > 0) {
-          const team = entities.teams[0]
-
-          // Get recent series for this team
-          const recentSeries = await getRecentSeriesForTeam(team.id)
-
-          // Get team's roster
-          const roster = await sql`
-            SELECT id, name
-            FROM public.players
-            WHERE team_id = ${team.id}
-          `
-
-          // Get overall team stats from most recent series
-          let teamStats = null
-          if (recentSeries.length > 0) {
-            const seriesId = recentSeries[0].id
-            teamStats = await queryMapMetrics(seriesId, team.id)
-          }
-
-          response.data = {
-            team: {
-              id: team.id,
-              name: team.name,
-            },
-            roster: roster.map(p => ({ id: p.id, name: p.name })),
-            recent_series: recentSeries,
-            recent_match_metrics: teamStats,
-          }
-        }
-        break
+      if (recent[0]) context = { openingDuels: playerOpeningDuelsFrom(db, recent[0].series_id, recent[0].team_id) }
+    } else if (entities.queryType === 'team' && entities.teams.length) {
+      const team = entities.teams[0]
+      const recent = recentSeriesForTeam(db, team.id)
+      const metrics = recent[0] ? mapMetricsFrom(db, recent[0].id, team.id) : null
+      response.data = {
+        team,
+        roster: db.players.filter(p => p.team_id === team.id).map(p => ({ id: p.id, name: p.name })),
+        recent_series: recent,
+        recent_match_metrics: metrics,
       }
-
-      case 'match': {
-        if (entities.series.length > 0) {
-          const series = entities.series[0]
-
-          // Get team IDs
-          const teamInfo = await sql`
-            SELECT team_a_id, team_b_id
-            FROM public.series
-            WHERE id = ${series.id}
-          `
-
-          if (teamInfo.length > 0) {
-            const teamAId = teamInfo[0].team_a_id
-            const [summary, mapMetrics, openingDuels] = await Promise.all([
-              querySeriesSummary(series.id, teamAId),
-              queryMapMetrics(series.id, teamAId),
-              queryPlayerOpeningDuels(series.id, teamAId),
-            ])
-
-            response.data = {
-              series: {
-                id: series.id,
-                team_a_name: series.team_a_name,
-                team_b_name: series.team_b_name,
-                tournament: series.tournament_name,
-              },
-              summary,
-              map_metrics: mapMetrics,
-              opening_duels: openingDuels,
-            }
-          }
-        } else if (entities.teams.length >= 2) {
-          // Found two teams, list their matches
-          response.data = {
-            teams: entities.teams,
-            series: entities.series,
-            message: 'Found teams but no specific series. Please specify which match to analyze.',
-          }
-        }
-        break
-      }
-
-      default: {
-        // General query - just return whatever entities we found
-        response.data = {
-          message: 'Could not determine specific analysis type',
-          players_found: entities.players,
-          teams_found: entities.teams,
-          series_found: entities.series,
-        }
-      }
+      if (recent[0]) context = { summary: seriesSummaryFrom(db, recent[0].id, team.id) ?? undefined, mapMetrics: metrics ?? undefined }
+    } else if (entities.queryType === 'match' && entities.series.length) {
+      const series = entities.series[0]
+      const teamA = db.seriesById.get(series.id)!.team_a_id
+      const summary = seriesSummaryFrom(db, series.id, teamA)
+      const mapMetrics = mapMetricsFrom(db, series.id, teamA)
+      const openingDuels = playerOpeningDuelsFrom(db, series.id, teamA)
+      response.data = { series, summary, map_metrics: mapMetrics, opening_duels: openingDuels }
+      context = { summary: summary ?? undefined, mapMetrics, openingDuels }
+    } else if (entities.queryType === 'match') {
+      response.data = { teams: entities.teams, series: [], message: 'These teams did not meet in the sample data.' }
+    } else {
+      response.data = { message: 'Name a player, a team, or two teams to compare.' }
     }
 
-    // Generate LLM analysis if available and data was found
-    if (isLLMAvailable() && Object.keys(response.data).length > 0) {
-      try {
-        const context: {
-          summary?: SeriesSummary
-          mapMetrics?: MapMetrics[]
-          openingDuels?: PlayerOpeningDuels[]
-        } = {}
-
-        // Build context from collected data
-        if (response.data.summary) {
-          context.summary = response.data.summary as SeriesSummary
-        }
-        if (response.data.map_metrics) {
-          context.mapMetrics = response.data.map_metrics as MapMetrics[]
-        }
-        if (response.data.opening_duels) {
-          context.openingDuels = response.data.opening_duels as PlayerOpeningDuels[]
-        }
-
-        const llmResult = await answerQuestion(query, context)
-        response.llm_analysis = llmResult.analysis
-      } catch {
-        // LLM failed, continue without analysis
-      }
+    if (Object.keys(context).length) {
+      const limited = checkAiLimit(request)
+      if (limited) return limited
+      const result = await answerQuestion(query, context)
+      response.llm_analysis = result.analysis
+      response.source = result.source
     }
-
     return NextResponse.json(response)
   } catch (error) {
     console.error('Error processing query:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-  // Note: No sql.end() - we use a shared connection pool
 }

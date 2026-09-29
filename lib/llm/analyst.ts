@@ -1,15 +1,19 @@
-import OpenAI from 'openai'
+import "server-only"
+import { coachNote, noteToMarkdown, type CoachNote } from './coach'
 import {
-  SYSTEM_PROMPT,
-  MATCH_REVIEW_PROMPT,
-  PLAYER_ANALYSIS_PROMPT,
-  ROUND_ANALYSIS_PROMPT,
-  HYPOTHETICAL_PROMPT,
-  formatMapMetrics,
-  formatOpeningDuels,
-  formatKillTimeline,
-  formatPlayerStates,
-} from './prompts'
+  hypotheticalFacts,
+  hypotheticalFallback,
+  mapMetricLines,
+  matchReviewFacts,
+  matchReviewFallback,
+  openingDuelLines,
+  playerFacts,
+  playerFallback,
+  roundDecisionFacts,
+  roundDecisionFallback,
+  roundFacts,
+  roundFallback,
+} from './facts'
 import type {
   SeriesSummary,
   MapMetrics,
@@ -22,312 +26,120 @@ import type {
 } from '../analytics/coaching-types'
 import type { SaveRetakeEV } from '../analytics/scenario-types'
 
-// OpenAI client - only created if API key exists
-let openai: OpenAI | null = null
-
-function getOpenAIClient(): OpenAI {
-  if (!openai) {
-    const apiKey = process.env.OPENAI_API_KEY
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY not configured')
-    }
-    openai = new OpenAI({ apiKey })
-  }
-  return openai
-}
-
-const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'
+/*
+ * Write-ups for the analytics routes. Each builds compact facts from computed numbers, asks the
+ * coach (lib/llm/coach.ts) and falls back to a rule-written note. Callers get markdown plus which
+ * path answered, so a route never fails because the model did.
+ */
 
 export interface LLMAnalysisResult {
   analysis: string
+  note: CoachNote
+  source: 'ai' | 'fallback'
   model: string
   tokens_used: number
 }
 
-/**
- * Check if LLM is available
- */
-export function isLLMAvailable(): boolean {
-  return !!process.env.OPENAI_API_KEY
+async function run(label: string, task: string, facts: string, fallback: () => CoachNote): Promise<LLMAnalysisResult> {
+  const r = await coachNote({ label, task, facts, fallback })
+  return { analysis: noteToMarkdown(r.note), note: r.note, source: r.source, model: r.model, tokens_used: r.tokens_used }
 }
 
-/**
- * Generate match review analysis
- */
-export async function generateMatchReview(
+export function generateMatchReview(
   summary: SeriesSummary,
   mapMetrics: MapMetrics[],
   openingDuels: PlayerOpeningDuels[],
   antiStratSignals: AntiStratSignal[],
-  forcedMistakes: ForcedMistake[]
-): Promise<LLMAnalysisResult> {
-  const client = getOpenAIClient()
-
-  const prompt = MATCH_REVIEW_PROMPT
-    .replace('{summary}', JSON.stringify(summary, null, 2))
-    .replace('{mapMetrics}', formatMapMetrics(mapMetrics))
-    .replace('{openingDuels}', formatOpeningDuels(openingDuels))
-    .replace('{antiStratSignals}', antiStratSignals.map(s => `- [${s.severity.toUpperCase()}] ${s.signal}: ${s.detail}`).join('\n') || 'None detected')
-    .replace('{forcedMistakes}', forcedMistakes.map(m => `- [${m.severity.toUpperCase()}] ${m.mistake}: ${m.detail}`).join('\n') || 'None detected')
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 1500,
-  })
-
-  return {
-    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
-    model: MODEL,
-    tokens_used: response.usage?.total_tokens || 0,
-  }
+  forcedMistakes: ForcedMistake[],
+) {
+  return run(
+    'match_review',
+    `Review this series for ${summary.team_name}: what worked, what to fix, one practice focus.`,
+    matchReviewFacts(summary, mapMetrics, openingDuels, antiStratSignals, forcedMistakes),
+    () => matchReviewFallback(summary, mapMetrics, openingDuels, antiStratSignals, forcedMistakes),
+  )
 }
 
-/**
- * Generate player-focused analysis
- */
-export async function generatePlayerAnalysis(
+export function generatePlayerAnalysis(
   playerName: string,
   agents: string[],
   openingDuels: PlayerOpeningDuels,
   clutchStats: { situations: number; wins: number },
   tradeRate: number,
-  notableRounds: { round_number: number; map_name: string; detail: string }[]
-): Promise<LLMAnalysisResult> {
-  const client = getOpenAIClient()
-
-  const clutchRate = clutchStats.situations > 0
-    ? ((clutchStats.wins / clutchStats.situations) * 100).toFixed(1)
-    : '0'
-
-  const prompt = PLAYER_ANALYSIS_PROMPT
-    .replace('{playerName}', playerName)
-    .replace('{agents}', agents.join(', '))
-    .replace('{firstKills}', String(openingDuels.first_kills))
-    .replace('{firstDeaths}', String(openingDuels.first_deaths))
-    .replace('{net}', `${openingDuels.net >= 0 ? '+' : ''}${openingDuels.net}`)
-    .replace('{fkConversion}', (openingDuels.fk_conversion_rate * 100).toFixed(1))
-    .replace('{fdLoss}', (openingDuels.fd_loss_rate * 100).toFixed(1))
-    .replace('{totalRounds}', String(openingDuels.total_rounds))
-    .replace('{clutchSituations}', String(clutchStats.situations))
-    .replace('{clutchWins}', String(clutchStats.wins))
-    .replace('{clutchRate}', clutchRate)
-    .replace('{tradeRate}', (tradeRate * 100).toFixed(1))
-    .replace('{notableRounds}', notableRounds.map(r => `- ${r.map_name} R${r.round_number}: ${r.detail}`).join('\n') || 'None')
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 1000,
-  })
-
-  return {
-    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
-    model: MODEL,
-    tokens_used: response.usage?.total_tokens || 0,
-  }
+) {
+  return run(
+    'player_analysis',
+    `Assess ${playerName}'s series: opening duels, trades, clutches, one thing to work on.`,
+    playerFacts(playerName, agents, openingDuels, clutchStats, tradeRate),
+    () => playerFallback(playerName, openingDuels, clutchStats, tradeRate),
+  )
 }
 
-/**
- * Generate round analysis
- */
-export async function generateRoundAnalysis(
-  roundContext: RoundContext
-): Promise<LLMAnalysisResult> {
-  const client = getOpenAIClient()
-
-  const won = roundContext.winning_team_id === roundContext.team_a_id
-  const spikeStatus = roundContext.spike_planted
-    ? (roundContext.spike_defused ? 'Planted, Defused' : 'Planted, Exploded/Eliminated')
-    : 'Not Planted'
-
-  const prompt = ROUND_ANALYSIS_PROMPT
-    .replace('{mapName}', roundContext.map_name)
-    .replace('{roundNumber}', String(roundContext.round_number))
-    .replace('{scoreBefore}', `${roundContext.team_a_score}-${roundContext.team_b_score}`)
-    .replace('{result}', won ? 'Won' : 'Lost')
-    .replace('{winningCondition}', roundContext.winning_condition)
-    .replace('{spikeStatus}', spikeStatus)
-    .replace('{killTimeline}', formatKillTimeline(roundContext.kill_timeline))
-    .replace('{playerStates}', formatPlayerStates(roundContext.player_states))
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 800,
-  })
-
-  return {
-    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
-    model: MODEL,
-    tokens_used: response.usage?.total_tokens || 0,
-  }
+export function generateRoundAnalysis(roundContext: RoundContext) {
+  return run(
+    'round_analysis',
+    'Explain how this round was won or lost and what to review.',
+    roundFacts(roundContext),
+    () => roundFallback(roundContext),
+  )
 }
 
-/**
- * Generate hypothetical scenario analysis
- */
-export async function generateHypotheticalAnalysis(
+export function generateHypotheticalAnalysis(
   attackerAlive: number,
   defenderAlive: number,
   spikePlanted: boolean,
   mapName: string,
   scenarioStats: ScenarioStats,
-  similarScenarios: ScenarioMatch[]
-): Promise<LLMAnalysisResult> {
-  const client = getOpenAIClient()
-
-  const spikeStatus = spikePlanted ? 'Planted' : 'Not Planted'
-  const winRate = (scenarioStats.attacker_win_rate * 100).toFixed(1)
-
-  const scenarioSummary = similarScenarios.slice(0, 5).map(s =>
-    `- ${s.map_name} R${s.round_number}: ${s.attacker_alive}v${s.defender_alive} ${s.spike_planted ? 'post-plant' : ''} → ${s.attacker_won ? 'Attackers won' : 'Defenders won'}`
-  ).join('\n')
-
-  const prompt = HYPOTHETICAL_PROMPT
-    .replace('{attackerAlive}', String(attackerAlive))
-    .replace('{defenderAlive}', String(defenderAlive))
-    .replace('{spikeStatus}', spikeStatus)
-    .replace('{mapName}', mapName)
-    .replace('{winRate}', winRate)
-    .replace('{sampleSize}', String(scenarioStats.total_matches))
-    .replace('{similarScenarios}', scenarioSummary || 'No similar scenarios found')
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 600,
-  })
-
-  return {
-    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
-    model: MODEL,
-    tokens_used: response.usage?.total_tokens || 0,
-  }
+  _similarScenarios: ScenarioMatch[],
+) {
+  return run(
+    'hypothetical',
+    'Say which side this situation favours and how each side should play it.',
+    hypotheticalFacts(attackerAlive, defenderAlive, spikePlanted, mapName, scenarioStats),
+    () => hypotheticalFallback(attackerAlive, defenderAlive, spikePlanted, mapName, scenarioStats),
+  )
 }
 
-/**
- * Answer a custom question about a series
- */
-export async function answerQuestion(
+export function generateRoundDecisionAnalysis(
+  roundContext: RoundContext,
+  evAnalysis: SaveRetakeEV,
+  historicalMatches: number,
+  defenderAlive: number,
+  attackerAlive: number,
+  defenderWonRound: boolean,
+) {
+  return run(
+    'round_decision',
+    'Was retaking the right call? Judge by the numbers, then give one takeaway.',
+    roundDecisionFacts(roundContext, evAnalysis, historicalMatches, defenderAlive, attackerAlive, defenderWonRound),
+    () => roundDecisionFallback(roundContext, evAnalysis, historicalMatches, defenderAlive, attackerAlive, defenderWonRound),
+  )
+}
+
+/** A free question about a series, a round, or both. */
+export function answerQuestion(
   question: string,
   context: {
     summary?: SeriesSummary
     mapMetrics?: MapMetrics[]
     openingDuels?: PlayerOpeningDuels[]
     roundContext?: RoundContext
-  }
-): Promise<LLMAnalysisResult> {
-  const client = getOpenAIClient()
-
-  let contextStr = ''
-  if (context.summary) {
-    contextStr += `Series: ${context.summary.team_name} vs ${context.summary.opponent_name}\n`
-    contextStr += `Result: ${context.summary.result} (${context.summary.score})\n\n`
-  }
-  if (context.mapMetrics) {
-    contextStr += `Map Metrics:\n${formatMapMetrics(context.mapMetrics)}\n\n`
-  }
-  if (context.openingDuels) {
-    contextStr += `Opening Duels:\n${formatOpeningDuels(context.openingDuels)}\n\n`
-  }
-  if (context.roundContext) {
-    contextStr += `Round ${context.roundContext.round_number} on ${context.roundContext.map_name}:\n`
-    contextStr += `Kill Timeline:\n${formatKillTimeline(context.roundContext.kill_timeline)}\n\n`
-  }
-
-  const prompt = `Based on the following VALORANT match data, answer this question:
-
-${contextStr}
-
-Question: ${question}`
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 800,
-  })
-
-  return {
-    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
-    model: MODEL,
-    tokens_used: response.usage?.total_tokens || 0,
-  }
-}
-
-/**
- * Generate round decision analysis (save vs retake)
- */
-export async function generateRoundDecisionAnalysis(
-  roundContext: RoundContext,
-  evAnalysis: SaveRetakeEV,
-  historicalMatches: number,
-  defenderAlive: number,
-  attackerAlive: number,
-  spikeSite: string | null,
-  defenderWonRound: boolean
-): Promise<LLMAnalysisResult> {
-  const client = getOpenAIClient()
-
-  const siteInfo = spikeSite ? ` on ${spikeSite}-site` : ''
-  const prompt = `Analyze this VALORANT post-plant retake decision:
-
-**Scenario:**
-- Map: ${roundContext.map_name}, Round ${roundContext.round_number}
-- Spike planted${siteInfo}
-- Defenders attempting ${defenderAlive}v${attackerAlive} retake
-- Defender economy: ~$${roundContext.player_states.filter(p => p.team_id !== (roundContext.round_number <= 12 ? roundContext.team_a_id : roundContext.team_b_id)).reduce((sum, p) => sum + (p.loadout_value || 0), 0)}
-
-**Expected Value Analysis:**
-- Retake EV: ${evAnalysis.retake.expected_value} (${(evAnalysis.retake.win_probability * 100).toFixed(0)}% win probability)
-- Save EV: ${evAnalysis.save.expected_value} (guaranteed ${evAnalysis.save.guaranteed_retention} retention)
-- Recommended: ${evAnalysis.recommended_decision.toUpperCase()} (+${evAnalysis.ev_difference} EV advantage)
-- Historical matches analyzed: ${historicalMatches}
-
-**Actual Outcome:**
-- Decision made: RETAKE
-- Result: ${defenderWonRound ? 'SUCCESS - Defenders won' : 'FAILURE - Attackers won'}
-
-Please provide:
-1. Was the retake attempt the right call given the numbers and economy?
-2. What factors might have influenced this ${defenderAlive}v${attackerAlive} situation?
-3. Key takeaway for future similar scenarios
-
-Keep the analysis concise and actionable (3-4 sentences max).`
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 400,
-  })
-
-  return {
-    analysis: response.choices[0]?.message?.content || 'Analysis unavailable',
-    model: MODEL,
-    tokens_used: response.usage?.total_tokens || 0,
-  }
+  },
+) {
+  const lines: string[] = []
+  if (context.summary) lines.push(`${context.summary.team_name} vs ${context.summary.opponent_name}: ${context.summary.result} ${context.summary.score}.`)
+  if (context.mapMetrics) lines.push(...mapMetricLines(context.mapMetrics))
+  if (context.openingDuels) lines.push(...openingDuelLines(context.openingDuels))
+  if (context.roundContext) lines.push(roundFacts(context.roundContext))
+  const facts = lines.join('\n') || 'No match data was selected.'
+  return run(
+    'question',
+    `Answer this question from the data: "${question.slice(0, 300)}"`,
+    facts,
+    () => ({
+      headline: 'The AI coach is unavailable right now. Here are the numbers behind your question.',
+      points: lines.slice(0, 4).map((l) => ({ kind: 'pattern' as const, title: 'From the data', detail: l })),
+      next_step: 'Try again in a minute for a written answer.',
+    }),
+  )
 }
