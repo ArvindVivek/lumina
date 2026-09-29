@@ -1,0 +1,263 @@
+{
+  "app": "lumina",
+  "baseUrl": "https://lumina-ten-amber.vercel.app",
+  "captured": "2026-09-29T15:56:01.793Z",
+  "shots": [
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "01-home",
+      "file": "desktop-light/01-home.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "02-match-report",
+      "file": "desktop-light/02-match-report.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "03-round",
+      "file": "desktop-light/03-round.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "04-player",
+      "file": "desktop-light/04-player.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "05-team",
+      "file": "desktop-light/05-team.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "06-scenario",
+      "file": "desktop-light/06-scenario.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "07-coach",
+      "file": "desktop-light/07-coach.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "light",
+      "name": "08-tournament",
+      "file": "desktop-light/08-tournament.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "01-home",
+      "file": "desktop-dark/01-home.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "02-match-report",
+      "file": "desktop-dark/02-match-report.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "03-round",
+      "file": "desktop-dark/03-round.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "04-player",
+      "file": "desktop-dark/04-player.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "05-team",
+      "file": "desktop-dark/05-team.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "06-scenario",
+      "file": "desktop-dark/06-scenario.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "07-coach",
+      "file": "desktop-dark/07-coach.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "desktop",
+      "theme": "dark",
+      "name": "08-tournament",
+      "file": "desktop-dark/08-tournament.png",
+      "px": "2880x1800",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "01-home",
+      "file": "phone-light/01-home.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "02-match-report",
+      "file": "phone-light/02-match-report.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "03-round",
+      "file": "phone-light/03-round.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "04-player",
+      "file": "phone-light/04-player.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "05-team",
+      "file": "phone-light/05-team.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "06-scenario",
+      "file": "phone-light/06-scenario.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "07-coach",
+      "file": "phone-light/07-coach.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "light",
+      "name": "08-tournament",
+      "file": "phone-light/08-tournament.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "01-home",
+      "file": "phone-dark/01-home.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "02-match-report",
+      "file": "phone-dark/02-match-report.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "03-round",
+      "file": "phone-dark/03-round.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "04-player",
+      "file": "phone-dark/04-player.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "05-team",
+      "file": "phone-dark/05-team.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "06-scenario",
+      "file": "phone-dark/06-scenario.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "07-coach",
+      "file": "phone-dark/07-coach.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    },
+    {
+      "viewport": "phone",
+      "theme": "dark",
+      "name": "08-tournament",
+      "file": "phone-dark/08-tournament.png",
+      "px": "1290x2796",
+      "consoleErrors": 0
+    }
+  ]
+}
