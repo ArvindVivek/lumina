@@ -1,6 +1,6 @@
 # Lumina Support
 
-Need help? Email **arvind.vivekk@gmail.com** — we usually reply within two days.
+Need help? Send us a message through [our contact page](https://kitchenlabs-one.vercel.app/contact). We usually reply within two days.
 
 ## Common questions
 

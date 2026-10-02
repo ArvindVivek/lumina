@@ -1,7 +1,7 @@
 # Lumina: operating manual
 
 VALORANT pro-match analytics + AI coach. Next.js 16.3 (App Router), React 19, Tailwind 4, KL Web
-1.0.2 (vendored in `components/kl`, `lib/kl`, `styles/kl-tokens.css`). Public showcase at
+1.0.3 (vendored in `components/kl`, `lib/kl`, `styles/kl-tokens.css`). Public showcase at
 https://lumina-ten-amber.vercel.app (Vercel project `lumina`, repo ArvindVivek/lumina, deploys from
 `main`). Web release standard: `kitchenlabs-kit/docs/standards/web-release-standard.md`.
 
@@ -61,3 +61,10 @@ https://lumina-ten-amber.vercel.app (Vercel project `lumina`, repo ArvindVivek/l
 `OPENAI_API_KEY` (server-only, production + preview). Dead, safe for the owner to delete:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 `DATABASE_URL`, `GRID_API_KEY`.
+
+## Owner sweep (2026-10-02)
+- KL Web 1.0.3. The studio credit is "© 2026 Kitchen Labs" (`COPYRIGHT`), never "Made by"; e2e
+  matches `/© \d{4} Kitchen Labs/` so the year can roll over. No email address anywhere in the app
+  or its docs: `docs/PRIVACY.md` and `docs/SUPPORT.md` link https://kitchenlabs-one.vercel.app/contact.
+- Scroll audit at 1280x800, 1440x900, 430x932: home and the match report show their main
+  content at load. `site-footer.tsx` shows `COPYRIGHT` above Riot's notice. No layout change.
