@@ -42,7 +42,7 @@ for (const [path, heading] of PAGES) {
     const res = await page.goto(path)
     expect(res?.status()).toBe(200)
     await expect(page.getByRole("heading", { level: 1 })).toContainText(heading)
-    await expect(page.getByText(/Made by/)).toBeVisible()
+    await expect(page.getByText(/© \d{4} Kitchen Labs/)).toBeVisible()
     await expect(page.getByText(/Legal Jibber Jabber/)).toBeVisible()
     // Wait for client islands to settle, then check nothing complained.
     await page.waitForLoadState("networkidle")
