@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/components/Theme.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/components/Theme.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 "use client";
 
 import { useSyncExternalStore, type ComponentProps } from "react";

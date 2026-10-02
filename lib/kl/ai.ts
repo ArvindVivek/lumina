@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/lib/ai.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/lib/ai.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // The one file in a Kitchen Labs web app that talks to a model.
 //
 // Org rule: every AI call uses OpenAI through the shared OPENAI_API_KEY, from server code only

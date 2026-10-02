@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/components/Button.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/components/Button.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { LoaderCircle, type LucideIcon } from "lucide-react";

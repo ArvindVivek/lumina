@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/lib/contrast.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/lib/contrast.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // WCAG 2.x contrast maths, same as KLHex.contrast on iOS and docs/brand/palettes.md.
 // Use it in tests to pin token pairs, and at runtime for colours that come from data
 // (pick a label colour per tile, like Anagrid and overdraft/components/ui/contrast.ts).

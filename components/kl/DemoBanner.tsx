@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/components/DemoBanner.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/components/DemoBanner.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 import type { ReactNode } from "react";
 import { FlaskConical } from "lucide-react";
 import { DEMO_NOTICE, isDemo } from "@/lib/kl/demo";

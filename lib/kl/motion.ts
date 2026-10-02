@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/lib/motion.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/lib/motion.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // One motion vocabulary for every Kitchen Labs app, converted from KLMotion.swift
 // (response/damping → stiffness/damping, mass 1). Use these instead of inline springs.
 // The <MotionConfig reducedMotion="user"> wrapper is MotionProvider in components/kl/Providers.tsx;

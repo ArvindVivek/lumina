@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/lib/rate-limit.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/lib/rate-limit.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // Limits for API routes, so one visitor (or a bot) can't drain the shared OpenAI key.
 //
 // Two kinds:

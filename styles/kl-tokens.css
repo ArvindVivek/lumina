@@ -1,4 +1,4 @@
-/* KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/styles/tokens.css. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh. */
+/* KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/styles/tokens.css. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh. */
 /* KL Web tokens: the studio neutrals, role colours, type, radii and motion rules shared by
    every Kitchen Labs web app. Light values = KLColor.swift light; dark = KLColor.swift dark.
    Import right after `@import "tailwindcss";`, then the app's own theme.css (the accent).

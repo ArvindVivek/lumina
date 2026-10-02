@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/lib/demo.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/lib/demo.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // Demo mode: the whole app clickable on sample data, with nothing real reachable.
 // One switch (NEXT_PUBLIC_DEMO_MODE=1), read here only. Guide: docs/web/demo-mode.md.
 // The on-screen notice is <DemoBanner /> in components/kl/DemoBanner.tsx.

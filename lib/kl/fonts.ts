@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/fonts.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/fonts.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // Studio type: Fredoka 600 for headings, numbers and buttons; Nunito for body text.
 // Same setup as overdraft/app/layout.tsx. Put `fontVariables` on <html>; tokens.css maps
 // --font-fredoka / --font-nunito to the font-display / font-body utilities.

@@ -1,4 +1,4 @@
-// KL Web 1.0.2, from kitchenlabs-kit/web/kl-web/components/PageShell.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/components/PageShell.tsx. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/kl/cn";
@@ -8,12 +8,16 @@ import { ThemeToggle } from "./Theme";
 export const STUDIO_SITE = "https://kitchenlabs-one.vercel.app";
 export const privacyUrl = (slug: string) => `${STUDIO_SITE}/apps/${slug}/privacy`;
 export const supportUrl = (slug: string) => `${STUDIO_SITE}/apps/${slug}/support`;
+/** The one place people reach the studio; apps link here instead of showing an email address. */
+export const CONTACT_URL = `${STUDIO_SITE}/contact`;
+/** "© 2026 Kitchen Labs", the studio credit every app shows (build year). */
+export const COPYRIGHT = `© ${new Date().getFullYear()} Kitchen Labs`;
 
 const WIDTHS = { narrow: "max-w-2xl", wide: "max-w-5xl", full: "max-w-[75rem]" } as const;
 
 /**
  * The frame every page sits in: a header with the app's icon and name (a link home), the
- * theme toggle and any actions; the page; and the studio footer ("Made by Kitchen Labs" with
+ * theme toggle and any actions; the page; and the studio footer ("© 2026 Kitchen Labs" with
  * privacy and support links, like KLAboutSection). Phone gutter 20px, as on iOS.
  */
 export function PageShell({
@@ -40,7 +44,7 @@ export function PageShell({
   nav?: ReactNode;
   /** Where the logo links: "/" normally, "/demo" inside a demo. */
   homeHref?: string;
-  /** A line above "Made by Kitchen Labs", e.g. a required legal notice (Riot's fan-project text). */
+  /** A line above the studio credit, e.g. a required legal notice (Riot's fan-project text). */
   footerNote?: ReactNode;
   /** narrow (reading), wide (tools), full (dashboards, 1200px). */
   width?: keyof typeof WIDTHS;
@@ -79,7 +83,7 @@ export function PageShell({
         {footerNote && <div className={cn(frame, "pb-3 text-center text-xs text-ink-2")}>{footerNote}</div>}
         <div className={cn(frame, "flex flex-col items-center gap-1 border-t border-line pt-5 text-sm text-ink-2 sm:flex-row sm:justify-between")}>
           <p>
-            Made by <span className="font-bold text-ink">Kitchen Labs</span>
+            {COPYRIGHT}
           </p>
           <nav aria-label="About this app" className="flex items-center">
             <a href={privacyUrl(appSlug)} className="inline-flex min-h-11 items-center px-3 font-bold text-ink-2 underline-offset-4 hover:text-ink hover:underline">
