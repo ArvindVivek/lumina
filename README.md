@@ -15,8 +15,8 @@ answers questions from the same numbers.
 - **Player insights / Team review:** a player's or team's numbers across the sample, compared with
   what's typical in pro play (`lib/analytics/benchmarks.ts`).
 - **Scenario lab:** save or retake, force or save, clutch odds, matched against real rounds.
-- **Ask the coach:** a chat on every page (`/api/chat`), OpenAI `gpt-5.4-mini`, with a numbers-only
-  fallback.
+- **Ask the coach:** a chat on every page (`/api/chat`), answered by AI from the page's numbers,
+  with a numbers-only fallback (model and token plan: `docs/AI.md`).
 
 ## Data
 
