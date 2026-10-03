@@ -68,3 +68,8 @@ ones (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SER
   or its docs: `docs/PRIVACY.md` and `docs/SUPPORT.md` link https://kitchenlabs-one.vercel.app/contact.
 - Scroll audit at 1280x800, 1440x900, 430x932: home and the match report show their main
   content at load. `site-footer.tsx` shows `COPYRIGHT` above Riot's notice. No layout change.
+- **No AI vendor or model name where a user can see it** (owner rule 2026-10-02): UI says "AI",
+  `docs/PRIVACY.md` says "a third-party AI service". `/api/analytics/llm` no longer returns a
+  `model` field. `scripts/leak-check.mjs` (in the gate) fails if `/openai|gpt-/i` appears in
+  `.next/static` or the prerendered `.next/server/app/**/*.{html,rsc}`. Server code, env names,
+  `docs/AI.md` and `docs/CREDITS.md` (not linked from the app) keep the real names.
