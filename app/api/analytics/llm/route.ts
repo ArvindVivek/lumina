@@ -118,7 +118,6 @@ export async function POST(request: NextRequest) {
       analysis: result.analysis,
       note: result.note,
       source: result.source,
-      model: result.model,
       tokens_used: result.tokens_used,
     })
   } catch (error) {

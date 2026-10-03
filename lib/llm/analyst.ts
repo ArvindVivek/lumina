@@ -36,13 +36,12 @@ export interface LLMAnalysisResult {
   analysis: string
   note: CoachNote
   source: 'ai' | 'fallback'
-  model: string
   tokens_used: number
 }
 
 async function run(label: string, task: string, facts: string, fallback: () => CoachNote): Promise<LLMAnalysisResult> {
   const r = await coachNote({ label, task, facts, fallback })
-  return { analysis: noteToMarkdown(r.note), note: r.note, source: r.source, model: r.model, tokens_used: r.tokens_used }
+  return { analysis: noteToMarkdown(r.note), note: r.note, source: r.source, tokens_used: r.tokens_used }
 }
 
 export function generateMatchReview(

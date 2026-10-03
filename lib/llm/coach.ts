@@ -48,7 +48,6 @@ export const COACH_SCHEMA = {
 export interface CoachResult {
   note: CoachNote
   source: "ai" | "fallback"
-  model: string
   tokens_used: number
 }
 
@@ -81,12 +80,12 @@ export async function coachNote(opts: {
         tokens = u.input + u.output
       },
     })
-    return { note: { ...note, points: note.points.slice(0, 4) }, source: "ai", model: "gpt-5.4-mini", tokens_used: tokens }
+    return { note: { ...note, points: note.points.slice(0, 4) }, source: "ai", tokens_used: tokens }
   } catch (err) {
     const e = err instanceof AIError ? err : toAIError(err)
     // Loud on purpose: a silent fallback hides an empty quota for weeks (kit docs/web/ai.md).
     console.warn(`[ai] fallback label=${opts.label} code=${e.code}`, e.detail)
-    return { note: opts.fallback(), source: "fallback", model: "fallback", tokens_used: 0 }
+    return { note: opts.fallback(), source: "fallback", tokens_used: 0 }
   }
 }
 
