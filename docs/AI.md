@@ -41,13 +41,18 @@ Every AI surface has a rule-written answer from the same numbers (`lib/llm/facts
 numbers") and the server logs `[ai] fallback label=… code=…`. A successful call logs
 `[ai] provider: anthropic|openai label=… in=… out=…`.
 
-## Status (2026-09-29)
+## Status (2026-10-20)
 
-The org key is out of credits (`429 insufficient_quota`). Production serves the fallbacks until it's
-topped up. The live AI path is **pending**: unit tests cover the request shape against a mocked
-OpenAI response (`app/api/chat/route.test.ts`), but no real call has been recorded yet. After the
-top-up, ask one chat question on the live site and check the Vercel runtime log for
-`[ai] provider: openai label=chat`.
+Live AI is on, Claude first. Two real calls on production (KL Web 1.1.6, deploy
+`dpl_6kBnmbKDHSdGRQt4ozpyDwXestte`), both answered by Claude:
+
+- `POST /api/chat` (series 2843060, "Who won the opening duels?"): 200 in 3.3 s, log
+  `[ai] provider: anthropic label=chat model=claude-haiku-5-5 in=842 out=220`.
+- `POST /api/analytics/llm` (match review, team 79): 200 in 4.0 s, log
+  `[ai] provider: anthropic label=match_review model=claude-haiku-5-5 in=1080 out=450`.
+
+OpenAI is still the fallback; unit tests cover its request shape against a mocked response
+(`app/api/chat/route.test.ts`).
 
 ## Testing without spending (owner rule, 2026-09-29)
 

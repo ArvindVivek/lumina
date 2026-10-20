@@ -5,11 +5,11 @@ VALORANT pro-match analytics + AI coach. Next.js 16.3 (App Router), React 19, Ta
 https://lumina-ten-amber.vercel.app (Vercel project `lumina`, repo ArvindVivek/lumina, deploys from
 `main`). Web release standard: `kitchenlabs-kit/docs/standards/web-release-standard.md`.
 
-## Status (2026-09-29)
+## Status (2026-10-20)
 
 - Released on bundled fixtures; every page and all API routes work without a database.
-- AI: org key set on Vercel but **out of credits**; production serves written fallbacks. Live AI
-  check pending (see `docs/AI.md`).
+- AI: live, Claude first (`claude-haiku-5-5`), OpenAI fallback, written fallbacks last (KL Web
+  1.1.6). Two real production calls answered by Claude on 2026-10-20 (see `docs/AI.md`).
 
 ## Commands
 
@@ -64,7 +64,7 @@ ones (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SER
 `DATABASE_URL`, `GRID_API_KEY`) were removed from Vercel on 2026-10-02.
 
 ## Owner sweep (2026-10-02)
-- KL Web 1.0.3. The studio credit is "© 2026 Kitchen Labs" (`COPYRIGHT`), never "Made by"; e2e
+- KL Web 1.0.3 (now 1.1.6). The studio credit is "© 2026 Kitchen Labs" (`COPYRIGHT`), never "Made by"; e2e
   matches `/© \d{4} Kitchen Labs/` so the year can roll over. No email address anywhere in the app
   or its docs: `docs/PRIVACY.md` and `docs/SUPPORT.md` link https://kitchenlabs-one.vercel.app/contact.
 - Scroll audit at 1280x800, 1440x900, 430x932: home and the match report show their main
