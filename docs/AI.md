@@ -18,7 +18,8 @@ recurring costs").
 
 ## Token plan
 
-- **Model:** `gpt-5.4-mini` through `lib/kl/ai.ts` (KL Web), `reasoning_effort: "low"`, strict JSON
+- **Model:** Claude (`claude-haiku-5-5`) first, then OpenAI (`gpt-5.4-mini`, `reasoning_effort: "low"`) as
+  the fallback, both through `lib/kl/ai.ts` (KL Web 1.1.6), strict JSON
   schemas (`COACH_SCHEMA` in `lib/llm/coach.ts`, `CHAT_SCHEMA` in `lib/llm/chat-facts.ts`; both
   pinned by `lib/llm/facts.test.ts`).
 - **Input is computed summaries, never event logs.** Measured on the fixture (characters / 4):
@@ -38,7 +39,7 @@ recurring costs").
 Every AI surface has a rule-written answer from the same numbers (`lib/llm/facts.ts`,
 `chatFallbackAnswer` in `lib/llm/chat-facts.ts`). The UI labels it ("AI unavailable: showing the
 numbers") and the server logs `[ai] fallback label=… code=…`. A successful call logs
-`[ai] provider: openai label=… in=… out=…`.
+`[ai] provider: anthropic|openai label=… in=… out=…`.
 
 ## Status (2026-09-29)
 
@@ -50,9 +51,9 @@ top-up, ask one chat question on the live site and check the Vercel runtime log 
 
 ## Testing without spending (owner rule, 2026-09-29)
 
-- `npm run gate` and `npx playwright test` never call OpenAI. Unit tests run with a fetch guard
-  (`vitest.setup.ts`) that fails any request a test didn't stub. The e2e server starts with an
-  empty `OPENAI_API_KEY` and is never reused, so every AI surface exercises its fallback.
+- `npm run gate` and `npx playwright test` never call a model. Unit tests run with a fetch guard
+  (`vitest.setup.ts`) that fails any request a test didn't stub. The e2e server starts with empty
+  `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` and is never reused, so every AI surface exercises its fallback.
 - The real check is opt-in, run once after the key has credits:
   `npm run build && E2E_LIVE_AI=1 npx playwright test e2e/live-ai.spec.ts --project=desktop`
   (`e2e/live-ai.spec.ts` asserts `source: "ai"`).

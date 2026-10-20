@@ -15,13 +15,13 @@ https://lumina-ten-amber.vercel.app (Vercel project `lumina`, repo ArvindVivek/l
 
 - `npm run gate`: kit check, typecheck, `eslint --max-warnings=0`, vitest, build, leak check.
 - `npm run build && npm run e2e`: Playwright on `next start` (port 3561), phone + desktop, server
-  `TZ=UTC`, browser `America/Los_Angeles`, `OPENAI_API_KEY` blank (fallbacks only).
+  `TZ=UTC`, browser `America/Los_Angeles`, `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` blank (fallbacks only).
 - `npm run fixtures`: rebuild `lib/data/fixtures/matches.json` from `scripts/etl/data/events`
   (27 GB of raw GRID logs, gitignored, local only). Streams each file; ~1 minute. Run through
   `kitchenlabs-kit/scripts/kl-slot.sh`.
 - `npm run screenshots`: marketing capture (`docs/marketing/capture.json`, against production).
 - Heavy commands go through `kl-slot.sh`.
-- Live AI check (opt-in, spends tokens): `E2E_LIVE_AI=1 npx playwright test e2e/live-ai.spec.ts --project=desktop`. Nothing else may call OpenAI (owner rule 2026-09-29).
+- Live AI check (opt-in, spends tokens): `E2E_LIVE_AI=1 npx playwright test e2e/live-ai.spec.ts --project=desktop`. Nothing else may call a model (owner rule 2026-09-29).
 
 ## Map
 
@@ -58,7 +58,8 @@ https://lumina-ten-amber.vercel.app (Vercel project `lumina`, repo ArvindVivek/l
 
 ## Vercel env
 
-`OPENAI_API_KEY` (server-only, production + preview) is the only variable. The dead hackathon
+`ANTHROPIC_API_KEY` (Claude, tried first) and `OPENAI_API_KEY` (fallback), server-only, production +
+preview, are the only variables. The dead hackathon
 ones (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
 `DATABASE_URL`, `GRID_API_KEY`) were removed from Vercel on 2026-10-02.
 
@@ -70,6 +71,6 @@ ones (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SER
   content at load. `site-footer.tsx` shows `COPYRIGHT` above Riot's notice. No layout change.
 - **No AI vendor or model name where a user can see it** (owner rule 2026-10-02): UI says "AI",
   `docs/PRIVACY.md` says "a third-party AI service". `/api/analytics/llm` no longer returns a
-  `model` field. `scripts/leak-check.mjs` (in the gate) fails if `/openai|gpt-/i` appears in
+  `model` field. `scripts/leak-check.mjs` (in the gate) fails if `/openai|gpt-|anthropic|claude/i` appears in
   `.next/static` or the prerendered `.next/server/app/**/*.{html,rsc}`. Server code, env names,
   `docs/AI.md` and `docs/CREDITS.md` (not linked from the app) keep the real names.

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
-// Opt-in: spends real OpenAI tokens (about 4 calls, under 3k tokens in all). Run once, after the
-// org key has credits:  E2E_LIVE_AI=1 npx playwright test e2e/live-ai.spec.ts --project=desktop
+// Opt-in: spends real AI tokens (3 calls, under 3k tokens in all; Claude first, OpenAI fallback).
+// Run:  E2E_LIVE_AI=1 npx playwright test e2e/live-ai.spec.ts --project=desktop
 test.skip(process.env.E2E_LIVE_AI !== "1", "live AI checks are opt-in (E2E_LIVE_AI=1)")
 
 const SERIES = "2843060"

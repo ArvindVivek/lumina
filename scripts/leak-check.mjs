@@ -1,6 +1,6 @@
 // Fails when anything secret-looking ships to the browser (web release standard: grep the built
 // .next/static output before every deploy). Three checks:
-// 1. Key-shaped strings: OpenAI (sk-…), Supabase secret, service_role, GitHub tokens, AWS keys.
+// 1. Key-shaped strings: OpenAI and Anthropic (sk-…), Supabase secret, service_role, GitHub tokens, AWS keys.
 // 2. The real values of this app's server secrets (read from .env.local / the environment),
 //    so even an oddly shaped key is caught. Values are never printed.
 // 3. The AI vendor or model name (owner rule 2026-10-02: users only ever see "AI"), in the client
@@ -18,20 +18,20 @@ if (!existsSync(root)) {
 
 const PATTERNS = [
   // The lookbehind skips words that merely end in "sk-" (tailwind-merge ships "mask-image-…").
-  ["OpenAI key", /(?<![A-Za-z0-9])sk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}/],
+  ["OpenAI or Anthropic key", /(?<![A-Za-z0-9])sk-(?:proj-|svcacct-|admin-)?[A-Za-z0-9_-]{20,}/],
   ["Supabase secret key", /sb_secret_[A-Za-z0-9_-]{10,}/],
   ["Supabase service role", /service_role/],
   ["GitHub token", /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}/],
   ["AWS access key", /\bAKIA[0-9A-Z]{16}\b/],
 ];
 
-/** Matches "OpenAI", "openai.com" and model ids such as "gpt-5.4-mini". */
-const VENDOR = /openai|gpt-/i;
+/** Matches "OpenAI", "Anthropic", "Claude" and model ids such as "gpt-5.4-mini" or "claude-haiku-5-5". */
+const VENDOR = /openai|gpt-|anthropic|claude/i;
 /** Prerendered HTML and RSC payloads: what a visitor's browser receives for each static page. */
 const PAGES = ".next/server/app";
 
 // Add any other server-only env var this app uses.
-const SECRET_NAMES = ["OPENAI_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY", "GITHUB_TOKEN"];
+const SECRET_NAMES = ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY", "GITHUB_TOKEN"];
 const secrets = new Map();
 for (const file of [".env.local", ".env", ".env.production.local"]) {
   if (!existsSync(file)) continue;

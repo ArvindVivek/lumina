@@ -14,6 +14,8 @@ describe("POST /api/analytics/llm", () => {
   })
 
   it("returns the model's note without naming the model or its vendor", async () => {
+    // No Claude key, so the helper goes straight to the mocked OpenAI reply.
+    process.env.ANTHROPIC_API_KEY = ""
     process.env.OPENAI_API_KEY = "sk-test"
     const note = { headline: "Cloud9 held the plant.", points: [{ kind: "strength", title: "Fast retake read", detail: "3 of 4 players lived." }], next_step: "Drill the post-plant." }
     vi.stubGlobal("fetch", vi.fn(async () =>
@@ -26,6 +28,6 @@ describe("POST /api/analytics/llm", () => {
     expect(body.source).toBe("ai")
     expect(body.note.headline).toBe("Cloud9 held the plant.")
     expect(body).not.toHaveProperty("model")
-    expect(text).not.toMatch(/openai|gpt-/i)
+    expect(text).not.toMatch(/openai|gpt-|anthropic|claude/i)
   })
 })

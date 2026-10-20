@@ -35,7 +35,7 @@ npm run gate         # kit check, typecheck, lint (0 warnings), unit tests, buil
 npm run build && npm run e2e   # Playwright on the production build, phone + desktop
 ```
 
-`.env.local` needs only `OPENAI_API_KEY` (server-side). Without it the AI features answer with
+`.env.local` needs `ANTHROPIC_API_KEY` (Claude, tried first) and `OPENAI_API_KEY` (fallback), both server-side. Without it the AI features answer with
 their written fallbacks.
 
 ## Docs
