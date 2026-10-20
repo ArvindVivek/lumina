@@ -10,7 +10,7 @@ round by round. This page says, in plain English, what happens to your informati
 - There are no accounts, no ads and no tracking.
 - The match data is bundled with the site. Nothing you do in Lumina is saved by Kitchen Labs.
 - If you ask the AI coach a question, the question and a few lines of match numbers are sent to
-  a third-party AI service to write the answer, then thrown away.
+  a third-party AI service (or, if that one is unavailable, a second one) to write the answer, then thrown away.
 
 ## What we handle, and why
 
@@ -18,8 +18,8 @@ round by round. This page says, in plain English, what happens to your informati
 or a button such as **Coach's take** or **Get the coach's review**, your browser sends to Lumina's
 server (hosted by Vercel): your question (or which match or round you picked), the page you're
 looking at, and your last few messages in the chat. The server adds a short summary of the match
-numbers and passes it to a third-party AI service to write the answer. Kitchen Labs does not store
-your questions or the answers. Our AI provider does not use them to train its models, and may keep
+numbers and passes it to a third-party AI service (or, if that one is unavailable, a second one) to write the answer. Kitchen Labs does not store
+your questions or the answers. Our AI providers do not use them to train their models, and may keep
 them for up to 30 days to check for abuse.
 
 Please don't type personal details into your questions.
