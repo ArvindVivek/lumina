@@ -1,4 +1,4 @@
-// KL Web 1.0.3, from kitchenlabs-kit/web/kl-web/components/index.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
+// KL Web 1.1.6, from kitchenlabs-kit/web/kl-web/components/index.ts. Kit-owned: change it in the kit, then run scripts/sync-web-kit.sh.
 // KL Web components. Import from "@/components/kl".
 export { Button, buttonClasses, type ButtonProps, type ButtonSize, type ButtonVariant } from "./Button";
 export { Card, SectionHeader } from "./Card";
